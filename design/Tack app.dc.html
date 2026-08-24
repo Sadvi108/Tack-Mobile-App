@@ -1,0 +1,1302 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics><meta name="design_doc_mode" content="canvas"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet"><style>body{margin:0;background:#e8e5de;font-family:Inter,system-ui,sans-serif}a{color:#7A1B34}a:hover{color:#5E1428}.sec{padding:38px 44px 30px;border-bottom:1px solid rgba(0,0,0,.08);scroll-margin-top:16px}.shd{display:flex;align-items:baseline;gap:10px;margin:0 0 6px}.sid{font:600 10px "IBM Plex Mono",monospace;padding:3px 7px;background:#23181C;color:#fff;border-radius:4px;text-decoration:none}.snm{font:600 14px/1.2 Inter,system-ui,sans-serif;color:#23181C}.snote{margin:0 0 20px;font:400 12.5px/1.5 Inter;color:rgba(0,0,0,.5);max-width:640px;text-wrap:pretty}.row{display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start}.cap{font:400 11px/1.3 Inter;color:rgba(0,0,0,.55);margin:0 0 8px}</style></helmet>
+
+<section class="sec" id="s1">
+<div class="shd"><a class="sid" href="#s1">01</a><span class="snm">Landing page</span></div>
+<p class="snote">Mobile web, one column, one CTA repeated twice. The hero preview is a real render of the dashboard, scaled down — no stock imagery, so the page stays light on a slow connection.</p>
+<div class="row">
+<div>
+<p class="cap">Full page — 360 wide</p>
+<div style="width:360px;background:#F1EFE8;border-radius:26px;border:1px solid rgba(0,0,0,.14);overflow:hidden;font-family:Inter,system-ui,sans-serif;color:#23181C">
+
+<div style="background:#7A1B34;color:#fff;padding:14px 22px 30px">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:34px">
+    <span style="display:flex;align-items:center;gap:8px"><svg width="32" height="20" viewBox="0 0 40 24" fill="none"><polyline points="3,21 11,12 17,16 25,7 31,11" stroke="#FAC775" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="36" cy="5" r="3.2" fill="#FAC775"/></svg><span style="font:600 18px Outfit,Inter">Tack</span></span>
+    <span style="font:500 15px Inter;color:rgba(255,255,255,.8);min-height:44px;display:flex;align-items:center">Log in</span>
+  </div>
+  <h1 style="margin:0 0 14px;font:600 34px/1.2 Outfit,Inter;letter-spacing:-.02em;text-wrap:pretty">Your first job starts here</h1>
+  <p style="margin:0 0 22px;font:400 17px/1.55 Inter;color:rgba(255,255,255,.82);text-wrap:pretty">Tack looks at where you are today and builds one personalised plan to get you hired. Free for every student.</p>
+  <button style="width:100%;height:54px;border:0;border-radius:27px;background:#FAC775;color:#23181C;font:600 17px Inter;cursor:pointer" style-hover="background:#f7bb56">Start free</button>
+  <p style="margin:12px 0 0;font:400 14px Inter;color:rgba(255,255,255,.65);text-align:center">No payment. No CV needed to begin.</p>
+</div>
+
+<div style="background:#7A1B34;padding:0 34px;position:relative">
+  <div style="background:#F1EFE8;border-radius:20px 20px 0 0;padding:14px 12px 0;box-shadow:0 -8px 24px rgba(0,0,0,.18)">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;padding:0 6px">
+      <div style="width:54px;height:54px;border-radius:50%;flex:none;background:conic-gradient(#5DCAA5 0 61%, #E2DBD6 0);display:flex;align-items:center;justify-content:center"><div style="width:42px;height:42px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font:600 17px Outfit,Inter;color:#7A1B34">61</div></div>
+      <div><p style="margin:0;font:600 13px Outfit,Inter">Readiness 61</p><p style="margin:2px 0 0;font:500 12px Inter;color:#1A6B50">+4 this week</p></div>
+    </div>
+    <div style="background:#fff;border-radius:12px 12px 0 0;padding:12px 14px 16px">
+      <p style="margin:0 0 8px;font:600 12px Outfit,Inter">Your next three actions</p>
+      <div style="display:flex;flex-direction:column;gap:7px">
+        <div style="display:flex;align-items:center;gap:8px"><span style="width:14px;height:14px;border-radius:4px;border:1.5px solid #C9B6BC;flex:none"></span><span style="font:400 12px Inter;flex:1">Upload your CV</span><span style="font:600 11px Inter;color:#7A1B34">+9</span></div>
+        <div style="display:flex;align-items:center;gap:8px"><span style="width:14px;height:14px;border-radius:4px;border:1.5px solid #C9B6BC;flex:none"></span><span style="font:400 12px Inter;flex:1">Add two projects</span><span style="font:600 11px Inter;color:#7A1B34">+6</span></div>
+        <div style="display:flex;align-items:center;gap:8px;opacity:.55"><span style="width:14px;height:14px;border-radius:4px;border:1.5px solid #C9B6BC;flex:none"></span><span style="font:400 12px Inter;flex:1">Practise 3 questions</span><span style="font:600 11px Inter;color:#7A1B34">+4</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="padding:30px 22px 26px;background:#F1EFE8">
+  <p style="margin:0 0 18px;font:500 11px 'IBM Plex Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#6E5B61">What you get</p>
+  <div style="display:flex;flex-direction:column;gap:12px">
+    <div style="background:#fff;border-radius:18px;padding:18px 20px;display:flex;gap:14px;align-items:flex-start">
+      <span style="width:40px;height:40px;border-radius:12px;background:#EAF8F2;flex:none;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.5" stroke="#1F8A66" stroke-width="2"/><path d="M12 7.5v5l3 2" stroke="#1F8A66" stroke-width="2" stroke-linecap="round"/></svg></span>
+      <span><span style="display:block;font:600 17px Outfit,Inter;margin-bottom:4px">Readiness score</span><span style="display:block;font:400 15px/1.5 Inter;color:#6E5B61;text-wrap:pretty">One number out of 100 that tells you how close you are, and the nine things behind it.</span></span>
+    </div>
+    <div style="background:#fff;border-radius:18px;padding:18px 20px;display:flex;gap:14px;align-items:flex-start">
+      <span style="width:40px;height:40px;border-radius:12px;background:#FDF6E7;flex:none;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><polyline points="3,19 9,11 14,15 21,5" stroke="#8A6415" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      <span><span style="display:block;font:600 17px Outfit,Inter;margin-bottom:4px">Career roadmap</span><span style="display:block;font:400 15px/1.5 Inter;color:#6E5B61;text-wrap:pretty">Milestones and small tasks in order, built from your degree and the job you want.</span></span>
+    </div>
+    <div style="background:#fff;border-radius:18px;padding:18px 20px;display:flex;gap:14px;align-items:flex-start">
+      <span style="width:40px;height:40px;border-radius:12px;background:#F3E7EA;flex:none;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="3.5" y="7.5" width="17" height="12" rx="2" stroke="#7A1B34" stroke-width="2"/><path d="M9 7.5V5.5h6v2" stroke="#7A1B34" stroke-width="2"/></svg></span>
+      <span><span style="display:block;font:600 17px Outfit,Inter;margin-bottom:4px">Application tracker</span><span style="display:block;font:400 15px/1.5 Inter;color:#6E5B61;text-wrap:pretty">Every job you apply to, its status and its next date, in one list you actually keep.</span></span>
+    </div>
+  </div>
+</div>
+
+<div style="padding:30px 22px 30px;background:#fff">
+  <p style="margin:0 0 20px;font:500 11px 'IBM Plex Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#6E5B61">How it works</p>
+  <div style="display:flex;gap:16px">
+    <div style="width:12px;flex:none;display:flex;flex-direction:column;align-items:center;padding-top:9px"><span style="width:11px;height:11px;border-radius:50%;background:#7A1B34"></span><span style="flex:1;width:2px;background:#EDE7E4"></span><span style="width:11px;height:11px;border-radius:50%;background:#7A1B34"></span><span style="flex:1;width:2px;background:#EDE7E4"></span><span style="width:11px;height:11px;border-radius:50%;background:#7A1B34"></span></div>
+    <div style="flex:1;display:flex;flex-direction:column;gap:22px">
+      <div><p style="margin:0 0 4px;font:600 17px Outfit,Inter">Tell us about you</p><p style="margin:0;font:400 15px/1.5 Inter;color:#6E5B61;text-wrap:pretty">Four short steps. Under two minutes on a phone.</p></div>
+      <div><p style="margin:0 0 4px;font:600 17px Outfit,Inter">Get your score and plan</p><p style="margin:0;font:400 15px/1.5 Inter;color:#6E5B61;text-wrap:pretty">You see where you stand and what to fix first.</p></div>
+      <div><p style="margin:0 0 4px;font:600 17px Outfit,Inter">Work through it</p><p style="margin:0;font:400 15px/1.5 Inter;color:#6E5B61;text-wrap:pretty">Tick off tasks, track applications, practise interviews.</p></div>
+    </div>
+  </div>
+  <button style="margin-top:28px;width:100%;height:54px;border:0;border-radius:27px;background:#7A1B34;color:#fff;font:600 17px Inter;cursor:pointer" style-hover="background:#5E1428">Start free</button>
+</div>
+
+<div style="padding:26px 22px 30px;background:#23181C;color:rgba(255,255,255,.6)">
+  <span style="display:flex;align-items:center;gap:8px;margin-bottom:16px"><svg width="28" height="18" viewBox="0 0 40 24" fill="none"><polyline points="3,21 11,12 17,16 25,7 31,11" stroke="#F1EFE8" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="36" cy="5" r="3.2" fill="#F1EFE8"/></svg><span style="font:600 16px Outfit,Inter;color:#F1EFE8">Tack</span></span>
+  <p style="margin:0 0 18px;font:400 14px/1.55 Inter;text-wrap:pretty">Built in Dhaka for students in Bangladesh.</p>
+  <div style="display:flex;flex-wrap:wrap;gap:14px 22px;margin-bottom:20px">
+    <span style="font:400 15px Inter;color:rgba(255,255,255,.75);min-height:44px;display:flex;align-items:center">About</span>
+    <span style="font:400 15px Inter;color:rgba(255,255,255,.75);min-height:44px;display:flex;align-items:center">Privacy</span>
+    <span style="font:400 15px Inter;color:rgba(255,255,255,.75);min-height:44px;display:flex;align-items:center">Terms</span>
+    <span style="font:400 15px Inter;color:rgba(255,255,255,.75);min-height:44px;display:flex;align-items:center">Contact</span>
+  </div>
+  <p style="margin:0;font:400 14.5px Inter;color:rgba(255,255,255,.4)">© 2026 Tack</p>
+</div>
+
+</div>
+</div>
+</div>
+</section>
+
+<section class="sec" id="s2">
+<div class="shd"><a class="sid" href="#s2">02</a><span class="snm">Sign up</span></div>
+<p class="snote">Fits 360×640 with no scroll — measured against the shortest common Android viewport. Google is the primary path because most students already have an account and typing a password on a mid-range phone is the drop-off point.</p>
+<div class="row">
+<div>
+<p class="cap">360 × 640 — no scroll</p>
+<div style="width:360px;height:640px;background:#F1EFE8;border-radius:26px;border:1px solid rgba(0,0,0,.14);overflow:hidden;display:flex;flex-direction:column;font-family:Inter,system-ui,sans-serif;color:#23181C">
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 20px 0;font:600 12px Inter;color:#6E5B61;flex:none"><span>9:41</span><span style="display:flex;gap:6px;align-items:center"><span>4G</span><span style="width:20px;height:10px;border:1px solid #6E5B61;border-radius:2px;display:inline-block"></span></span></div>
+  <div style="flex:1;min-height:0;overflow-y:auto;padding:18px 24px 0;display:flex;flex-direction:column">
+    <span style="display:flex;align-items:center;gap:8px;margin-bottom:22px"><svg width="32" height="20" viewBox="0 0 40 24" fill="none"><polyline points="3,21 11,12 17,16 25,7 31,11" stroke="#7A1B34" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="36" cy="5" r="3.2" fill="#7A1B34"/></svg><span style="font:600 18px Outfit,Inter">Tack</span></span>
+    <h1 style="margin:0 0 6px;font:600 26px/1.25 Outfit,Inter;letter-spacing:-.01em">Create your account</h1>
+    <p style="margin:0 0 22px;font:400 16px/1.5 Inter;color:#6E5B61;text-wrap:pretty">It takes about a minute.</p>
+
+    <button style="width:100%;height:54px;border:1.5px solid #DCD4CF;border-radius:14px;background:#fff;color:#23181C;font:600 16px Inter;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px" style-hover="border-color:#7A1B34"><span style="width:20px;height:20px;border-radius:50%;background:conic-gradient(#EA4335 0 25%,#FBBC05 0 50%,#34A853 0 75%,#4285F4 0);display:inline-block;flex:none"></span>Continue with Google</button>
+
+    <div style="display:flex;align-items:center;gap:12px;margin:20px 0"><span style="flex:1;height:1px;background:#DCD4CF"></span><span style="font:400 14.5px Inter;color:#6E5B61">or use email</span><span style="flex:1;height:1px;background:#DCD4CF"></span></div>
+
+    <label style="display:block;font:500 13px Inter;color:#6E5B61;margin-bottom:6px">Email</label>
+    <input type="email" placeholder="you@example.com" style="width:100%;box-sizing:border-box;height:50px;border:1.5px solid #DCD4CF;border-radius:12px;background:#fff;padding:0 14px;font:400 16px Inter;color:#23181C;margin-bottom:14px" style-focus="border-color:#7A1B34;outline:none"/>
+    <label style="display:block;font:500 13px Inter;color:#6E5B61;margin-bottom:6px">Password</label>
+    <input type="password" placeholder="At least 8 characters" style="width:100%;box-sizing:border-box;height:50px;border:1.5px solid #DCD4CF;border-radius:12px;background:#fff;padding:0 14px;font:400 16px Inter;color:#23181C" style-focus="border-color:#7A1B34;outline:none"/>
+    <button style="margin-top:16px;width:100%;height:54px;border:0;border-radius:14px;background:#7A1B34;color:#fff;font:600 17px Inter;cursor:pointer" style-hover="background:#5E1428">Create account</button>
+  </div>
+  <div style="flex:none;padding:14px 24px 20px">
+    <div style="display:flex;gap:9px;align-items:flex-start;margin-bottom:12px">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" style="flex:none;margin-top:2px"><path d="M12 3 4.5 6v6c0 4.5 3.2 7.8 7.5 9 4.3-1.2 7.5-4.5 7.5-9V6z" stroke="#1F8A66" stroke-width="2" stroke-linejoin="round"/></svg>
+      <p style="margin:0;font:400 14.5px/1.45 Inter;color:#6E5B61;text-wrap:pretty">Your CV and documents stay private. Nothing is shared with employers unless you send it.</p>
+    </div>
+    <p style="margin:0;text-align:center;font:400 15px Inter;color:#6E5B61">Already have an account? <a href="#s2" style="font-weight:600;text-decoration:none">Log in</a></p>
+  </div>
+</div>
+</div>
+</div>
+</section>
+
+<section class="sec" id="s3">
+<div class="shd"><a class="sid" href="#s3">03</a><span class="snm">Onboarding — four steps</span></div>
+<p class="snote">Each step asks for one kind of thing and nothing more, so it clears in under 30 seconds. Progress bar and back link at the top, Continue pinned above the thumb. Step 3 is shown in full detail.</p>
+<div class="row">
+
+<div>
+<p class="cap">Step 1 — you</p>
+<div style="width:360px;height:720px;background:#F1EFE8;border-radius:26px;border:1px solid rgba(0,0,0,.14);overflow:hidden;display:flex;flex-direction:column;font-family:Inter,system-ui,sans-serif;color:#23181C">
+<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 20px 0;font:600 12px Inter;color:#6E5B61;flex:none"><span>9:41</span><span style="display:flex;gap:6px;align-items:center"><span>4G</span><span style="width:20px;height:10px;border:1px solid #6E5B61;border-radius:2px;display:inline-block"></span></span></div>
+<div style="flex:none;padding:14px 22px 0">
+  <div style="display:flex;gap:5px;margin-bottom:14px"><span style="flex:1;height:5px;border-radius:3px;background:#7A1B34"></span><span style="flex:1;height:5px;border-radius:3px;background:#DCD4CF"></span><span style="flex:1;height:5px;border-radius:3px;background:#DCD4CF"></span><span style="flex:1;height:5px;border-radius:3px;background:#DCD4CF"></span></div>
+  <div style="display:flex;align-items:center;justify-content:space-between;min-height:44px"><span style="font:500 15px Inter;color:#6E5B61">Step 1 of 4</span><span style="font:500 15px Inter;color:#7A1B34">Skip</span></div>
+</div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:8px 22px 0">
+  <h1 style="margin:0 0 6px;font:600 25px/1.25 Outfit,Inter;letter-spacing:-.01em">About you</h1>
+  <p style="margin:0 0 22px;font:400 16px/1.5 Inter;color:#6E5B61">Three quick things.</p>
+  <label style="display:block;font:500 13px Inter;color:#6E5B61;margin-bottom:6px">Full name</label>
+  <input placeholder="Rafiq Hasan" style="width:100%;box-sizing:border-box;height:52px;border:1.5px solid #DCD4CF;border-radius:12px;background:#fff;padding:0 14px;font:400 16px Inter;margin-bottom:16px" style-focus="border-color:#7A1B34;outline:none"/>
+  <label style="display:block;font:500 13px Inter;color:#6E5B61;margin-bottom:6px">City</label>
+  <div style="position:relative;margin-bottom:16px"><select style="width:100%;box-sizing:border-box;height:52px;border:1.5px solid #DCD4CF;border-radius:12px;background:#fff;padding:0 14px;font:400 16px Inter;color:#23181C;appearance:none"><option>Dhaka</option><option>Chattogram</option><option>Sylhet</option><option>Rajshahi</option><option>Khulna</option></select><span style="position:absolute;right:16px;top:19px;pointer-events:none;font:400 14px Inter;color:#6E5B61">▾</span></div>
+  <label style="display:block;font:500 13px Inter;color:#6E5B61;margin-bottom:6px">Phone</label>
+  <div style="display:flex;gap:8px"><span style="height:52px;box-sizing:border-box;border:1.5px solid #DCD4CF;border-radius:12px;background:#EDE7E4;padding:0 14px;display:flex;align-items:center;font:500 16px Inter;color:#6E5B61">+880</span><input placeholder="1XXXXXXXXX" style="flex:1;min-width:0;box-sizing:border-box;height:52px;border:1.5px solid #DCD4CF;border-radius:12px;background:#fff;padding:0 14px;font:400 16px Inter" style-focus="border-color:#7A1B34;outline:none"/></div>
+</div>
+<div style="flex:none;padding:14px 22px 22px;background:#F1EFE8;border-top:1px solid rgba(0,0,0,.05)"><button style="width:100%;height:54px;border:0;border-radius:14px;background:#7A1B34;color:#fff;font:600 17px Inter;cursor:pointer" style-hover="background:#5E1428">Continue</button></div>
+</div>
+</div>
+
+<div>
+<p class="cap">Step 2 — education</p>
+<div style="width:360px;height:720px;background:#F1EFE8;border-radius:26px;border:1px solid rgba(0,0,0,.14);overflow:hidden;display:flex;flex-direction:column;font-family:Inter,system-ui,sans-serif;color:#23181C">
+<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 20px 0;font:600 12px Inter;color:#6E5B61;flex:none"><span>9:41</span><span style="display:flex;gap:6px;align-items:center"><span>4G</span><span style="width:20px;height:10px;border:1px solid #6E5B61;border-radius:2px;display:inline-block"></span></span></div>
+<div style="flex:none;padding:14px 22px 0">
+  <div style="display:flex;gap:5px;margin-bottom:14px"><span style="flex:1;height:5px;border-radius:3px;background:#7A1B34"></span><span style="flex:1;height:5px;border-radius:3px;background:#7A1B34"></span><span style="flex:1;height:5px;border-radius:3px;background:#DCD4CF"></span><span style="flex:1;height:5px;border-radius:3px;background:#DCD4CF"></span></div>
+  <div style="display:flex;align-items:center;justify-content:space-between;min-height:44px"><span style="font:500 15px Inter;color:#7A1B34">← Back</span><span style="font:500 15px Inter;color:#6E5B61">Step 2 of 4</span></div>
+</div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:8px 22px 0">
+  <h1 style="margin:0 0 6px;font:600 25px/1.25 Outfit,Inter;letter-spacing:-.01em">Your studies</h1>
+  <p style="margin:0 0 22px;font:400 16px/1.5 Inter;color:#6E5B61">This shapes your roadmap.</p>
+  <label style="display:block;font:500 13px Inter;color:#6E5B61;margin-bottom:6px">University</label>
+  <input placeholder="Search your university" style="width:100%;box-sizing:border-box;height:52px;border:1.5px solid #DCD4CF;border-radius:12px;background:#fff;padding:0 14px;font:400 16px Inter;margin-bottom:16px" style-focus="border-color:#7A1B34;outline:none"/>
+  <label style="display:block;font:500 13px Inter;color:#6E5B61;margin-bottom:6px">Degree</label>
+  <div style="position:relative;margin-bottom:16px"><select style="width:100%;box-sizing:border-box;height:52px;border:1.5px solid #DCD4CF;border-radius:12px;background:#fff;padding:0 14px;font:400 16px Inter;color:#23181C;appearance:none"><option>BBA</option><option>BSc Computer Science</option><option>BSc Engineering</option><option>BA English</option><option>BSc Economics</option></select><span style="position:absolute;right:16px;top:19px;pointer-events:none;font:400 14px Inter;color:#6E5B61">▾</span></div>
+  <div style="display:flex;gap:12px">
+    <div style="flex:1"><label style="display:block;font:500 13px Inter;color:#6E5B61;margin-bottom:6px">Graduating</label><div style="position:relative"><select style="width:100%;box-sizing:border-box;height:52px;border:1.5px solid #DCD4CF;border-radius:12px;background:#fff;padding:0 14px;font:400 16px Inter;color:#23181C;appearance:none"><option>2026</option><option>2027</option><option>2028</option></select><span style="position:absolute;right:14px;top:19px;pointer-events:none;font:400 14px Inter;color:#6E5B61">▾</span></div></div>
+    <div style="flex:1"><label style="display:block;font:500 13px Inter;color:#6E5B61;margin-bottom:6px">CGPA <span style="color:#6E5B61;font-weight:400">optional</span></label><input placeholder="3.45" style="width:100%;box-sizing:border-box;height:52px;border:1.5px solid #DCD4CF;border-radius:12px;background:#fff;padding:0 14px;font:400 16px Inter" style-focus="border-color:#7A1B34;outline:none"/></div>
+  </div>
+  <p style="margin:14px 0 0;font:400 14px/1.45 Inter;color:#6E5B61;text-wrap:pretty">CGPA is never shown to anyone. Leave it blank if you prefer.</p>
+</div>
+<div style="flex:none;padding:14px 22px 22px;background:#F1EFE8;border-top:1px solid rgba(0,0,0,.05)"><button style="width:100%;height:54px;border:0;border-radius:14px;background:#7A1B34;color:#fff;font:600 17px Inter;cursor:pointer" style-hover="background:#5E1428">Continue</button></div>
+</div>
+</div>
+
+<div>
+<p class="cap">Step 3 — skills, in detail</p>
+<div style="width:360px;height:720px;background:#F1EFE8;border-radius:26px;border:1px solid rgba(0,0,0,.14);overflow:hidden;display:flex;flex-direction:column;font-family:Inter,system-ui,sans-serif;color:#23181C">
+<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 20px 0;font:600 12px Inter;color:#6E5B61;flex:none"><span>9:41</span><span style="display:flex;gap:6px;align-items:center"><span>4G</span><span style="width:20px;height:10px;border:1px solid #6E5B61;border-radius:2px;display:inline-block"></span></span></div>
+<div style="flex:none;padding:14px 22px 0">
+  <div style="display:flex;gap:5px;margin-bottom:14px"><span style="flex:1;height:5px;border-radius:3px;background:#7A1B34"></span><span style="flex:1;height:5px;border-radius:3px;background:#7A1B34"></span><span style="flex:1;height:5px;border-radius:3px;background:#7A1B34"></span><span style="flex:1;height:5px;border-radius:3px;background:#DCD4CF"></span></div>
+  <div style="display:flex;align-items:center;justify-content:space-between;min-height:44px"><span style="font:500 15px Inter;color:#7A1B34">← Back</span><span style="font:500 15px Inter;color:#6E5B61">Step 3 of 4</span></div>
+</div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:8px 22px 0">
+  <h1 style="margin:0 0 6px;font:600 25px/1.25 Outfit,Inter;letter-spacing:-.01em">What can you do?</h1>
+  <p style="margin:0 0 16px;font:400 16px/1.5 Inter;color:#6E5B61;text-wrap:pretty">Tap anything you have used, even a little.</p>
+  <input placeholder="Search skills" style="width:100%;box-sizing:border-box;height:50px;border:1.5px solid #DCD4CF;border-radius:12px;background:#fff;padding:0 14px;font:400 16px Inter;margin-bottom:16px" style-focus="border-color:#7A1B34;outline:none"/>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span style="font:500 11px 'IBM Plex Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#6E5B61">Popular for BBA</span><span style="font:600 13px Inter;color:#7A1B34">6 selected</span></div>
+  <div style="display:flex;flex-wrap:wrap;gap:9px">
+    <sc-for list="{{ skills }}" as="s" hint-placeholder-count="14">
+      <span style="min-height:44px;display:inline-flex;align-items:center;padding:0 16px;border-radius:22px;font-family:Inter;font-size:15px;font-weight:500;background:{{ s.bg }};color:{{ s.fg }};border:1.5px solid {{ s.bd }}">{{ s.mark }}{{ s.name }}</span>
+    </sc-for>
+  </div>
+  <p style="margin:16px 0 0;font:400 15px Inter;color:#7A1B34;font-weight:600">+ Add a skill not listed</p>
+</div>
+<div style="flex:none;padding:14px 22px 22px;background:#F1EFE8;border-top:1px solid rgba(0,0,0,.05)"><button style="width:100%;height:54px;border:0;border-radius:14px;background:#7A1B34;color:#fff;font:600 17px Inter;cursor:pointer" style-hover="background:#5E1428">Continue</button></div>
+</div>
+</div>
+
+<div>
+<p class="cap">Step 4 — target</p>
+<div style="width:360px;height:720px;background:#F1EFE8;border-radius:26px;border:1px solid rgba(0,0,0,.14);overflow:hidden;display:flex;flex-direction:column;font-family:Inter,system-ui,sans-serif;color:#23181C">
+<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 20px 0;font:600 12px Inter;color:#6E5B61;flex:none"><span>9:41</span><span style="display:flex;gap:6px;align-items:center"><span>4G</span><span style="width:20px;height:10px;border:1px solid #6E5B61;border-radius:2px;display:inline-block"></span></span></div>
+<div style="flex:none;padding:14px 22px 0">
+  <div style="display:flex;gap:5px;margin-bottom:14px"><span style="flex:1;height:5px;border-radius:3px;background:#7A1B34"></span><span style="flex:1;height:5px;border-radius:3px;background:#7A1B34"></span><span style="flex:1;height:5px;border-radius:3px;background:#7A1B34"></span><span style="flex:1;height:5px;border-radius:3px;background:#7A1B34"></span></div>
+  <div style="display:flex;align-items:center;justify-content:space-between;min-height:44px"><span style="font:500 15px Inter;color:#7A1B34">← Back</span><span style="font:500 15px Inter;color:#6E5B61">Step 4 of 4</span></div>
+</div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:8px 22px 0">
+  <h1 style="margin:0 0 6px;font:600 25px/1.25 Outfit,Inter;letter-spacing:-.01em">Where are you heading?</h1>
+  <p style="margin:0 0 22px;font:400 16px/1.5 Inter;color:#6E5B61;text-wrap:pretty">You can change this later.</p>
+  <label style="display:block;font:500 13px Inter;color:#6E5B61;margin-bottom:8px">Target role</label>
+  <div style="display:flex;flex-direction:column;gap:9px;margin-bottom:22px">
+    <span style="min-height:52px;display:flex;align-items:center;padding:0 16px;border-radius:12px;background:#7A1B34;color:#fff;font:600 16px Inter">Data analyst</span>
+    <span style="min-height:52px;display:flex;align-items:center;padding:0 16px;border-radius:12px;background:#fff;border:1.5px solid #DCD4CF;font:400 16px Inter">Management trainee</span>
+    <span style="min-height:52px;display:flex;align-items:center;padding:0 16px;border-radius:12px;background:#fff;border:1.5px solid #DCD4CF;font:400 16px Inter">Marketing executive</span>
+    <span style="min-height:52px;display:flex;align-items:center;padding:0 16px;border-radius:12px;background:#fff;border:1.5px solid #DCD4CF;font:400 16px Inter;color:#7A1B34;font-weight:600">Something else</span>
+  </div>
+  <label style="display:block;font:500 13px Inter;color:#6E5B61;margin-bottom:8px">Industry</label>
+  <div style="display:flex;flex-wrap:wrap;gap:9px">
+    <span style="min-height:44px;display:inline-flex;align-items:center;padding:0 16px;border-radius:22px;background:#7A1B34;color:#fff;font:500 15px Inter">✓ Banking</span>
+    <span style="min-height:44px;display:inline-flex;align-items:center;padding:0 16px;border-radius:22px;background:#fff;border:1.5px solid #DCD4CF;font:500 15px Inter">FMCG</span>
+    <span style="min-height:44px;display:inline-flex;align-items:center;padding:0 16px;border-radius:22px;background:#fff;border:1.5px solid #DCD4CF;font:500 15px Inter">Tech</span>
+    <span style="min-height:44px;display:inline-flex;align-items:center;padding:0 16px;border-radius:22px;background:#fff;border:1.5px solid #DCD4CF;font:500 15px Inter">Development / NGO</span>
+    <span style="min-height:44px;display:inline-flex;align-items:center;padding:0 16px;border-radius:22px;background:#fff;border:1.5px solid #DCD4CF;font:500 15px Inter">Telecom</span>
+  </div>
+</div>
+<div style="flex:none;padding:14px 22px 22px;background:#F1EFE8;border-top:1px solid rgba(0,0,0,.05)"><button style="width:100%;height:54px;border:0;border-radius:14px;background:#7A1B34;color:#fff;font:600 17px Inter;cursor:pointer" style-hover="background:#5E1428">See my score</button></div>
+</div>
+</div>
+
+</div>
+</section>
+
+<section class="sec" id="s4">
+<div class="shd"><a class="sid" href="#s4">04</a><span class="snm">Dashboard</span></div>
+<p class="snote">Built for a nearly-empty account: onboarding done, two applications, no CV. The next three actions sit above everything else and each one names its point value, so the score and the to-do list explain each other. Sparse sections say what they will become rather than showing a zero.</p>
+<div class="row">
+<div>
+<p class="cap">Home — two applications, no CV</p>
+<div style="width:360px;height:720px;background:#F1EFE8;border-radius:26px;border:1px solid rgba(0,0,0,.14);overflow:hidden;display:flex;flex-direction:column;font-family:Inter,system-ui,sans-serif;color:#23181C">
+<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 20px 0;font:600 12px Inter;color:#6E5B61;flex:none"><span>9:41</span><span style="display:flex;gap:6px;align-items:center"><span>4G</span><span style="width:20px;height:10px;border:1px solid #6E5B61;border-radius:2px;display:inline-block"></span></span></div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:12px 20px 0">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+    <span><span style="display:block;font:400 15px Inter;color:#6E5B61">Tuesday</span><span style="display:block;font:600 21px Outfit,Inter;letter-spacing:-.01em">Hi Rafiq</span></span>
+    <span style="width:40px;height:40px;border-radius:50%;background:#7A1B34;color:#fff;display:flex;align-items:center;justify-content:center;font:600 15px Inter">R</span>
+  </div>
+
+  <div style="background:#fff;border-radius:20px;padding:18px 20px;display:flex;align-items:center;gap:18px;margin-bottom:14px">
+    <div style="width:88px;height:88px;border-radius:50%;flex:none;background:conic-gradient(#5DCAA5 0 29%, #EDE7E4 0);display:flex;align-items:center;justify-content:center"><div style="width:70px;height:70px;border-radius:50%;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center"><span style="font:600 27px/1 Outfit,Inter;color:#7A1B34">29</span><span style="font:500 10px Inter;color:#6E5B61;margin-top:2px">of 100</span></div></div>
+    <div style="flex:1">
+      <p style="margin:0 0 5px;font:600 16px Outfit,Inter">Career readiness</p>
+      <p style="margin:0 0 8px;font:600 14px Inter;color:#1A6B50">↑ 6 since last week</p>
+      <span style="font:600 14px Inter;color:#7A1B34">See the nine parts →</span>
+    </div>
+  </div>
+
+  <div style="background:#fff;border-radius:20px;padding:18px 20px;margin-bottom:14px;border:1.5px solid #7A1B34">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:4px"><p style="margin:0;font:600 17px Outfit,Inter">Your next three actions</p></div>
+    <p style="margin:0 0 14px;font:400 14px Inter;color:#6E5B61">Biggest score gain for the least work</p>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;align-items:center;gap:12px;min-height:44px;padding:10px 12px;border-radius:14px;background:#FBF4F5"><span style="width:22px;height:22px;border-radius:7px;border:1.5px solid #C9B6BC;background:#fff;flex:none"></span><span style="flex:1"><span style="display:block;font:500 16px Inter">Upload your CV</span><span style="display:block;font:400 14.5px Inter;color:#6E5B61;margin-top:1px">Takes 1 min · unlocks CV feedback</span></span><span style="font:600 14px Inter;color:#7A1B34;flex:none">+15</span></div>
+      <div style="display:flex;align-items:center;gap:12px;min-height:44px;padding:10px 12px;border-radius:14px;background:#FBF4F5"><span style="width:22px;height:22px;border-radius:7px;border:1.5px solid #C9B6BC;background:#fff;flex:none"></span><span style="flex:1"><span style="display:block;font:500 16px Inter">Add two university projects</span><span style="display:block;font:400 14.5px Inter;color:#6E5B61;margin-top:1px">Coursework counts</span></span><span style="font:600 14px Inter;color:#7A1B34;flex:none">+8</span></div>
+      <div style="display:flex;align-items:center;gap:12px;min-height:44px;padding:10px 12px;border-radius:14px;background:#FBF4F5"><span style="width:22px;height:22px;border-radius:7px;border:1.5px solid #C9B6BC;background:#fff;flex:none"></span><span style="flex:1"><span style="display:block;font:500 16px Inter">Try one practice interview</span><span style="display:block;font:400 14.5px Inter;color:#6E5B61;margin-top:1px">3 questions, no one sees it</span></span><span style="font:600 14px Inter;color:#7A1B34;flex:none">+10</span></div>
+    </div>
+  </div>
+
+  <div style="background:#fff;border-radius:20px;padding:18px 20px;margin-bottom:14px">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px"><p style="margin:0;font:600 16px Outfit,Inter">Roadmap</p><span style="font:600 14px Inter;color:#6E5B61">18% complete</span></div>
+    <span style="display:block;height:8px;border-radius:4px;background:#EDE7E4;margin-bottom:10px"><span style="display:block;width:18%;height:8px;border-radius:4px;background:#7A1B34"></span></span>
+    <p style="margin:0;font:400 15px/1.45 Inter;color:#6E5B61;text-wrap:pretty">3 of 17 tasks done. You are on milestone 1, <span style="color:#23181C;font-weight:500">Build your base</span>.</p>
+  </div>
+
+  <div style="background:#fff;border-radius:20px;padding:18px 20px;margin-bottom:14px">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px"><p style="margin:0;font:600 16px Outfit,Inter">Applications</p><span style="font:600 14px Inter;color:#7A1B34">View all</span></div>
+    <div style="display:flex;gap:8px">
+      <span style="flex:1;text-align:center;padding:12px 0;border-radius:12px;background:#F1EFE8"><span style="display:block;font:600 20px Outfit,Inter">0</span><span style="display:block;font:400 12px Inter;color:#6E5B61;margin-top:2px">Saved</span></span>
+      <span style="flex:1;text-align:center;padding:12px 0;border-radius:12px;background:#EAF8F2"><span style="display:block;font:600 20px Outfit,Inter;color:#1A6B50">2</span><span style="display:block;font:400 12px Inter;color:#6E5B61;margin-top:2px">Applied</span></span>
+      <span style="flex:1;text-align:center;padding:12px 0;border-radius:12px;background:#FDF6E7"><span style="display:block;font:600 20px Outfit,Inter;color:#8A6415">1</span><span style="display:block;font:400 12px Inter;color:#6E5B61;margin-top:2px">Interview</span></span>
+      <span style="flex:1;text-align:center;padding:12px 0;border-radius:12px;background:#F1EFE8"><span style="display:block;font:600 20px Outfit,Inter">0</span><span style="display:block;font:400 12px Inter;color:#6E5B61;margin-top:2px">Offers</span></span>
+    </div>
+  </div>
+
+  <div style="background:#FDF6E7;border-radius:20px;padding:16px 18px;margin-bottom:18px;display:flex;gap:12px;align-items:flex-start">
+    <span style="width:34px;height:34px;border-radius:10px;background:#FAC775;flex:none;display:flex;align-items:center;justify-content:center;font:600 13px Outfit,Inter;color:#23181C">2</span>
+    <span style="flex:1"><span style="display:block;font:600 15px Inter;color:#23181C;margin-bottom:3px">This week</span><span style="display:block;font:400 14.5px/1.45 Inter;color:#5E4B33">Brac Bank interview, Tue 2 Sep · Unilever assessment closes Fri</span></span>
+  </div>
+</div>
+<div style="display:flex;background:#fff;border-top:1px solid #EDE7E4;padding:8px 2px 16px;flex:none"><sc-for list="{{ tabsHome }}" as="t" hint-placeholder-count="5"><div style="flex:1;min-height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="{{ t.d }}" stroke="{{ t.c }}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span style="font-family:Inter;font-size:10.5px;font-weight:{{ t.w }};color:{{ t.c }}">{{ t.label }}</span></div></sc-for></div>
+</div>
+</div>
+</div>
+</section>
+
+<section class="sec" id="s5">
+<div class="shd"><a class="sid" href="#s5">05</a><span class="snm">Readiness score detail</span></div>
+<p class="snote">The screen answers two questions in order: why is it 29, and what raises it fastest. Every row carries points earned, points still available, and one concrete action — so no row is a dead end. Rows are sorted by points available, not alphabetically.</p>
+<div class="row">
+<div>
+<p class="cap">Score detail — top</p>
+<div style="width:360px;height:720px;background:#F1EFE8;border-radius:26px;border:1px solid rgba(0,0,0,.14);overflow:hidden;display:flex;flex-direction:column;font-family:Inter,system-ui,sans-serif;color:#23181C">
+<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 20px 0;font:600 12px Inter;color:#6E5B61;flex:none"><span>9:41</span><span style="display:flex;gap:6px;align-items:center"><span>4G</span><span style="width:20px;height:10px;border:1px solid #6E5B61;border-radius:2px;display:inline-block"></span></span></div>
+<div style="flex:none;display:flex;align-items:center;gap:12px;padding:8px 20px 12px;min-height:44px"><span style="font:600 22px Outfit,Inter">←</span><span style="font:600 19px Outfit,Inter">Your readiness score</span></div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:0 20px 0">
+
+  <div style="background:#fff;border-radius:20px;padding:20px;margin-bottom:12px;text-align:center">
+    <div style="width:112px;height:112px;border-radius:50%;margin:0 auto 12px;background:conic-gradient(#5DCAA5 0 29%, #EDE7E4 0);display:flex;align-items:center;justify-content:center"><div style="width:90px;height:90px;border-radius:50%;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center"><span style="font:600 36px/1 Outfit,Inter;color:#7A1B34">29</span><span style="font:500 11px Inter;color:#6E5B61;margin-top:3px">of 100</span></div></div>
+    <p style="margin:0 0 4px;font:600 15px Inter;color:#1A6B50">↑ 6 points in the last 7 days</p>
+    <p style="margin:0;font:400 15px/1.45 Inter;color:#6E5B61;text-wrap:pretty">Most of what is missing is quick. 25 points are sitting in three actions.</p>
+  </div>
+
+  <div style="background:#fff;border-radius:20px;padding:18px 20px;margin-bottom:12px">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px"><p style="margin:0;font:600 16px Outfit,Inter">Last 90 days</p><span style="font:400 14.5px Inter;color:#6E5B61">9 → 29</span></div>
+    <svg viewBox="0 0 280 70" width="100%" height="76" fill="none" preserveAspectRatio="none" style="display:block">
+      <line x1="0" y1="66" x2="280" y2="66" stroke="#EDE7E4" stroke-width="1"/>
+      <line x1="0" y1="34" x2="280" y2="34" stroke="#EDE7E4" stroke-width="1" stroke-dasharray="3 4"/>
+      <polyline points="{{ trend }}" stroke="#7A1B34" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="280" cy="14" r="4.5" fill="#7A1B34"/>
+    </svg>
+    <div style="display:flex;justify-content:space-between;margin-top:8px"><span style="font:400 12px Inter;color:#6E5B61">Jun</span><span style="font:400 12px Inter;color:#6E5B61">Jul</span><span style="font:400 12px Inter;color:#6E5B61">Aug</span></div>
+  </div>
+
+  <p style="margin:0 0 4px;font:500 11px 'IBM Plex Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#6E5B61">The nine parts</p>
+  <p style="margin:0 0 12px;font:400 14px/1.45 Inter;color:#6E5B61">Sorted by what you can gain</p>
+
+  <div style="background:#fff;border-radius:20px;padding:4px 18px;margin-bottom:20px">
+    <sc-for list="{{ components }}" as="c" hint-placeholder-count="9">
+      <div style="padding:15px 0;border-bottom:1px solid #F1EFE8">
+        <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:7px">
+          <span style="flex:1;font-family:Inter;font-size:16px;font-weight:500">{{ c.name }}</span>
+          <span style="font-family:Inter;font-size:14px;font-weight:600;color:#23181C">{{ c.label }}</span>
+        </div>
+        <span style="display:block;height:7px;border-radius:4px;background:#EDE7E4;margin-bottom:8px"><span style="display:block;height:7px;border-radius:4px;width:{{ c.pct }};background:{{ c.colour }}"></span></span>
+        <div style="display:flex;align-items:center;gap:10px;min-height:32px">
+          <span style="flex:1;font-family:Inter;font-size:14.5px;line-height:1.4;color:#6E5B61">{{ c.action }}</span>
+          <span style="flex:none;font-family:Inter;font-size:14.5px;font-weight:600;color:#7A1B34;background:#F3E7EA;border-radius:14px;padding:6px 10px">+{{ c.gap }}</span>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+</div>
+<div style="flex:none;padding:12px 20px 20px;background:#F1EFE8;border-top:1px solid rgba(0,0,0,.05)"><button style="width:100%;height:54px;border:0;border-radius:14px;background:#7A1B34;color:#fff;font:600 17px Inter;cursor:pointer" style-hover="background:#5E1428">Start with CV quality · +15</button></div>
+</div>
+</div>
+</div>
+</section>
+
+<section class="sec" id="s6">
+<div class="shd"><a class="sid" href="#s6">06</a><span class="snm">Career roadmap</span></div>
+<p class="snote">Five milestones in order. Locked ones show what unlocks them rather than a padlock alone, so the sequence reads as a route and not a paywall. Milestone 1 is expanded with its six tasks.</p>
+<div class="row">
+<div>
+<p class="cap">Roadmap — milestone 1 expanded</p>
+<div style="width:360px;height:720px;background:#F1EFE8;border-radius:26px;border:1px solid rgba(0,0,0,.14);overflow:hidden;display:flex;flex-direction:column;font-family:Inter,system-ui,sans-serif;color:#23181C">
+<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 20px 0;font:600 12px Inter;color:#6E5B61;flex:none"><span>9:41</span><span style="display:flex;gap:6px;align-items:center"><span>4G</span><span style="width:20px;height:10px;border:1px solid #6E5B61;border-radius:2px;display:inline-block"></span></span></div>
+<div style="flex:none;padding:10px 20px 14px">
+  <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px"><span style="font:600 21px Outfit,Inter;letter-spacing:-.01em">Your roadmap</span><span style="font:600 15px Inter;color:#6E5B61">18%</span></div>
+  <span style="display:block;height:8px;border-radius:4px;background:#DCD4CF"><span style="display:block;width:18%;height:8px;border-radius:4px;background:#7A1B34"></span></span>
+  <p style="margin:8px 0 0;font:400 14px Inter;color:#6E5B61">3 of 17 tasks · target role: data analyst</p>
+</div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:0 20px 0">
+
+  <div style="background:#fff;border-radius:20px;padding:16px 18px;margin-bottom:12px;border:1.5px solid #7A1B34">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px">
+      <span style="width:30px;height:30px;border-radius:50%;background:#7A1B34;color:#fff;flex:none;display:flex;align-items:center;justify-content:center;font:600 14px Outfit,Inter">1</span>
+      <span style="flex:1;font:600 17px Outfit,Inter">Build your base</span>
+      <span style="font:400 16px Inter;color:#6E5B61">▴</span>
+    </div>
+    <p style="margin:0 0 14px;font:400 14px Inter;color:#6E5B61;padding-left:42px">In progress · 3 of 6 done</p>
+    <div style="display:flex;flex-direction:column;gap:2px">
+      <sc-for list="{{ tasks }}" as="k" hint-placeholder-count="6">
+        <div style="display:flex;align-items:center;gap:12px;min-height:52px;padding:6px 0;border-top:1px solid #F1EFE8">
+          <span style="width:24px;height:24px;border-radius:8px;flex:none;display:flex;align-items:center;justify-content:center;font-family:Inter;font-size:14.5px;font-weight:700;color:#fff;background:{{ k.box }};border:1.5px solid {{ k.boxBd }}">{{ k.tick }}</span>
+          <span style="flex:1;min-width:0">
+            <span style="display:block;font-family:Inter;font-size:16px;font-weight:500;color:{{ k.titleColour }};text-decoration:{{ k.strike }}">{{ k.title }}</span>
+            <span style="display:flex;align-items:center;gap:8px;margin-top:4px">
+              <span style="font-family:Inter;font-size:11.5px;font-weight:600;padding:3px 8px;border-radius:10px;background:{{ k.tagBg }};color:{{ k.tagFg }}">{{ k.tag }}</span>
+              <span style="font-family:Inter;font-size:14.5px;color:#6E5B61">{{ k.due }}</span>
+            </span>
+          </span>
+        </div>
+      </sc-for>
+    </div>
+    <div style="border-top:1px solid #F1EFE8;margin-top:6px;padding-top:12px"><span style="font:600 15px Inter;color:#7A1B34;min-height:44px;display:flex;align-items:center">+ Add your own task</span></div>
+  </div>
+
+  <div style="background:#fff;border-radius:20px;padding:16px 18px;margin-bottom:12px;display:flex;align-items:center;gap:12px">
+    <span style="width:30px;height:30px;border-radius:50%;background:#EAF8F2;color:#1A6B50;flex:none;display:flex;align-items:center;justify-content:center;font:600 14px Inter">✓</span>
+    <span style="flex:1"><span style="display:block;font:600 17px Outfit,Inter;color:#6E5B61">Set your direction</span><span style="display:block;font:400 14px Inter;color:#6E5B61;margin-top:2px">Completed 19 Aug · 4 of 4</span></span>
+    <span style="font:400 16px Inter;color:#6E5B61">▾</span>
+  </div>
+
+  <div style="background:#fff;border-radius:20px;padding:16px 18px;margin-bottom:12px;display:flex;align-items:center;gap:12px">
+    <span style="width:30px;height:30px;border-radius:50%;background:#EDE7E4;color:#6E5B61;flex:none;display:flex;align-items:center;justify-content:center;font:600 14px Outfit,Inter">3</span>
+    <span style="flex:1"><span style="display:block;font:600 17px Outfit,Inter">Prove your skills</span><span style="display:block;font:400 14px Inter;color:#6E5B61;margin-top:2px">5 tasks · projects and certificates</span></span>
+    <span style="font:400 16px Inter;color:#6E5B61">▾</span>
+  </div>
+
+  <div style="background:rgba(255,255,255,.6);border-radius:20px;padding:16px 18px;margin-bottom:12px;display:flex;align-items:center;gap:12px">
+    <span style="width:30px;height:30px;border-radius:50%;background:#EDE7E4;color:#6E5B61;flex:none;display:flex;align-items:center;justify-content:center;font:600 14px Outfit,Inter">4</span>
+    <span style="flex:1"><span style="display:block;font:600 17px Outfit,Inter;color:#6E5B61">Apply properly</span><span style="display:block;font:400 14px/1.4 Inter;color:#6E5B61;margin-top:2px;text-wrap:pretty">Opens when your CV is uploaded and 2 projects are added</span></span>
+  </div>
+
+  <div style="background:rgba(255,255,255,.6);border-radius:20px;padding:16px 18px;margin-bottom:20px;display:flex;align-items:center;gap:12px">
+    <span style="width:30px;height:30px;border-radius:50%;background:#EDE7E4;color:#6E5B61;flex:none;display:flex;align-items:center;justify-content:center;font:600 14px Outfit,Inter">5</span>
+    <span style="flex:1"><span style="display:block;font:600 17px Outfit,Inter;color:#6E5B61">Interview well</span><span style="display:block;font:400 14px/1.4 Inter;color:#6E5B61;margin-top:2px;text-wrap:pretty">Opens after your first interview is booked</span></span>
+  </div>
+</div>
+<div style="display:flex;background:#fff;border-top:1px solid #EDE7E4;padding:8px 2px 16px;flex:none"><sc-for list="{{ tabsRoadmap }}" as="t" hint-placeholder-count="5"><div style="flex:1;min-height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="{{ t.d }}" stroke="{{ t.c }}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span style="font-family:Inter;font-size:10.5px;font-weight:{{ t.w }};color:{{ t.c }}">{{ t.label }}</span></div></sc-for></div>
+</div>
+</div>
+</div>
+</section>
+
+<section class="sec" id="s7">
+<div class="shd"><a class="sid" href="#s7">07</a><span class="snm">Application tracker</span></div>
+<p class="snote">A filterable list, not a kanban — horizontal scrolling loses cards on a 360px screen. The count strip doubles as the filter, so one row does two jobs. Each card leads with the next date, because that is the thing that gets missed.</p>
+<div class="row">
+
+<div>
+<p class="cap">List — filtered to all</p>
+<div style="width:360px;height:720px;background:#F1EFE8;border-radius:26px;border:1px solid rgba(0,0,0,.14);overflow:hidden;display:flex;flex-direction:column;position:relative;font-family:Inter,system-ui,sans-serif;color:#23181C">
+<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 20px 0;font:600 12px Inter;color:#6E5B61;flex:none"><span>9:41</span><span style="display:flex;gap:6px;align-items:center"><span>4G</span><span style="width:20px;height:10px;border:1px solid #6E5B61;border-radius:2px;display:inline-block"></span></span></div>
+<div style="flex:none;padding:10px 20px 12px">
+  <p style="margin:0 0 12px;font:600 21px Outfit,Inter;letter-spacing:-.01em">Applications</p>
+  <div style="display:flex;gap:6px;margin-bottom:12px">
+    <span style="flex:1;text-align:center;padding:10px 0;border-radius:12px;background:#fff"><span style="display:block;font:600 18px Outfit,Inter">2</span><span style="display:block;font:400 11px Inter;color:#6E5B61">Applied</span></span>
+    <span style="flex:1;text-align:center;padding:10px 0;border-radius:12px;background:#fff"><span style="display:block;font:600 18px Outfit,Inter">0</span><span style="display:block;font:400 11px Inter;color:#6E5B61">Assessment</span></span>
+    <span style="flex:1;text-align:center;padding:10px 0;border-radius:12px;background:#FDF6E7"><span style="display:block;font:600 18px Outfit,Inter;color:#8A6415">1</span><span style="display:block;font:400 11px Inter;color:#6E5B61">Interview</span></span>
+    <span style="flex:1;text-align:center;padding:10px 0;border-radius:12px;background:#fff"><span style="display:block;font:600 18px Outfit,Inter">0</span><span style="display:block;font:400 11px Inter;color:#6E5B61">Offer</span></span>
+  </div>
+  <div style="display:flex;gap:7px;overflow:hidden">
+    <span style="min-height:38px;display:inline-flex;align-items:center;padding:0 14px;border-radius:20px;background:#7A1B34;color:#fff;font:600 13.5px Inter;white-space:nowrap">All 3</span>
+    <span style="min-height:38px;display:inline-flex;align-items:center;padding:0 14px;border-radius:20px;background:#fff;color:#6E5B61;font:500 13.5px Inter;white-space:nowrap">Saved</span>
+    <span style="min-height:38px;display:inline-flex;align-items:center;padding:0 14px;border-radius:20px;background:#fff;color:#6E5B61;font:500 13.5px Inter;white-space:nowrap">Applied</span>
+    <span style="min-height:38px;display:inline-flex;align-items:center;padding:0 14px;border-radius:20px;background:#fff;color:#6E5B61;font:500 13.5px Inter;white-space:nowrap">Interview</span>
+  </div>
+</div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:0 20px 0">
+  <div style="background:#fff;border-radius:18px;padding:16px 18px;margin-bottom:10px">
+    <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:12px">
+      <span style="width:40px;height:40px;border-radius:12px;background:#F3E7EA;color:#7A1B34;flex:none;display:flex;align-items:center;justify-content:center;font:600 15px Outfit,Inter">BB</span>
+      <span style="flex:1"><span style="display:block;font:600 16.5px/1.3 Outfit,Inter">Junior data analyst</span><span style="display:block;font:400 14.5px Inter;color:#6E5B61;margin-top:2px">Brac Bank · Dhaka</span></span>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <span style="font:600 12.5px Inter;padding:6px 11px;border-radius:14px;background:#FDF6E7;color:#8A6415">Interview</span>
+      <span style="font:500 14px Inter;color:#7A1B34">Interview Tue 2 Sep</span>
+    </div>
+  </div>
+  <div style="background:#fff;border-radius:18px;padding:16px 18px;margin-bottom:10px">
+    <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:12px">
+      <span style="width:40px;height:40px;border-radius:12px;background:#EAF8F2;color:#1A6B50;flex:none;display:flex;align-items:center;justify-content:center;font:600 15px Outfit,Inter">UL</span>
+      <span style="flex:1"><span style="display:block;font:600 16.5px/1.3 Outfit,Inter">Management trainee</span><span style="display:block;font:400 14.5px Inter;color:#6E5B61;margin-top:2px">Unilever BD · Dhaka</span></span>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <span style="font:600 12.5px Inter;padding:6px 11px;border-radius:14px;background:#EAF8F2;color:#1A6B50">Applied</span>
+      <span style="font:500 14px Inter;color:#8A6415">Assessment closes Fri</span>
+    </div>
+  </div>
+  <div style="background:#fff;border-radius:18px;padding:16px 18px;margin-bottom:10px;opacity:.75">
+    <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:12px">
+      <span style="width:40px;height:40px;border-radius:12px;background:#EDE7E4;color:#6E5B61;flex:none;display:flex;align-items:center;justify-content:center;font:600 15px Outfit,Inter">GP</span>
+      <span style="flex:1"><span style="display:block;font:600 16.5px/1.3 Outfit,Inter">Graduate programme</span><span style="display:block;font:400 14.5px Inter;color:#6E5B61;margin-top:2px">Grameenphone · Dhaka</span></span>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <span style="font:600 12.5px Inter;padding:6px 11px;border-radius:14px;background:#F3E7EA;color:#7A1B34">Rejected</span>
+      <span style="font:400 14px Inter;color:#6E5B61">11 Aug</span>
+    </div>
+  </div>
+  <div style="border:1.5px dashed #DCD4CF;border-radius:18px;padding:20px;text-align:center;margin-bottom:24px">
+    <p style="margin:0 0 4px;font:500 15px Inter;color:#6E5B61">Applied somewhere else?</p>
+    <p style="margin:0;font:400 14px/1.45 Inter;color:#6E5B61;text-wrap:pretty">Add it here so nothing slips.</p>
+  </div>
+</div>
+<div style="position:absolute;right:18px;bottom:88px;width:58px;height:58px;border-radius:50%;background:#7A1B34;color:#fff;display:flex;align-items:center;justify-content:center;font:400 30px Inter;box-shadow:0 6px 16px rgba(122,27,52,.35)">+</div>
+<div style="display:flex;background:#fff;border-top:1px solid #EDE7E4;padding:8px 2px 16px;flex:none"><sc-for list="{{ tabsJobs }}" as="t" hint-placeholder-count="5"><div style="flex:1;min-height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="{{ t.d }}" stroke="{{ t.c }}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span style="font-family:Inter;font-size:10.5px;font-weight:{{ t.w }};color:{{ t.c }}">{{ t.label }}</span></div></sc-for></div>
+</div>
+</div>
+
+<div>
+<p class="cap">Application detail</p>
+<div style="width:360px;height:720px;background:#F1EFE8;border-radius:26px;border:1px solid rgba(0,0,0,.14);overflow:hidden;display:flex;flex-direction:column;font-family:Inter,system-ui,sans-serif;color:#23181C">
+<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 20px 0;font:600 12px Inter;color:#6E5B61;flex:none"><span>9:41</span><span style="display:flex;gap:6px;align-items:center"><span>4G</span><span style="width:20px;height:10px;border:1px solid #6E5B61;border-radius:2px;display:inline-block"></span></span></div>
+<div style="flex:none;display:flex;align-items:center;gap:12px;padding:8px 20px 12px;min-height:44px"><span style="font:600 22px Outfit,Inter">←</span><span style="flex:1"></span><span style="font:400 20px Inter;color:#6E5B61">⋯</span></div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:0 20px 0">
+  <div style="background:#fff;border-radius:20px;padding:18px 20px;margin-bottom:12px">
+    <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:14px">
+      <span style="width:44px;height:44px;border-radius:13px;background:#F3E7EA;color:#7A1B34;flex:none;display:flex;align-items:center;justify-content:center;font:600 16px Outfit,Inter">BB</span>
+      <span style="flex:1"><span style="display:block;font:600 19px/1.3 Outfit,Inter;letter-spacing:-.01em">Junior data analyst</span><span style="display:block;font:400 15px Inter;color:#6E5B61;margin-top:3px">Brac Bank · Dhaka · Full time</span></span>
+    </div>
+    <span style="display:inline-flex;align-items:center;font:600 13px Inter;padding:8px 13px;border-radius:16px;background:#FDF6E7;color:#8A6415">Interview</span>
+    <div style="display:flex;gap:8px;margin-top:14px">
+      <button style="flex:1;height:46px;border:0;border-radius:12px;background:#7A1B34;color:#fff;font:600 15px Inter;cursor:pointer" style-hover="background:#5E1428">Move status</button>
+      <button style="flex:1;height:46px;border:1.5px solid #DCD4CF;border-radius:12px;background:#fff;color:#23181C;font:600 15px Inter;cursor:pointer" style-hover="border-color:#7A1B34">Practise for it</button>
+    </div>
+  </div>
+
+  <div style="background:#fff;border-radius:20px;padding:18px 20px;margin-bottom:12px">
+    <p style="margin:0 0 14px;font:600 16px Outfit,Inter">Status history</p>
+    <div style="display:flex;gap:14px">
+      <div style="width:12px;flex:none;display:flex;flex-direction:column;align-items:center;padding-top:6px"><span style="width:11px;height:11px;border-radius:50%;background:#7A1B34"></span><span style="flex:1;width:2px;background:#EDE7E4"></span><span style="width:11px;height:11px;border-radius:50%;background:#DCD4CF"></span><span style="flex:1;width:2px;background:#EDE7E4"></span><span style="width:11px;height:11px;border-radius:50%;background:#DCD4CF"></span></div>
+      <div style="flex:1;display:flex;flex-direction:column;gap:16px">
+        <div><p style="margin:0;font:600 15.5px Inter">Interview scheduled</p><p style="margin:2px 0 0;font:400 14px Inter;color:#6E5B61">24 Aug · in-person, 11:00</p></div>
+        <div><p style="margin:0;font:500 15.5px Inter;color:#6E5B61">Applied</p><p style="margin:2px 0 0;font:400 14px Inter;color:#6E5B61">16 Aug · via company site</p></div>
+        <div><p style="margin:0;font:500 15.5px Inter;color:#6E5B61">Saved</p><p style="margin:2px 0 0;font:400 14px Inter;color:#6E5B61">12 Aug</p></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="background:#fff;border-radius:20px;padding:18px 20px;margin-bottom:12px">
+    <p style="margin:0 0 12px;font:600 16px Outfit,Inter">Sent with this application</p>
+    <div style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:14px;background:#F1EFE8;min-height:44px">
+      <span style="width:34px;height:34px;border-radius:10px;background:#fff;flex:none;display:flex;align-items:center;justify-content:center;font:600 11px 'IBM Plex Mono',monospace;color:#7A1B34">PDF</span>
+      <span style="flex:1"><span style="display:block;font:500 15px Inter">Rafiq_CV_v3.pdf</span><span style="display:block;font:400 14.5px Inter;color:#6E5B61;margin-top:1px">Version 3 · sent 16 Aug</span></span>
+    </div>
+  </div>
+
+  <div style="background:#fff;border-radius:20px;padding:18px 20px;margin-bottom:24px">
+    <p style="margin:0 0 10px;font:600 16px Outfit,Inter">Notes</p>
+    <p style="margin:0 0 12px;font:400 15px/1.5 Inter;color:#6E5B61;text-wrap:pretty">Referred by Nabila from the alumni group. They asked about SQL joins on the phone screen.</p>
+    <span style="font:600 15px Inter;color:#7A1B34;min-height:44px;display:flex;align-items:center">+ Add a note</span>
+  </div>
+</div>
+</div>
+</div>
+
+</div>
+</section>
+
+<section class="sec" id="s8">
+<div class="shd"><a class="sid" href="#s8">08</a><span class="snm">Document vault</span></div>
+<p class="snote">The empty state does the heavy lifting: it names the three things worth uploading, says plainly who can see them, and offers the phone's camera as an equal option, because many students have paper certificates and no scanner.</p>
+<div class="row">
+
+<div>
+<p class="cap">Empty — first visit</p>
+<div style="width:360px;height:720px;background:#F1EFE8;border-radius:26px;border:1px solid rgba(0,0,0,.14);overflow:hidden;display:flex;flex-direction:column;font-family:Inter,system-ui,sans-serif;color:#23181C">
+<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 20px 0;font:600 12px Inter;color:#6E5B61;flex:none"><span>9:41</span><span style="display:flex;gap:6px;align-items:center"><span>4G</span><span style="width:20px;height:10px;border:1px solid #6E5B61;border-radius:2px;display:inline-block"></span></span></div>
+<div style="flex:none;padding:10px 20px 14px"><p style="margin:0;font:600 21px Outfit,Inter;letter-spacing:-.01em">Vault</p></div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:0 20px 0">
+  <div style="background:#fff;border-radius:20px;padding:24px 20px;text-align:center;margin-bottom:14px">
+    <div style="width:100%;height:92px;border-radius:14px;background:repeating-linear-gradient(135deg,#FBFAF7 0 8px,#F3F0EA 8px 16px);border:1.5px dashed #DCD4CF;display:flex;align-items:center;justify-content:center;margin-bottom:18px"><span style="font:500 11px 'IBM Plex Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:#6E5B61">Nothing here yet</span></div>
+    <p style="margin:0 0 8px;font:600 19px/1.3 Outfit,Inter">Keep everything in one place</p>
+    <p style="margin:0 0 18px;font:400 15px/1.5 Inter;color:#6E5B61;text-wrap:pretty">Your CV, certificates and project files. Attach any of them to an application in one tap.</p>
+    <button style="width:100%;height:54px;border:0;border-radius:14px;background:#7A1B34;color:#fff;font:600 17px Inter;cursor:pointer" style-hover="background:#5E1428">Upload your CV</button>
+    <button style="margin-top:10px;width:100%;height:50px;border:1.5px solid #DCD4CF;border-radius:14px;background:#fff;color:#23181C;font:600 16px Inter;cursor:pointer" style-hover="border-color:#7A1B34">Take a photo instead</button>
+  </div>
+  <div style="background:#EAF8F2;border-radius:18px;padding:16px 18px;display:flex;gap:11px;align-items:flex-start;margin-bottom:14px">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="flex:none;margin-top:1px"><path d="M12 3 4.5 6v6c0 4.5 3.2 7.8 7.5 9 4.3-1.2 7.5-4.5 7.5-9V6z" stroke="#1F8A66" stroke-width="2" stroke-linejoin="round"/></svg>
+    <p style="margin:0;font:400 14.5px/1.5 Inter;color:#1F5F4A;text-wrap:pretty">Only you can see these files. Tack never sends anything to an employer on its own.</p>
+  </div>
+  <p style="margin:0 0 8px;font:500 11px 'IBM Plex Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#6E5B61">Sections</p>
+  <div style="background:#fff;border-radius:18px;padding:2px 18px;margin-bottom:24px">
+    <div style="display:flex;align-items:center;justify-content:space-between;min-height:52px;border-bottom:1px solid #F1EFE8"><span style="font:400 16px Inter">CVs</span><span style="font:400 14px Inter;color:#6E5B61">Empty</span></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;min-height:52px;border-bottom:1px solid #F1EFE8"><span style="font:400 16px Inter">Certificates</span><span style="font:400 14px Inter;color:#6E5B61">Empty</span></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;min-height:52px"><span style="font:400 16px Inter">Project files</span><span style="font:400 14px Inter;color:#6E5B61">Empty</span></div>
+  </div>
+</div>
+<div style="display:flex;background:#fff;border-top:1px solid #EDE7E4;padding:8px 2px 16px;flex:none"><sc-for list="{{ tabsVault }}" as="t" hint-placeholder-count="5"><div style="flex:1;min-height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="{{ t.d }}" stroke="{{ t.c }}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span style="font-family:Inter;font-size:10.5px;font-weight:{{ t.w }};color:{{ t.c }}">{{ t.label }}</span></div></sc-for></div>
+</div>
+</div>
+
+<div>
+<p class="cap">Uploading, then parsing</p>
+<div style="width:360px;height:720px;background:#F1EFE8;border-radius:26px;border:1px solid rgba(0,0,0,.14);overflow:hidden;display:flex;flex-direction:column;font-family:Inter,system-ui,sans-serif;color:#23181C">
+<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 20px 0;font:600 12px Inter;color:#6E5B61;flex:none"><span>9:41</span><span style="display:flex;gap:6px;align-items:center"><span>4G</span><span style="width:20px;height:10px;border:1px solid #6E5B61;border-radius:2px;display:inline-block"></span></span></div>
+<div style="flex:none;padding:10px 20px 14px"><p style="margin:0;font:600 21px Outfit,Inter;letter-spacing:-.01em">Vault</p></div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:0 20px 0">
+  <div style="background:#fff;border-radius:18px;padding:16px 18px;margin-bottom:10px;border:1.5px solid #7A1B34">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+      <span style="width:38px;height:38px;border-radius:11px;background:#F3E7EA;flex:none;display:flex;align-items:center;justify-content:center;font:600 11px 'IBM Plex Mono',monospace;color:#7A1B34">PDF</span>
+      <span style="flex:1"><span style="display:block;font:500 15.5px Inter">Rafiq_CV_final.pdf</span><span style="display:block;font:400 14.5px Inter;color:#6E5B61;margin-top:1px">418 KB · uploading</span></span>
+      <span style="font:600 14px Inter;color:#7A1B34">62%</span>
+    </div>
+    <span style="display:block;height:7px;border-radius:4px;background:#EDE7E4"><span style="display:block;width:62%;height:7px;border-radius:4px;background:#7A1B34"></span></span>
+    <p style="margin:10px 0 0;font:500 14px Inter;color:#7A1B34">Cancel</p>
+  </div>
+
+  <div style="background:#fff;border-radius:18px;padding:16px 18px;margin-bottom:14px">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+      <span style="width:38px;height:38px;border-radius:11px;background:#FDF6E7;flex:none;display:flex;align-items:center;justify-content:center;font:600 11px 'IBM Plex Mono',monospace;color:#8A6415">DOC</span>
+      <span style="flex:1"><span style="display:block;font:500 15.5px Inter">Rafiq_CV_v2.docx</span><span style="display:block;font:400 14.5px Inter;color:#6E5B61;margin-top:1px">Reading your CV…</span></span>
+    </div>
+    <span style="display:block;height:7px;border-radius:4px;background:#EDE7E4;overflow:hidden"><span style="display:block;width:45%;height:7px;border-radius:4px;background:linear-gradient(90deg,#FAC775,#5DCAA5)"></span></span>
+    <p style="margin:10px 0 0;font:400 14px/1.45 Inter;color:#6E5B61;text-wrap:pretty">We are pulling out your skills and experience. About 30 seconds. You can leave this screen.</p>
+  </div>
+
+  <p style="margin:0 0 8px;font:500 11px 'IBM Plex Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#6E5B61">CVs · 3 versions</p>
+  <div style="background:#fff;border-radius:18px;padding:2px 18px;margin-bottom:14px">
+    <div style="display:flex;align-items:center;gap:12px;min-height:64px;border-bottom:1px solid #F1EFE8">
+      <span style="width:34px;height:34px;border-radius:10px;background:#F3E7EA;flex:none;display:flex;align-items:center;justify-content:center;font:600 10px 'IBM Plex Mono',monospace;color:#7A1B34">PDF</span>
+      <span style="flex:1"><span style="display:flex;align-items:center;gap:7px"><span style="font:500 15.5px Inter">Rafiq_CV_v3.pdf</span><span style="font:600 10.5px Inter;padding:3px 7px;border-radius:9px;background:#EAF8F2;color:#1A6B50">Default</span></span><span style="display:block;font:400 14.5px Inter;color:#6E5B61;margin-top:2px">PDF · 402 KB · 16 Aug</span></span>
+      <span style="font:400 19px Inter;color:#6E5B61;width:24px;text-align:right">⋯</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;min-height:64px;border-bottom:1px solid #F1EFE8">
+      <span style="width:34px;height:34px;border-radius:10px;background:#EDE7E4;flex:none;display:flex;align-items:center;justify-content:center;font:600 10px 'IBM Plex Mono',monospace;color:#6E5B61">PDF</span>
+      <span style="flex:1"><span style="display:block;font:500 15.5px Inter;color:#6E5B61">Rafiq_CV_v2.pdf</span><span style="display:block;font:400 14.5px Inter;color:#6E5B61;margin-top:2px">PDF · 380 KB · 2 Aug</span></span>
+      <span style="font:400 19px Inter;color:#6E5B61;width:24px;text-align:right">⋯</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;min-height:64px">
+      <span style="width:34px;height:34px;border-radius:10px;background:#EDE7E4;flex:none;display:flex;align-items:center;justify-content:center;font:600 10px 'IBM Plex Mono',monospace;color:#6E5B61">PDF</span>
+      <span style="flex:1"><span style="display:block;font:500 15.5px Inter;color:#6E5B61">Rafiq_CV_v1.pdf</span><span style="display:block;font:400 14.5px Inter;color:#6E5B61;margin-top:2px">PDF · 356 KB · 21 Jul</span></span>
+      <span style="font:400 19px Inter;color:#6E5B61;width:24px;text-align:right">⋯</span>
+    </div>
+  </div>
+
+  <div style="background:#fff;border-radius:18px;padding:14px 18px;margin-bottom:24px;display:flex;align-items:center;gap:10px;min-height:52px">
+    <span style="font:600 15px Inter;color:#7A1B34">+ Add certificate or project file</span>
+  </div>
+</div>
+<div style="display:flex;background:#fff;border-top:1px solid #EDE7E4;padding:8px 2px 16px;flex:none"><sc-for list="{{ tabsVault }}" as="t" hint-placeholder-count="5"><div style="flex:1;min-height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="{{ t.d }}" stroke="{{ t.c }}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span style="font-family:Inter;font-size:10.5px;font-weight:{{ t.w }};color:{{ t.c }}">{{ t.label }}</span></div></sc-for></div>
+</div>
+</div>
+
+<div>
+<p class="cap">File menu — bottom sheet</p>
+<div style="width:360px;height:720px;background:#F1EFE8;border-radius:26px;border:1px solid rgba(0,0,0,.14);overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;position:relative;font-family:Inter,system-ui,sans-serif;color:#23181C">
+<div style="position:absolute;inset:0;background:rgba(35,24,28,.45)"></div>
+<div style="position:relative;background:#fff;border-radius:24px 24px 0 0;padding:10px 20px 24px">
+  <span style="display:block;width:42px;height:4px;border-radius:2px;background:#DCD4CF;margin:0 auto 16px"></span>
+  <div style="display:flex;align-items:center;gap:12px;padding-bottom:14px;border-bottom:1px solid #F1EFE8;margin-bottom:6px">
+    <span style="width:38px;height:38px;border-radius:11px;background:#F3E7EA;flex:none;display:flex;align-items:center;justify-content:center;font:600 11px 'IBM Plex Mono',monospace;color:#7A1B34">PDF</span>
+    <span style="flex:1"><span style="display:block;font:600 16px Inter">Rafiq_CV_v3.pdf</span><span style="display:block;font:400 14.5px Inter;color:#6E5B61;margin-top:2px">402 KB · uploaded 16 Aug</span></span>
+  </div>
+  <div style="display:flex;align-items:center;gap:14px;min-height:56px"><span style="font:400 17px Inter">Make default</span></div>
+  <div style="display:flex;align-items:center;gap:14px;min-height:56px;border-top:1px solid #F1EFE8"><span style="font:400 17px Inter">Download</span></div>
+  <div style="display:flex;align-items:center;gap:14px;min-height:56px;border-top:1px solid #F1EFE8"><span style="font:400 17px Inter">Replace with a new version</span></div>
+  <div style="display:flex;align-items:center;gap:14px;min-height:56px;border-top:1px solid #F1EFE8"><span style="font:400 17px Inter;color:#A32B2B">Delete</span></div>
+  <button style="margin-top:12px;width:100%;height:52px;border:1.5px solid #DCD4CF;border-radius:14px;background:#fff;color:#23181C;font:600 16px Inter;cursor:pointer" style-hover="border-color:#7A1B34">Cancel</button>
+</div>
+</div>
+</div>
+
+</div>
+</section>
+
+<section class="sec" id="s9">
+<div class="shd"><a class="sid" href="#s9">09</a><span class="snm">Job description analyser</span></div>
+<p class="snote">The quota is stated before the work starts, not after, so nobody burns a run by accident. The result puts the match percentage first, then splits skills into what you have (teal) and what you lack (amber) — and the only primary action turns the gaps into roadmap tasks.</p>
+<div class="row">
+
+<div>
+<p class="cap">Input</p>
+<div style="width:360px;height:720px;background:#F1EFE8;border-radius:26px;border:1px solid rgba(0,0,0,.14);overflow:hidden;display:flex;flex-direction:column;font-family:Inter,system-ui,sans-serif;color:#23181C">
+<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 20px 0;font:600 12px Inter;color:#6E5B61;flex:none"><span>9:41</span><span style="display:flex;gap:6px;align-items:center"><span>4G</span><span style="width:20px;height:10px;border:1px solid #6E5B61;border-radius:2px;display:inline-block"></span></span></div>
+<div style="flex:none;display:flex;align-items:center;gap:12px;padding:8px 20px 12px;min-height:44px"><span style="font:600 22px Outfit,Inter">←</span><span style="font:600 19px Outfit,Inter">Check a job</span></div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:0 20px 0">
+  <p style="margin:0 0 16px;font:400 16px/1.5 Inter;color:#6E5B61;text-wrap:pretty">Paste a job description. We compare it with your profile and tell you what is missing.</p>
+  <div style="background:#fff;border:1.5px solid #DCD4CF;border-radius:16px;padding:14px 16px;height:210px;box-sizing:border-box;margin-bottom:12px;display:flex;flex-direction:column">
+    <p style="margin:0;font:400 16px/1.5 Inter;color:#6E5B61">Paste the job description here…</p>
+    <span style="flex:1"></span>
+    <span style="font:400 14.5px Inter;color:#6E5B61;align-self:flex-end">0 / 8000</span>
+  </div>
+  <button style="width:100%;height:50px;border:1.5px solid #DCD4CF;border-radius:14px;background:#fff;color:#23181C;font:600 16px Inter;cursor:pointer;margin-bottom:18px" style-hover="border-color:#7A1B34">Use a job I saved</button>
+  <div style="background:#FDF6E7;border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:14px">
+    <span style="width:34px;height:34px;border-radius:10px;background:#FAC775;flex:none;display:flex;align-items:center;justify-content:center;font:600 14px Outfit,Inter;color:#23181C">2</span>
+    <span style="flex:1"><span style="display:block;font:600 15px Inter">2 of 3 analyses left today</span><span style="display:block;font:400 14.5px Inter;color:#5E4B33;margin-top:2px">Resets at midnight</span></span>
+  </div>
+  <p style="margin:0 0 24px;font:400 14.5px/1.5 Inter;color:#6E5B61;text-wrap:pretty">Analysis takes about a minute. You can close the app — we will tell you when it is done.</p>
+</div>
+<div style="flex:none;padding:12px 20px 20px;background:#F1EFE8;border-top:1px solid rgba(0,0,0,.05)"><button style="width:100%;height:54px;border:0;border-radius:14px;background:#7A1B34;color:#fff;font:600 17px Inter;cursor:pointer" style-hover="background:#5E1428">Analyse this job</button></div>
+</div>
+</div>
+
+<div>
+<p class="cap">Processing</p>
+<div style="width:360px;height:720px;background:#F1EFE8;border-radius:26px;border:1px solid rgba(0,0,0,.14);overflow:hidden;display:flex;flex-direction:column;font-family:Inter,system-ui,sans-serif;color:#23181C">
+<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 20px 0;font:600 12px Inter;color:#6E5B61;flex:none"><span>9:41</span><span style="display:flex;gap:6px;align-items:center"><span>4G</span><span style="width:20px;height:10px;border:1px solid #6E5B61;border-radius:2px;display:inline-block"></span></span></div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:0 24px;display:flex;flex-direction:column;justify-content:center;text-align:center">
+  <div style="width:96px;height:96px;border-radius:50%;margin:0 auto 22px;background:conic-gradient(#7A1B34 0 62%, #E2DBD6 0);display:flex;align-items:center;justify-content:center"><div style="width:76px;height:76px;border-radius:50%;background:#F1EFE8;display:flex;align-items:center;justify-content:center"><svg width="34" height="22" viewBox="0 0 40 24" fill="none"><polyline points="3,21 11,12 17,16 25,7 31,11" stroke="#7A1B34" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="36" cy="5" r="3.2" fill="#7A1B34"/></svg></div></div>
+  <p style="margin:0 0 8px;font:600 21px/1.3 Outfit,Inter">Reading the job</p>
+  <p style="margin:0 0 24px;font:400 16px/1.5 Inter;color:#6E5B61;text-wrap:pretty">About 40 seconds left. You can leave this screen.</p>
+  <div style="background:#fff;border-radius:18px;padding:6px 18px;text-align:left">
+    <div style="display:flex;align-items:center;gap:11px;min-height:48px;border-bottom:1px solid #F1EFE8"><span style="width:20px;height:20px;border-radius:50%;background:#1A6B50;color:#fff;flex:none;display:flex;align-items:center;justify-content:center;font:700 11px Inter">✓</span><span style="font:400 15px Inter;color:#6E5B61">Requirements pulled out</span></div>
+    <div style="display:flex;align-items:center;gap:11px;min-height:48px;border-bottom:1px solid #F1EFE8"><span style="width:20px;height:20px;border-radius:50%;background:#1A6B50;color:#fff;flex:none;display:flex;align-items:center;justify-content:center;font:700 11px Inter">✓</span><span style="font:400 15px Inter;color:#6E5B61">Your profile loaded</span></div>
+    <div style="display:flex;align-items:center;gap:11px;min-height:48px"><span style="width:20px;height:20px;border-radius:50%;border:2px solid #FAC775;flex:none"></span><span style="font:500 15px Inter">Matching skills</span></div>
+  </div>
+</div>
+</div>
+</div>
+
+<div>
+<p class="cap">Result</p>
+<div style="width:360px;height:720px;background:#F1EFE8;border-radius:26px;border:1px solid rgba(0,0,0,.14);overflow:hidden;display:flex;flex-direction:column;font-family:Inter,system-ui,sans-serif;color:#23181C">
+<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 20px 0;font:600 12px Inter;color:#6E5B61;flex:none"><span>9:41</span><span style="display:flex;gap:6px;align-items:center"><span>4G</span><span style="width:20px;height:10px;border:1px solid #6E5B61;border-radius:2px;display:inline-block"></span></span></div>
+<div style="flex:none;display:flex;align-items:center;gap:12px;padding:8px 20px 12px;min-height:44px"><span style="font:600 22px Outfit,Inter">←</span><span style="font:600 19px Outfit,Inter">Match result</span></div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:0 20px 0">
+  <div style="background:#7A1B34;border-radius:20px;padding:22px 20px;text-align:center;color:#fff;margin-bottom:12px">
+    <p style="margin:0 0 6px;font:600 54px/1 Outfit,Inter;letter-spacing:-.02em">64%</p>
+    <p style="margin:0 0 6px;font:600 16px Inter;color:#FAC775">Decent match</p>
+    <p style="margin:0;font:400 15px/1.45 Inter;color:rgba(255,255,255,.8);text-wrap:pretty">Junior data analyst · Brac Bank. Three missing skills are holding this down.</p>
+  </div>
+
+  <div style="background:#fff;border-radius:20px;padding:18px 20px;margin-bottom:12px">
+    <p style="margin:0 0 12px;font:600 16px Outfit,Inter">You already have <span style="color:#1A6B50">4</span></p>
+    <div style="display:flex;flex-wrap:wrap;gap:8px">
+      <sc-for list="{{ matched }}" as="m" hint-placeholder-count="4">
+        <span style="min-height:38px;display:inline-flex;align-items:center;padding:0 14px;border-radius:20px;background:#EAF8F2;color:#1F5F4A;font-family:Inter;font-size:14.5px;font-weight:500">✓ {{ m }}</span>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="background:#fff;border-radius:20px;padding:18px 20px;margin-bottom:12px">
+    <p style="margin:0 0 12px;font:600 16px Outfit,Inter">You are missing <span style="color:#8A6415">3</span></p>
+    <div style="display:flex;flex-wrap:wrap;gap:8px">
+      <sc-for list="{{ missing }}" as="m" hint-placeholder-count="3">
+        <span style="min-height:38px;display:inline-flex;align-items:center;padding:0 14px;border-radius:20px;background:#FDF6E7;color:#5E4B33;font-family:Inter;font-size:14.5px;font-weight:500">+ {{ m }}</span>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="background:#fff;border-radius:20px;padding:18px 20px;margin-bottom:24px">
+    <p style="margin:0 0 14px;font:600 16px Outfit,Inter">What the job asks for</p>
+    <p style="margin:0 0 6px;font:500 11px 'IBM Plex Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#6E5B61">Skills</p>
+    <p style="margin:0 0 14px;font:400 15px/1.5 Inter;color:#6E5B61;text-wrap:pretty">SQL, Excel, Power BI, basic statistics, clear written reporting</p>
+    <p style="margin:0 0 6px;font:500 11px 'IBM Plex Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#6E5B61">Qualifications</p>
+    <p style="margin:0 0 14px;font:400 15px/1.5 Inter;color:#6E5B61;text-wrap:pretty">Bachelor's in business, economics, statistics or similar. CGPA 3.0+</p>
+    <p style="margin:0 0 6px;font:500 11px 'IBM Plex Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#6E5B61">Experience</p>
+    <p style="margin:0;font:400 15px/1.5 Inter;color:#6E5B61;text-wrap:pretty">0–2 years. Internships and university projects accepted.</p>
+  </div>
+</div>
+<div style="flex:none;padding:12px 20px 20px;background:#F1EFE8;border-top:1px solid rgba(0,0,0,.05)">
+  <button style="width:100%;height:54px;border:0;border-radius:14px;background:#7A1B34;color:#fff;font:600 17px Inter;cursor:pointer" style-hover="background:#5E1428">Add missing skills to my roadmap</button>
+  <p style="margin:10px 0 0;text-align:center;font:400 14.5px Inter;color:#6E5B61">1 of 3 analyses left today</p>
+</div>
+</div>
+</div>
+
+</div>
+</section>
+
+<section class="sec" id="s10">
+<div class="shd"><a class="sid" href="#s10">10</a><span class="snm">Interview practice</span></div>
+<p class="snote">One question per screen with the counter always visible, and the timer optional — a countdown is the fastest way to make an anxious first-timer quit. Feedback leads with what worked before what to fix, and the model answer stays collapsed so it is a choice, not a comparison.</p>
+<div class="row">
+
+<div>
+<p class="cap">Setup</p>
+<div style="width:360px;height:720px;background:#F1EFE8;border-radius:26px;border:1px solid rgba(0,0,0,.14);overflow:hidden;display:flex;flex-direction:column;font-family:Inter,system-ui,sans-serif;color:#23181C">
+<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 20px 0;font:600 12px Inter;color:#6E5B61;flex:none"><span>9:41</span><span style="display:flex;gap:6px;align-items:center"><span>4G</span><span style="width:20px;height:10px;border:1px solid #6E5B61;border-radius:2px;display:inline-block"></span></span></div>
+<div style="flex:none;display:flex;align-items:center;gap:12px;padding:8px 20px 12px;min-height:44px"><span style="font:600 22px Outfit,Inter">←</span><span style="font:600 19px Outfit,Inter">Practice interview</span></div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:0 20px 0">
+  <p style="margin:0 0 20px;font:400 16px/1.5 Inter;color:#6E5B61;text-wrap:pretty">No one sees your answers. You can stop any time.</p>
+  <p style="margin:0 0 8px;font:500 13px Inter;color:#6E5B61">Role</p>
+  <div style="position:relative;margin-bottom:20px"><select style="width:100%;box-sizing:border-box;height:52px;border:1.5px solid #DCD4CF;border-radius:12px;background:#fff;padding:0 14px;font:400 16px Inter;color:#23181C;appearance:none"><option>Junior data analyst</option><option>Management trainee</option><option>Marketing executive</option></select><span style="position:absolute;right:16px;top:19px;pointer-events:none;font:400 14px Inter;color:#6E5B61">▾</span></div>
+
+  <p style="margin:0 0 8px;font:500 13px Inter;color:#6E5B61">Session type</p>
+  <div style="display:flex;flex-direction:column;gap:9px;margin-bottom:20px">
+    <span style="min-height:56px;display:flex;align-items:center;gap:12px;padding:0 16px;border-radius:14px;background:#7A1B34;color:#fff"><span style="width:18px;height:18px;border-radius:50%;border:2px solid #fff;background:#fff;flex:none;display:flex;align-items:center;justify-content:center"><span style="width:8px;height:8px;border-radius:50%;background:#7A1B34"></span></span><span><span style="display:block;font:600 16px Inter">Mixed</span><span style="display:block;font:400 14.5px Inter;color:rgba(255,255,255,.75)">Best for a first try</span></span></span>
+    <span style="min-height:56px;display:flex;align-items:center;gap:12px;padding:0 16px;border-radius:14px;background:#fff;border:1.5px solid #DCD4CF"><span style="width:18px;height:18px;border-radius:50%;border:2px solid #C9B6BC;flex:none"></span><span><span style="display:block;font:500 16px Inter">Technical</span><span style="display:block;font:400 14.5px Inter;color:#6E5B61">SQL, Excel, analysis</span></span></span>
+    <span style="min-height:56px;display:flex;align-items:center;gap:12px;padding:0 16px;border-radius:14px;background:#fff;border:1.5px solid #DCD4CF"><span style="width:18px;height:18px;border-radius:50%;border:2px solid #C9B6BC;flex:none"></span><span><span style="display:block;font:500 16px Inter">Behavioural</span><span style="display:block;font:400 14.5px Inter;color:#6E5B61">Teamwork, pressure, goals</span></span></span>
+  </div>
+
+  <p style="margin:0 0 8px;font:500 13px Inter;color:#6E5B61">Difficulty</p>
+  <div style="display:flex;gap:8px;margin-bottom:20px">
+    <span style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center;border-radius:12px;background:#7A1B34;color:#fff;font:600 15px Inter">Easy</span>
+    <span style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center;border-radius:12px;background:#fff;border:1.5px solid #DCD4CF;font:500 15px Inter">Medium</span>
+    <span style="flex:1;min-height:48px;display:flex;align-items:center;justify-content:center;border-radius:12px;background:#fff;border:1.5px solid #DCD4CF;font:500 15px Inter;color:#6E5B61">Hard</span>
+  </div>
+
+  <div style="background:#fff;border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:24px;min-height:56px">
+    <span style="flex:1"><span style="display:block;font:500 16px Inter">Show a timer</span><span style="display:block;font:400 14.5px Inter;color:#6E5B61;margin-top:1px">Off is fine for practice</span></span>
+    <span style="width:48px;height:28px;border-radius:16px;background:#DCD4CF;flex:none;display:flex;align-items:center;padding:0 3px"><span style="width:22px;height:22px;border-radius:50%;background:#fff"></span></span>
+  </div>
+</div>
+<div style="flex:none;padding:12px 20px 20px;background:#F1EFE8;border-top:1px solid rgba(0,0,0,.05)"><button style="width:100%;height:54px;border:0;border-radius:14px;background:#7A1B34;color:#fff;font:600 17px Inter;cursor:pointer" style-hover="background:#5E1428">Start · 5 questions</button></div>
+</div>
+</div>
+
+<div>
+<p class="cap">Question</p>
+<div style="width:360px;height:720px;background:#F1EFE8;border-radius:26px;border:1px solid rgba(0,0,0,.14);overflow:hidden;display:flex;flex-direction:column;font-family:Inter,system-ui,sans-serif;color:#23181C">
+<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 20px 0;font:600 12px Inter;color:#6E5B61;flex:none"><span>9:41</span><span style="display:flex;gap:6px;align-items:center"><span>4G</span><span style="width:20px;height:10px;border:1px solid #6E5B61;border-radius:2px;display:inline-block"></span></span></div>
+<div style="flex:none;padding:10px 20px 14px">
+  <div style="display:flex;align-items:center;justify-content:space-between;min-height:44px">
+    <span style="font:500 15px Inter;color:#7A1B34">Exit</span>
+    <span style="font:600 15px Inter">Question 2 of 5</span>
+    <span style="font:500 15px 'IBM Plex Mono',monospace;color:#6E5B61">01:48</span>
+  </div>
+  <div style="display:flex;gap:5px;margin-top:10px"><span style="flex:1;height:5px;border-radius:3px;background:#7A1B34"></span><span style="flex:1;height:5px;border-radius:3px;background:#7A1B34"></span><span style="flex:1;height:5px;border-radius:3px;background:#DCD4CF"></span><span style="flex:1;height:5px;border-radius:3px;background:#DCD4CF"></span><span style="flex:1;height:5px;border-radius:3px;background:#DCD4CF"></span></div>
+</div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:0 20px 0">
+  <span style="display:inline-flex;align-items:center;font:600 12px Inter;padding:6px 11px;border-radius:14px;background:#FDF6E7;color:#8A6415;margin-bottom:14px">Behavioural</span>
+  <p style="margin:0 0 18px;font:600 22px/1.35 Outfit,Inter;letter-spacing:-.01em;text-wrap:pretty">Tell me about a time you had to finish something with very little time. What did you do?</p>
+  <div style="background:#fff;border:1.5px solid #DCD4CF;border-radius:16px;padding:14px 16px;height:220px;box-sizing:border-box;display:flex;flex-direction:column;margin-bottom:12px">
+    <p style="margin:0;font:400 16px/1.55 Inter;text-wrap:pretty">In my third semester our group project partner dropped out two days before submission. I split the remaining work into three parts and</p>
+    <span style="flex:1"></span>
+    <span style="font:400 14.5px Inter;color:#6E5B61;align-self:flex-end">48 words</span>
+  </div>
+  <div style="background:#EAF8F2;border-radius:14px;padding:12px 15px;margin-bottom:24px"><p style="margin:0;font:400 14.5px/1.45 Inter;color:#1F5F4A;text-wrap:pretty">Tip: say the situation, what you did, and how it ended.</p></div>
+</div>
+<div style="flex:none;padding:12px 20px 20px;background:#F1EFE8;border-top:1px solid rgba(0,0,0,.05);display:flex;gap:10px">
+  <button style="width:104px;height:54px;border:1.5px solid #DCD4CF;border-radius:14px;background:#fff;color:#6E5B61;font:600 16px Inter;cursor:pointer" style-hover="border-color:#7A1B34">Skip</button>
+  <button style="flex:1;height:54px;border:0;border-radius:14px;background:#7A1B34;color:#fff;font:600 17px Inter;cursor:pointer" style-hover="background:#5E1428">Submit answer</button>
+</div>
+</div>
+</div>
+
+<div>
+<p class="cap">Feedback</p>
+<div style="width:360px;height:720px;background:#F1EFE8;border-radius:26px;border:1px solid rgba(0,0,0,.14);overflow:hidden;display:flex;flex-direction:column;font-family:Inter,system-ui,sans-serif;color:#23181C">
+<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 20px 0;font:600 12px Inter;color:#6E5B61;flex:none"><span>9:41</span><span style="display:flex;gap:6px;align-items:center"><span>4G</span><span style="width:20px;height:10px;border:1px solid #6E5B61;border-radius:2px;display:inline-block"></span></span></div>
+<div style="flex:none;display:flex;align-items:center;justify-content:space-between;padding:8px 20px 12px;min-height:44px"><span style="font:600 19px Outfit,Inter">Your answer</span><span style="font:500 15px Inter;color:#6E5B61">2 of 5</span></div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:0 20px 0">
+  <div style="background:#fff;border-radius:20px;padding:20px;margin-bottom:12px;display:flex;align-items:center;gap:18px">
+    <div style="width:78px;height:78px;border-radius:50%;flex:none;background:conic-gradient(#5DCAA5 0 70%, #EDE7E4 0);display:flex;align-items:center;justify-content:center"><div style="width:62px;height:62px;border-radius:50%;background:#fff;display:flex;align-items:baseline;justify-content:center;padding-top:20px;box-sizing:border-box"><span style="font:600 26px/1 Outfit,Inter;color:#7A1B34">7</span><span style="font:500 13px Inter;color:#6E5B61">/10</span></div></div>
+    <p style="margin:0;flex:1;font:400 15px/1.5 Inter;color:#6E5B61;text-wrap:pretty">A real example with a clear result. It needs numbers and a shorter opening.</p>
+  </div>
+
+  <div style="background:#fff;border-radius:20px;padding:18px 20px;margin-bottom:12px">
+    <p style="margin:0 0 12px;font:600 16px Outfit,Inter;color:#1A6B50">What went well</p>
+    <div style="display:flex;gap:10px;margin-bottom:10px"><span style="color:#1A6B50;font:600 15px Inter;flex:none">✓</span><p style="margin:0;font:400 15px/1.5 Inter;color:#23181C;text-wrap:pretty">You chose a specific event instead of speaking generally.</p></div>
+    <div style="display:flex;gap:10px"><span style="color:#1A6B50;font:600 15px Inter;flex:none">✓</span><p style="margin:0;font:400 15px/1.5 Inter;color:#23181C;text-wrap:pretty">You said what you personally did, not just what the group did.</p></div>
+  </div>
+
+  <div style="background:#fff;border-radius:20px;padding:18px 20px;margin-bottom:12px">
+    <p style="margin:0 0 12px;font:600 16px Outfit,Inter;color:#8A6415">What to improve</p>
+    <div style="display:flex;gap:10px;margin-bottom:10px"><span style="color:#8A6415;font:600 15px Inter;flex:none">→</span><p style="margin:0;font:400 15px/1.5 Inter;color:#23181C;text-wrap:pretty">Add a number. How many hours, what mark, how many slides.</p></div>
+    <div style="display:flex;gap:10px"><span style="color:#8A6415;font:600 15px Inter;flex:none">→</span><p style="margin:0;font:400 15px/1.5 Inter;color:#23181C;text-wrap:pretty">Get to the action in one sentence. The background is too long.</p></div>
+  </div>
+
+  <div style="background:#fff;border-radius:20px;padding:18px 20px;margin-bottom:24px;display:flex;align-items:center;gap:12px;min-height:56px">
+    <span style="flex:1;font:600 16px Outfit,Inter">See a model answer</span>
+    <span style="font:400 16px Inter;color:#6E5B61">▾</span>
+  </div>
+</div>
+<div style="flex:none;padding:12px 20px 20px;background:#F1EFE8;border-top:1px solid rgba(0,0,0,.05)"><button style="width:100%;height:54px;border:0;border-radius:14px;background:#7A1B34;color:#fff;font:600 17px Inter;cursor:pointer" style-hover="background:#5E1428">Next question</button></div>
+</div>
+</div>
+
+<div>
+<p class="cap">Session summary</p>
+<div style="width:360px;height:720px;background:#F1EFE8;border-radius:26px;border:1px solid rgba(0,0,0,.14);overflow:hidden;display:flex;flex-direction:column;font-family:Inter,system-ui,sans-serif;color:#23181C">
+<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 20px 0;font:600 12px Inter;color:#6E5B61;flex:none"><span>9:41</span><span style="display:flex;gap:6px;align-items:center"><span>4G</span><span style="width:20px;height:10px;border:1px solid #6E5B61;border-radius:2px;display:inline-block"></span></span></div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:16px 20px 0">
+  <div style="background:#7A1B34;border-radius:20px;padding:24px 20px;text-align:center;color:#fff;margin-bottom:12px">
+    <p style="margin:0 0 4px;font:400 15px Inter;color:rgba(255,255,255,.75)">Session complete</p>
+    <p style="margin:0 0 6px;font:600 52px/1 Outfit,Inter;letter-spacing:-.02em">7.2</p>
+    <p style="margin:0 0 14px;font:400 15px Inter;color:rgba(255,255,255,.8)">average across 5 questions</p>
+    <span style="display:inline-flex;align-items:center;font:600 14px Inter;padding:8px 14px;border-radius:18px;background:rgba(250,199,117,.22);color:#FAC775">+10 to your readiness score</span>
+  </div>
+
+  <div style="background:#fff;border-radius:20px;padding:18px 20px;margin-bottom:12px">
+    <p style="margin:0 0 6px;font:500 11px 'IBM Plex Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#6E5B61">Strongest</p>
+    <p style="margin:0 0 4px;font:600 17px Outfit,Inter">Teamwork answers</p>
+    <p style="margin:0 0 18px;font:400 15px/1.45 Inter;color:#6E5B61;text-wrap:pretty">Averaged 8.5. You use real examples naturally.</p>
+    <p style="margin:0 0 6px;font:500 11px 'IBM Plex Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#6E5B61">Weakest</p>
+    <p style="margin:0 0 4px;font:600 17px Outfit,Inter">Technical SQL answers</p>
+    <p style="margin:0;font:400 15px/1.45 Inter;color:#6E5B61;text-wrap:pretty">Averaged 5.5. You described what to do but not how.</p>
+  </div>
+
+  <div style="background:#FDF6E7;border-radius:20px;padding:18px 20px;margin-bottom:24px">
+    <p style="margin:0 0 6px;font:600 16px Outfit,Inter">Do this next</p>
+    <p style="margin:0 0 14px;font:400 15px/1.5 Inter;color:#5E4B33;text-wrap:pretty">Finish the SQL joins task on your roadmap, then try a technical session on medium.</p>
+    <span style="font:600 15px Inter;color:#7A1B34">Open that task →</span>
+  </div>
+</div>
+<div style="flex:none;padding:12px 20px 20px;background:#F1EFE8;border-top:1px solid rgba(0,0,0,.05);display:flex;gap:10px">
+  <button style="flex:1;height:54px;border:1.5px solid #DCD4CF;border-radius:14px;background:#fff;color:#23181C;font:600 16px Inter;cursor:pointer" style-hover="border-color:#7A1B34">Review answers</button>
+  <button style="flex:1;height:54px;border:0;border-radius:14px;background:#7A1B34;color:#fff;font:600 16px Inter;cursor:pointer" style-hover="background:#5E1428">Practise again</button>
+</div>
+</div>
+</div>
+
+</div>
+</section>
+
+<section class="sec" id="s11">
+<div class="shd"><a class="sid" href="#s11">11</a><span class="snm">Profile</span></div>
+<p class="snote">The completeness banner names the two missing things instead of only showing a percentage, so it is a to-do and not a scolding. Each section edits in place — no separate edit mode, which is one less thing to learn.</p>
+<div class="row">
+<div>
+<p class="cap">Profile — 68% complete</p>
+<div style="width:360px;height:720px;background:#F1EFE8;border-radius:26px;border:1px solid rgba(0,0,0,.14);overflow:hidden;display:flex;flex-direction:column;font-family:Inter,system-ui,sans-serif;color:#23181C">
+<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 20px 0;font:600 12px Inter;color:#6E5B61;flex:none"><span>9:41</span><span style="display:flex;gap:6px;align-items:center"><span>4G</span><span style="width:20px;height:10px;border:1px solid #6E5B61;border-radius:2px;display:inline-block"></span></span></div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:12px 20px 0">
+  <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
+    <span style="width:56px;height:56px;border-radius:50%;background:#7A1B34;color:#fff;flex:none;display:flex;align-items:center;justify-content:center;font:600 20px Outfit,Inter">R</span>
+    <span style="flex:1"><span style="display:block;font:600 20px Outfit,Inter;letter-spacing:-.01em">Rafiq Hasan</span><span style="display:block;font:400 15px Inter;color:#6E5B61;margin-top:2px">BBA 2026 · Dhaka</span></span>
+  </div>
+
+  <div style="background:#7A1B34;border-radius:20px;padding:18px 20px;color:#fff;margin-bottom:14px">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px"><span style="font:600 17px Outfit,Inter">Profile 68% complete</span></div>
+    <span style="display:block;height:8px;border-radius:4px;background:rgba(255,255,255,.22);margin-bottom:12px"><span style="display:block;width:68%;height:8px;border-radius:4px;background:#FAC775"></span></span>
+    <p style="margin:0 0 12px;font:400 15px/1.45 Inter;color:rgba(255,255,255,.82);text-wrap:pretty">Two things left: a portfolio link and one certification.</p>
+    <span style="display:inline-flex;align-items:center;min-height:44px;font:600 15px Inter;color:#FAC775">Finish it →</span>
+  </div>
+
+  <div style="background:#fff;border-radius:20px;padding:18px 20px;margin-bottom:12px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span style="font:600 16px Outfit,Inter">Personal</span><span style="display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:50%;background:#5DCAA5"></span><span style="font:500 14px Inter;color:#7A1B34">Edit</span></span></div>
+    <div style="display:flex;justify-content:space-between;min-height:36px;align-items:center"><span style="font:400 15px Inter;color:#6E5B61">Phone</span><span style="font:400 15px Inter">+880 17XXXXXXXX</span></div>
+    <div style="display:flex;justify-content:space-between;min-height:36px;align-items:center"><span style="font:400 15px Inter;color:#6E5B61">City</span><span style="font:400 15px Inter">Dhaka</span></div>
+  </div>
+
+  <div style="background:#fff;border-radius:20px;padding:18px 20px;margin-bottom:12px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span style="font:600 16px Outfit,Inter">Education</span><span style="display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:50%;background:#5DCAA5"></span><span style="font:500 14px Inter;color:#7A1B34">Edit</span></span></div>
+    <p style="margin:0 0 2px;font:500 15.5px Inter">BBA, Finance</p>
+    <p style="margin:0;font:400 14.5px Inter;color:#6E5B61">University of Dhaka · graduating 2026</p>
+  </div>
+
+  <div style="background:#fff;border-radius:20px;padding:18px 20px;margin-bottom:12px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span style="font:600 16px Outfit,Inter">Skills</span><span style="display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:50%;background:#FAC775"></span><span style="font:500 14px Inter;color:#7A1B34">Edit</span></span></div>
+    <div style="display:flex;flex-direction:column;gap:11px">
+      <div style="display:flex;align-items:center;gap:12px"><span style="flex:1;font:400 15.5px Inter">SQL</span><span style="width:78px;height:6px;border-radius:3px;background:#EDE7E4;flex:none"><span style="display:block;width:66%;height:6px;border-radius:3px;background:#5DCAA5"></span></span><span style="font:500 14px Inter;color:#6E5B61;width:56px;text-align:right">Working</span></div>
+      <div style="display:flex;align-items:center;gap:12px"><span style="flex:1;font:400 15.5px Inter">Excel</span><span style="width:78px;height:6px;border-radius:3px;background:#EDE7E4;flex:none"><span style="display:block;width:88%;height:6px;border-radius:3px;background:#5DCAA5"></span></span><span style="font:500 14px Inter;color:#6E5B61;width:56px;text-align:right">Strong</span></div>
+      <div style="display:flex;align-items:center;gap:12px"><span style="flex:1;font:400 15.5px Inter">Python</span><span style="width:78px;height:6px;border-radius:3px;background:#EDE7E4;flex:none"><span style="display:block;width:33%;height:6px;border-radius:3px;background:#FAC775"></span></span><span style="font:500 14px Inter;color:#6E5B61;width:56px;text-align:right">Basic</span></div>
+    </div>
+  </div>
+
+  <div style="background:#fff;border-radius:20px;padding:18px 20px;margin-bottom:12px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span style="font:600 16px Outfit,Inter">Projects</span><span style="display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:50%;background:#FAC775"></span><span style="font:500 14px Inter;color:#7A1B34">Edit</span></span></div>
+    <p style="margin:0 0 2px;font:500 15.5px Inter">Retail sales dashboard</p>
+    <p style="margin:0 0 12px;font:400 14.5px/1.45 Inter;color:#6E5B61;text-wrap:pretty">Excel and SQL · course project, 2025</p>
+    <span style="font:600 15px Inter;color:#7A1B34;min-height:44px;display:flex;align-items:center">+ Add a project</span>
+  </div>
+
+  <div style="background:#fff;border-radius:20px;padding:18px 20px;margin-bottom:12px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><span style="font:600 16px Outfit,Inter">Certifications</span><span style="width:8px;height:8px;border-radius:50%;background:#E4A0A0"></span></div>
+    <p style="margin:0 0 12px;font:400 15px/1.45 Inter;color:#6E5B61;text-wrap:pretty">Nothing added. A free online course counts.</p>
+    <span style="font:600 15px Inter;color:#7A1B34;min-height:44px;display:flex;align-items:center">+ Add a certification</span>
+  </div>
+
+  <div style="background:#fff;border-radius:20px;padding:18px 20px;margin-bottom:24px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><span style="font:600 16px Outfit,Inter">Portfolio links</span><span style="width:8px;height:8px;border-radius:50%;background:#E4A0A0"></span></div>
+    <p style="margin:0 0 12px;font:400 15px/1.45 Inter;color:#6E5B61;text-wrap:pretty">GitHub, Behance, LinkedIn or a Drive folder.</p>
+    <span style="font:600 15px Inter;color:#7A1B34;min-height:44px;display:flex;align-items:center">+ Add a link</span>
+  </div>
+</div>
+<div style="display:flex;background:#fff;border-top:1px solid #EDE7E4;padding:8px 2px 16px;flex:none"><sc-for list="{{ tabsProfile }}" as="t" hint-placeholder-count="5"><div style="flex:1;min-height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="{{ t.d }}" stroke="{{ t.c }}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span style="font-family:Inter;font-size:10.5px;font-weight:{{ t.w }};color:{{ t.c }}">{{ t.label }}</span></div></sc-for></div>
+</div>
+</div>
+</div>
+</section>
+
+<section class="sec" id="s12">
+<div class="shd"><a class="sid" href="#s12">12</a><span class="snm">Shared components</span></div>
+<p class="snote">The pieces every screen above is built from. States that usually get skipped — offline, quota exhausted, error — are written as plain sentences that say what happened and what to do, never as an apology or a warning.</p>
+<div class="row">
+
+<div style="width:340px">
+<p class="cap">Buttons</p>
+<div style="background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:16px">
+  <div><p style="margin:0 0 8px;font:500 11px 'IBM Plex Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:#6E5B61">Primary</p><div style="display:flex;flex-direction:column;gap:8px"><button style="height:52px;border:0;border-radius:14px;background:#7A1B34;color:#fff;font:600 17px Inter;cursor:pointer" style-hover="background:#5E1428">Default</button><button style="height:52px;border:0;border-radius:14px;background:#5E1428;color:#fff;font:600 17px Inter">Pressed</button><button style="height:52px;border:0;border-radius:14px;background:#DCD4CF;color:#6E5B61;font:600 17px Inter">Disabled</button><button style="height:52px;border:0;border-radius:14px;background:#7A1B34;color:#fff;font:600 17px Inter;display:flex;align-items:center;justify-content:center;gap:9px"><span style="width:17px;height:17px;border-radius:50%;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;display:inline-block"></span>Working…</button></div></div>
+  <div><p style="margin:0 0 8px;font:500 11px 'IBM Plex Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:#6E5B61">Secondary</p><div style="display:flex;flex-direction:column;gap:8px"><button style="height:52px;border:1.5px solid #DCD4CF;border-radius:14px;background:#fff;color:#23181C;font:600 16px Inter;cursor:pointer" style-hover="border-color:#7A1B34">Default</button><button style="height:52px;border:1.5px solid #7A1B34;border-radius:14px;background:#FBF4F5;color:#7A1B34;font:600 16px Inter">Pressed</button><button style="height:52px;border:1.5px solid #EDE7E4;border-radius:14px;background:#fff;color:#6E5B61;font:600 16px Inter">Disabled</button></div></div>
+  <div><p style="margin:0 0 8px;font:500 11px 'IBM Plex Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:#6E5B61">Ghost</p><div style="display:flex;flex-direction:column;gap:8px"><button style="height:48px;border:0;border-radius:14px;background:transparent;color:#7A1B34;font:600 16px Inter;cursor:pointer" style-hover="background:#F3E7EA">Default</button><button style="height:48px;border:0;border-radius:14px;background:#F3E7EA;color:#5E1428;font:600 16px Inter">Pressed</button><button style="height:48px;border:0;border-radius:14px;background:transparent;color:#6E5B61;font:600 16px Inter">Disabled</button></div></div>
+</div>
+</div>
+
+<div style="width:340px">
+<p class="cap">Form inputs</p>
+<div style="background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:16px">
+  <div><label style="display:block;font:500 13px Inter;color:#6E5B61;margin-bottom:6px">Text — default</label><input placeholder="Placeholder" style="width:100%;box-sizing:border-box;height:52px;border:1.5px solid #DCD4CF;border-radius:12px;background:#fff;padding:0 14px;font:400 16px Inter" style-focus="border-color:#7A1B34;outline:none"/></div>
+  <div><label style="display:block;font:500 13px Inter;color:#6E5B61;margin-bottom:6px">Text — focused</label><div style="height:52px;border:1.5px solid #7A1B34;border-radius:12px;background:#fff;padding:0 14px;display:flex;align-items:center;font:400 16px Inter">Rafiq Hasan<span style="width:1.5px;height:20px;background:#7A1B34;margin-left:2px"></span></div></div>
+  <div><label style="display:block;font:500 13px Inter;color:#A32B2B;margin-bottom:6px">Text — error</label><div style="height:52px;border:1.5px solid #A32B2B;border-radius:12px;background:#fff;padding:0 14px;display:flex;align-items:center;font:400 16px Inter">rafiq@</div><p style="margin:6px 0 0;font:400 14.5px Inter;color:#A32B2B">That email does not look complete.</p></div>
+  <div><label style="display:block;font:500 13px Inter;color:#6E5B61;margin-bottom:6px">Select</label><div style="position:relative"><select style="width:100%;box-sizing:border-box;height:52px;border:1.5px solid #DCD4CF;border-radius:12px;background:#fff;padding:0 14px;font:400 16px Inter;appearance:none"><option>Dhaka</option><option>Chattogram</option></select><span style="position:absolute;right:16px;top:19px;pointer-events:none;font:400 14px Inter;color:#6E5B61">▾</span></div></div>
+  <div><label style="display:block;font:500 13px Inter;color:#6E5B61;margin-bottom:8px">Chip multi-select</label><div style="display:flex;flex-wrap:wrap;gap:8px"><span style="min-height:44px;display:inline-flex;align-items:center;padding:0 15px;border-radius:22px;background:#7A1B34;color:#fff;font:500 15px Inter">✓ SQL</span><span style="min-height:44px;display:inline-flex;align-items:center;padding:0 15px;border-radius:22px;background:#fff;border:1.5px solid #DCD4CF;font:500 15px Inter">Excel</span><span style="min-height:44px;display:inline-flex;align-items:center;padding:0 15px;border-radius:22px;background:#fff;border:1.5px solid #EDE7E4;color:#6E5B61;font:500 15px Inter">Python</span></div></div>
+  <div><label style="display:block;font:500 13px Inter;color:#6E5B61;margin-bottom:8px">File upload</label><div style="border:1.5px dashed #DCD4CF;border-radius:14px;padding:18px;text-align:center;background:repeating-linear-gradient(135deg,#FBFAF7 0 8px,#F5F2EC 8px 16px)"><p style="margin:0 0 3px;font:500 15px Inter;color:#23181C">Choose a file</p><p style="margin:0;font:400 14.5px Inter;color:#6E5B61">PDF or DOCX, up to 5 MB</p></div></div>
+</div>
+</div>
+
+<div style="width:340px">
+<p class="cap">Status pills, toasts, skeletons</p>
+<div style="background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:18px">
+  <div><p style="margin:0 0 8px;font:500 11px 'IBM Plex Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:#6E5B61">Six statuses</p><div style="display:flex;flex-wrap:wrap;gap:8px"><span style="font:600 12.5px Inter;padding:7px 12px;border-radius:15px;background:#EDE7E4;color:#6E5B61">Saved</span><span style="font:600 12.5px Inter;padding:7px 12px;border-radius:15px;background:#EAF8F2;color:#1A6B50">Applied</span><span style="font:600 12.5px Inter;padding:7px 12px;border-radius:15px;background:#EAF0F8;color:#2E5C8A">Assessment</span><span style="font:600 12.5px Inter;padding:7px 12px;border-radius:15px;background:#FDF6E7;color:#8A6415">Interview</span><span style="font:600 12.5px Inter;padding:7px 12px;border-radius:15px;background:#7A1B34;color:#fff">Offer</span><span style="font:600 12.5px Inter;padding:7px 12px;border-radius:15px;background:#F3E7EA;color:#A32B2B">Rejected</span></div></div>
+  <div><p style="margin:0 0 8px;font:500 11px 'IBM Plex Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:#6E5B61">Toasts</p><div style="display:flex;flex-direction:column;gap:9px"><div style="background:#23181C;border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:11px"><span style="width:20px;height:20px;border-radius:50%;background:#1A6B50;color:#fff;flex:none;display:flex;align-items:center;justify-content:center;font:700 11px Inter">✓</span><span style="flex:1;font:500 14.5px Inter;color:#fff">CV uploaded. Score updated.</span></div><div style="background:#23181C;border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:11px"><span style="width:20px;height:20px;border-radius:50%;background:#E4A0A0;color:#23181C;flex:none;display:flex;align-items:center;justify-content:center;font:700 11px Inter">!</span><span style="flex:1;font:500 14.5px Inter;color:#fff">Upload failed.</span><span style="font:600 14.5px Inter;color:#FAC775">Retry</span></div></div></div>
+  <div><p style="margin:0 0 8px;font:500 11px 'IBM Plex Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:#6E5B61">Loading skeletons</p><div style="background:#F1EFE8;border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:12px"><div style="background:#fff;border-radius:14px;padding:14px;display:flex;gap:12px;align-items:center"><span style="width:40px;height:40px;border-radius:12px;background:#EDE7E4;flex:none"></span><span style="flex:1"><span style="display:block;height:12px;width:70%;border-radius:6px;background:#EDE7E4;margin-bottom:8px"></span><span style="display:block;height:10px;width:45%;border-radius:5px;background:#F1EFE8"></span></span></div><div style="background:#fff;border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:9px"><span style="display:block;height:11px;width:90%;border-radius:5px;background:#EDE7E4"></span><span style="display:block;height:11px;width:75%;border-radius:5px;background:#EDE7E4"></span><span style="display:block;height:11px;width:52%;border-radius:5px;background:#F1EFE8"></span></div></div></div>
+</div>
+</div>
+
+<div style="width:340px">
+<p class="cap">System states</p>
+<div style="background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:14px">
+  <div style="background:#F1EFE8;border-radius:18px;padding:20px;text-align:center"><p style="margin:0 0 6px;font:600 17px Outfit,Inter">You are offline</p><p style="margin:0 0 14px;font:400 15px/1.45 Inter;color:#6E5B61;text-wrap:pretty">Your tasks and applications still work. Anything you change will sync when you reconnect.</p><button style="width:100%;height:48px;border:1.5px solid #DCD4CF;border-radius:14px;background:#fff;font:600 15px Inter;cursor:pointer" style-hover="border-color:#7A1B34">Try again</button></div>
+  <div style="background:#FDF6E7;border-radius:18px;padding:20px"><p style="margin:0 0 6px;font:600 17px Outfit,Inter">You have used today's 3 analyses</p><p style="margin:0 0 14px;font:400 15px/1.45 Inter;color:#5E4B33;text-wrap:pretty">The limit keeps Tack free for everyone. Three more unlock at midnight — a good time to work on a roadmap task instead.</p><button style="width:100%;height:48px;border:0;border-radius:14px;background:#7A1B34;color:#fff;font:600 15px Inter;cursor:pointer" style-hover="background:#5E1428">Open my roadmap</button></div>
+  <div style="background:#F1EFE8;border-radius:18px;padding:20px;text-align:center"><p style="margin:0 0 6px;font:600 17px Outfit,Inter">That did not load</p><p style="margin:0 0 14px;font:400 15px/1.45 Inter;color:#6E5B61;text-wrap:pretty">Something went wrong on our side. Nothing you did was lost.</p><button style="width:100%;height:48px;border:1.5px solid #DCD4CF;border-radius:14px;background:#fff;font:600 15px Inter;cursor:pointer" style-hover="border-color:#7A1B34">Reload</button></div>
+</div>
+</div>
+
+<div style="width:340px">
+<p class="cap">Empty states</p>
+<div style="background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:12px">
+  <div style="background:#F1EFE8;border-radius:18px;padding:18px"><p style="margin:0 0 5px;font:600 16px Outfit,Inter">Dashboard</p><p style="margin:0 0 12px;font:400 14.5px/1.45 Inter;color:#6E5B61;text-wrap:pretty">Everyone starts low. Three short steps will move your score.</p><span style="font:600 14.5px Inter;color:#7A1B34">Start step 1 →</span></div>
+  <div style="background:#F1EFE8;border-radius:18px;padding:18px"><p style="margin:0 0 5px;font:600 16px Outfit,Inter">Applications</p><p style="margin:0 0 12px;font:400 14.5px/1.45 Inter;color:#6E5B61;text-wrap:pretty">Track every job you apply to. You will see what is working.</p><span style="font:600 14.5px Inter;color:#7A1B34">Add first application →</span></div>
+  <div style="background:#F1EFE8;border-radius:18px;padding:18px"><p style="margin:0 0 5px;font:600 16px Outfit,Inter">Vault</p><p style="margin:0 0 12px;font:400 14.5px/1.45 Inter;color:#6E5B61;text-wrap:pretty">Only you can see these files. Nothing is sent on its own.</p><span style="font:600 14.5px Inter;color:#7A1B34">Upload your CV →</span></div>
+  <div style="background:#F1EFE8;border-radius:18px;padding:18px"><p style="margin:0 0 5px;font:600 16px Outfit,Inter">Roadmap</p><p style="margin:0 0 12px;font:400 14.5px/1.45 Inter;color:#6E5B61;text-wrap:pretty">Pick a target role and we will build the route to it.</p><span style="font:600 14.5px Inter;color:#7A1B34">Choose a role →</span></div>
+</div>
+</div>
+
+<div style="width:340px">
+<p class="cap">Bottom sheet — filters</p>
+<div style="background:#EDE7E4;border:1px solid rgba(0,0,0,.08);border-radius:14px;padding:14px">
+<div style="background:#fff;border-radius:22px 22px 14px 14px;padding:10px 18px 18px">
+  <span style="display:block;width:42px;height:4px;border-radius:2px;background:#DCD4CF;margin:0 auto 14px"></span>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><span style="font:600 17px Outfit,Inter">Filter</span><span style="font:500 14.5px Inter;color:#7A1B34">Clear</span></div>
+  <p style="margin:0 0 8px;font:500 13px Inter;color:#6E5B61">Status</p>
+  <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px"><span style="min-height:40px;display:inline-flex;align-items:center;padding:0 13px;border-radius:20px;background:#7A1B34;color:#fff;font:600 13.5px Inter">Applied</span><span style="min-height:40px;display:inline-flex;align-items:center;padding:0 13px;border-radius:20px;background:#fff;border:1.5px solid #DCD4CF;font:500 13.5px Inter">Interview</span><span style="min-height:40px;display:inline-flex;align-items:center;padding:0 13px;border-radius:20px;background:#fff;border:1.5px solid #DCD4CF;font:500 13.5px Inter">Offer</span></div>
+  <p style="margin:0 0 8px;font:500 13px Inter;color:#6E5B61">Sort</p>
+  <div style="display:flex;gap:8px;margin-bottom:18px"><span style="flex:1;min-height:44px;display:flex;align-items:center;justify-content:center;border-radius:12px;background:#7A1B34;color:#fff;font:600 14.5px Inter">Next date</span><span style="flex:1;min-height:44px;display:flex;align-items:center;justify-content:center;border-radius:12px;background:#fff;border:1.5px solid #DCD4CF;font:500 14.5px Inter">Recently added</span></div>
+  <button style="width:100%;height:52px;border:0;border-radius:14px;background:#7A1B34;color:#fff;font:600 16px Inter;cursor:pointer" style-hover="background:#5E1428">Show 3 results</button>
+</div>
+</div>
+</div>
+
+</div>
+</section>
+
+<section class="sec" id="s13">
+<div class="shd"><a class="sid" href="#s13">13</a><span class="snm">Year-aware dashboards — Explore, Build, Prove, Launch</span></div>
+<p class="snote">Same components, four priorities. The score is benchmarked against the student's own year, so a first-year on 30 reads as ahead, not behind. Junior years never see an application funnel or the word deadline; the tab bar only gains Applications in final year. The mode chip and its colour warm from amber to maroon as the years progress, so the app visibly changes gear.</p>
+<div class="row">
+
+<div>
+<p class="cap">Year 1 — Explore</p>
+<div style="width:360px;height:720px;background:#F1EFE8;border-radius:26px;border:1px solid rgba(0,0,0,.14);overflow:hidden;display:flex;flex-direction:column;font-family:Inter,system-ui,sans-serif;color:#23181C">
+<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 20px 0;font:600 12px Inter;color:#6E5B61;flex:none"><span>9:41</span><span style="display:flex;gap:6px;align-items:center"><span>4G</span><span style="width:20px;height:10px;border:1px solid #6E5B61;border-radius:2px;display:inline-block"></span></span></div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:12px 20px 0">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+    <span><span style="display:flex;align-items:center;gap:8px;margin-bottom:3px"><span style="font:600 10.5px 'IBM Plex Mono',monospace;letter-spacing:.1em;text-transform:uppercase;padding:4px 9px;border-radius:10px;background:#FDF6E7;color:#8A6415">Explore · year 1</span></span><span style="display:block;font:600 21px Outfit,Inter;letter-spacing:-.01em">Hi Nusrat</span></span>
+    <span style="width:40px;height:40px;border-radius:50%;background:#7A1B34;color:#fff;display:flex;align-items:center;justify-content:center;font:600 15px Inter">N</span>
+  </div>
+
+  <div style="background:#7A1B34;border-radius:20px;padding:20px;color:#fff;margin-bottom:14px">
+    <p style="margin:0 0 8px;font:600 21px/1.3 Outfit,Inter;letter-spacing:-.01em;text-wrap:pretty">What could you actually do after this degree?</p>
+    <p style="margin:0 0 16px;font:400 15px/1.5 Inter;color:rgba(255,255,255,.8);text-wrap:pretty">Six paths match your BBA. Look at two or three. You do not have to decide anything.</p>
+    <button style="width:100%;height:52px;border:0;border-radius:14px;background:#FAC775;color:#23181C;font:600 16px Inter;cursor:pointer" style-hover="background:#f7bb56">Explore career paths</button>
+  </div>
+
+  <div style="background:#fff;border-radius:20px;padding:18px 20px;margin-bottom:14px;display:flex;align-items:center;gap:16px">
+    <div style="width:74px;height:74px;border-radius:50%;flex:none;background:conic-gradient(#FAC775 0 30%, #EDE7E4 0);display:flex;align-items:center;justify-content:center"><div style="width:58px;height:58px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font:600 24px Outfit,Inter;color:#7A1B34">30</div></div>
+    <div style="flex:1">
+      <p style="margin:0 0 4px;font:600 15.5px Outfit,Inter">Ahead of most first-years</p>
+      <p style="margin:0;font:400 14.5px/1.45 Inter;color:#6E5B61;text-wrap:pretty">30 out of 100. The average first-year sits at 18.</p>
+    </div>
+  </div>
+
+  <div style="background:#fff;border-radius:20px;padding:18px 20px;margin-bottom:14px">
+    <p style="margin:0 0 4px;font:600 16px Outfit,Inter">Try this month</p>
+    <p style="margin:0 0 14px;font:400 14px Inter;color:#6E5B61">Small things. No pressure.</p>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;align-items:center;gap:12px;min-height:44px;padding:10px 12px;border-radius:14px;background:#FBF4F5"><span style="width:22px;height:22px;border-radius:7px;border:1.5px solid #C9B6BC;background:#fff;flex:none"></span><span style="flex:1;font:500 15.5px Inter">Join one university club</span></div>
+      <div style="display:flex;align-items:center;gap:12px;min-height:44px;padding:10px 12px;border-radius:14px;background:#FBF4F5"><span style="width:22px;height:22px;border-radius:7px;border:1.5px solid #C9B6BC;background:#fff;flex:none"></span><span style="flex:1;font:500 15.5px Inter">Read about two career paths</span></div>
+      <div style="display:flex;align-items:center;gap:12px;min-height:44px;padding:10px 12px;border-radius:14px;background:#FBF4F5"><span style="width:22px;height:22px;border-radius:7px;border:1.5px solid #C9B6BC;background:#fff;flex:none"></span><span style="flex:1;font:500 15.5px Inter">Add this semester's courses</span></div>
+    </div>
+  </div>
+
+  <div style="background:#fff;border-radius:20px;padding:18px 20px;margin-bottom:24px">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px"><p style="margin:0;font:600 16px Outfit,Inter">This semester</p><span style="font:600 14px Inter;color:#7A1B34">5 courses</span></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;min-height:40px"><span style="font:400 15px Inter">Principles of accounting</span><span style="font:500 12px Inter;padding:4px 9px;border-radius:10px;background:#EAF8F2;color:#1A6B50">Excel</span></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;min-height:40px"><span style="font:400 15px Inter">Business statistics</span><span style="font:500 12px Inter;padding:4px 9px;border-radius:10px;background:#EAF8F2;color:#1A6B50">Statistics</span></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;min-height:40px"><span style="font:400 15px Inter;color:#6E5B61">3 more</span><span style="font:400 15px Inter;color:#6E5B61">→</span></div>
+  </div>
+</div>
+<div style="display:flex;background:#fff;border-top:1px solid #EDE7E4;padding:8px 2px 16px;flex:none">
+  <div style="flex:1;min-height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z" stroke="#7A1B34" stroke-width="2" stroke-linejoin="round"/></svg><span style="font:600 11px Inter;color:#7A1B34">Home</span></div>
+  <div style="flex:1;min-height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 21v-8M12 13 6 7M12 13l6-6" stroke="#6E5B61" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span style="font:500 11px Inter;color:#6E5B61">Paths</span></div>
+  <div style="flex:1;min-height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 19 9 11l5 4 7-10" stroke="#6E5B61" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span style="font:500 11px Inter;color:#6E5B61">Roadmap</span></div>
+  <div style="flex:1;min-height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 11.5a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM4.5 20.5a7.5 7.5 0 0 1 15 0" stroke="#6E5B61" stroke-width="2" stroke-linecap="round"/></svg><span style="font:500 11px Inter;color:#6E5B61">Profile</span></div>
+</div>
+</div>
+</div>
+
+<div>
+<p class="cap">Year 2 — Build</p>
+<div style="width:360px;height:720px;background:#F1EFE8;border-radius:26px;border:1px solid rgba(0,0,0,.14);overflow:hidden;display:flex;flex-direction:column;font-family:Inter,system-ui,sans-serif;color:#23181C">
+<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 20px 0;font:600 12px Inter;color:#6E5B61;flex:none"><span>9:41</span><span style="display:flex;gap:6px;align-items:center"><span>4G</span><span style="width:20px;height:10px;border:1px solid #6E5B61;border-radius:2px;display:inline-block"></span></span></div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:12px 20px 0">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+    <span><span style="display:flex;align-items:center;gap:8px;margin-bottom:3px"><span style="font:600 10.5px 'IBM Plex Mono',monospace;letter-spacing:.1em;text-transform:uppercase;padding:4px 9px;border-radius:10px;background:#EAF8F2;color:#1A6B50">Build · year 2</span></span><span style="display:block;font:600 21px Outfit,Inter;letter-spacing:-.01em">Hi Tanvir</span></span>
+    <span style="width:40px;height:40px;border-radius:50%;background:#7A1B34;color:#fff;display:flex;align-items:center;justify-content:center;font:600 15px Inter">T</span>
+  </div>
+
+  <div style="background:#fff;border-radius:20px;padding:18px 20px;margin-bottom:14px;display:flex;align-items:center;gap:16px">
+    <div style="width:74px;height:74px;border-radius:50%;flex:none;background:conic-gradient(#5DCAA5 0 44%, #EDE7E4 0);display:flex;align-items:center;justify-content:center"><div style="width:58px;height:58px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font:600 24px Outfit,Inter;color:#7A1B34">44</div></div>
+    <div style="flex:1"><p style="margin:0 0 4px;font:600 15.5px Outfit,Inter">Strong for a second-year</p><p style="margin:0;font:400 14.5px/1.45 Inter;color:#6E5B61;text-wrap:pretty">↑ 5 this month. Year-2 average is 31.</p></div>
+  </div>
+
+  <div style="background:#fff;border-radius:20px;padding:18px 20px;margin-bottom:14px;border:1.5px solid #7A1B34">
+    <p style="margin:0 0 4px;font:600 17px Outfit,Inter">Keep building</p>
+    <p style="margin:0 0 14px;font:400 14px Inter;color:#6E5B61">Path: data analyst</p>
+    <div style="display:flex;flex-direction:column;gap:11px">
+      <div><div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:5px"><span style="font:500 15.5px Inter">SQL</span><span style="font:500 13px Inter;color:#6E5B61">Basic → working</span></div><span style="display:block;height:7px;border-radius:4px;background:#EDE7E4"><span style="display:block;width:58%;height:7px;border-radius:4px;background:#5DCAA5"></span></span></div>
+      <div><div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:5px"><span style="font:500 15.5px Inter">Excel</span><span style="font:500 13px Inter;color:#6E5B61">Working</span></div><span style="display:block;height:7px;border-radius:4px;background:#EDE7E4"><span style="display:block;width:76%;height:7px;border-radius:4px;background:#5DCAA5"></span></span></div>
+      <div><div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:5px"><span style="font:500 15.5px Inter">Python</span><span style="font:500 13px Inter;color:#8A6415">Just started</span></div><span style="display:block;height:7px;border-radius:4px;background:#EDE7E4"><span style="display:block;width:22%;height:7px;border-radius:4px;background:#FAC775"></span></span></div>
+    </div>
+  </div>
+
+  <div style="background:#FDF6E7;border-radius:20px;padding:18px 20px;margin-bottom:14px">
+    <p style="margin:0 0 6px;font:600 16px Outfit,Inter">Your first project</p>
+    <p style="margin:0 0 14px;font:400 15px/1.5 Inter;color:#5E4B33;text-wrap:pretty">Build a sales dashboard from your statistics coursework. Two weekends. It becomes the first real thing on your CV.</p>
+    <span style="font:600 15px Inter;color:#7A1B34;min-height:44px;display:flex;align-items:center">See how →</span>
+  </div>
+
+  <div style="background:#fff;border-radius:20px;padding:18px 20px;margin-bottom:24px">
+    <p style="margin:0 0 6px;font:600 16px Outfit,Inter">Internships open next year</p>
+    <p style="margin:0;font:400 15px/1.5 Inter;color:#6E5B61;text-wrap:pretty">Most summer internships want one project and one skill at working level. You are two tasks away from both.</p>
+  </div>
+</div>
+<div style="display:flex;background:#fff;border-top:1px solid #EDE7E4;padding:8px 2px 16px;flex:none">
+  <div style="flex:1;min-height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z" stroke="#7A1B34" stroke-width="2" stroke-linejoin="round"/></svg><span style="font:600 11px Inter;color:#7A1B34">Home</span></div>
+  <div style="flex:1;min-height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 21v-8M12 13 6 7M12 13l6-6" stroke="#6E5B61" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span style="font:500 11px Inter;color:#6E5B61">Paths</span></div>
+  <div style="flex:1;min-height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 19 9 11l5 4 7-10" stroke="#6E5B61" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span style="font:500 11px Inter;color:#6E5B61">Roadmap</span></div>
+  <div style="flex:1;min-height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 11.5a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM4.5 20.5a7.5 7.5 0 0 1 15 0" stroke="#6E5B61" stroke-width="2" stroke-linecap="round"/></svg><span style="font:500 11px Inter;color:#6E5B61">Profile</span></div>
+</div>
+</div>
+</div>
+
+<div>
+<p class="cap">Year 3 — Prove</p>
+<div style="width:360px;height:720px;background:#F1EFE8;border-radius:26px;border:1px solid rgba(0,0,0,.14);overflow:hidden;display:flex;flex-direction:column;font-family:Inter,system-ui,sans-serif;color:#23181C">
+<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 20px 0;font:600 12px Inter;color:#6E5B61;flex:none"><span>9:41</span><span style="display:flex;gap:6px;align-items:center"><span>4G</span><span style="width:20px;height:10px;border:1px solid #6E5B61;border-radius:2px;display:inline-block"></span></span></div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:12px 20px 0">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+    <span><span style="display:flex;align-items:center;gap:8px;margin-bottom:3px"><span style="font:600 10.5px 'IBM Plex Mono',monospace;letter-spacing:.1em;text-transform:uppercase;padding:4px 9px;border-radius:10px;background:#E4F0EB;color:#1F5F4A">Prove · year 3</span></span><span style="display:block;font:600 21px Outfit,Inter;letter-spacing:-.01em">Hi Sadia</span></span>
+    <span style="width:40px;height:40px;border-radius:50%;background:#7A1B34;color:#fff;display:flex;align-items:center;justify-content:center;font:600 15px Inter">S</span>
+  </div>
+
+  <div style="background:#fff;border-radius:20px;padding:18px 20px;margin-bottom:14px;border:1.5px solid #7A1B34">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px"><p style="margin:0;font:600 17px Outfit,Inter">Internships open now</p><span style="font:600 14px Inter;color:#7A1B34">4</span></div>
+    <div style="display:flex;align-items:center;gap:12px;min-height:52px;border-top:1px solid #F1EFE8"><span style="width:34px;height:34px;border-radius:10px;background:#F3E7EA;color:#7A1B34;flex:none;display:flex;align-items:center;justify-content:center;font:600 13px Outfit,Inter">BB</span><span style="flex:1"><span style="display:block;font:500 15.5px Inter">Data intern</span><span style="display:block;font:400 14.5px Inter;color:#6E5B61">Brac Bank · closes in 9 days</span></span><span style="font:600 13px Inter;color:#1A6B50">78%</span></div>
+    <div style="display:flex;align-items:center;gap:12px;min-height:52px;border-top:1px solid #F1EFE8"><span style="width:34px;height:34px;border-radius:10px;background:#EAF8F2;color:#1A6B50;flex:none;display:flex;align-items:center;justify-content:center;font:600 13px Outfit,Inter">SC</span><span style="flex:1"><span style="display:block;font:500 15.5px Inter">Analytics intern</span><span style="display:block;font:400 14.5px Inter;color:#6E5B61">Shohoz · closes in 3 weeks</span></span><span style="font:600 13px Inter;color:#8A6415">61%</span></div>
+  </div>
+
+  <div style="background:#fff;border-radius:20px;padding:18px 20px;margin-bottom:14px">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px"><p style="margin:0;font:600 16px Outfit,Inter">Skill gap · data analyst</p><span style="font:600 14px Inter;color:#6E5B61">73% ready</span></div>
+    <div style="display:flex;gap:6px;margin-bottom:12px">
+      <span style="flex:5;height:10px;border-radius:5px;background:#5DCAA5"></span>
+      <span style="flex:3;height:10px;border-radius:5px;background:#FAC775"></span>
+      <span style="flex:2;height:10px;border-radius:5px;background:#E4C6CC"></span>
+    </div>
+    <div style="display:flex;justify-content:space-between"><span style="font:500 13.5px Inter;color:#1A6B50">5 strong</span><span style="font:500 13.5px Inter;color:#8A6415">3 developing</span><span style="font:500 13.5px Inter;color:#A32B2B">2 missing</span></div>
+  </div>
+
+  <div style="background:#fff;border-radius:20px;padding:18px 20px;margin-bottom:14px">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px"><p style="margin:0;font:600 16px Outfit,Inter">Portfolio</p><span style="font:600 14px Inter;color:#6E5B61">2 of 4</span></div>
+    <span style="display:block;height:8px;border-radius:4px;background:#EDE7E4;margin-bottom:10px"><span style="display:block;width:50%;height:8px;border-radius:4px;background:#7A1B34"></span></span>
+    <p style="margin:0;font:400 15px/1.45 Inter;color:#6E5B61;text-wrap:pretty">Two projects shipped. Add a GitHub link and one write-up to finish it.</p>
+  </div>
+
+  <div style="background:#FDF6E7;border-radius:20px;padding:18px 20px;margin-bottom:24px">
+    <p style="margin:0 0 6px;font:600 16px Outfit,Inter">Connect this week</p>
+    <p style="margin:0 0 14px;font:400 15px/1.5 Inter;color:#5E4B33;text-wrap:pretty">Three alumni from your department work in analytics. A short message is enough.</p>
+    <span style="font:600 15px Inter;color:#7A1B34;min-height:44px;display:flex;align-items:center">See who →</span>
+  </div>
+</div>
+<div style="display:flex;background:#fff;border-top:1px solid #EDE7E4;padding:8px 2px 16px;flex:none">
+  <div style="flex:1;min-height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z" stroke="#7A1B34" stroke-width="2" stroke-linejoin="round"/></svg><span style="font:600 11px Inter;color:#7A1B34">Home</span></div>
+  <div style="flex:1;min-height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 21v-8M12 13 6 7M12 13l6-6" stroke="#6E5B61" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span style="font:500 11px Inter;color:#6E5B61">Paths</span></div>
+  <div style="flex:1;min-height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 19 9 11l5 4 7-10" stroke="#6E5B61" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span style="font:500 11px Inter;color:#6E5B61">Roadmap</span></div>
+  <div style="flex:1;min-height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 11.5a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM4.5 20.5a7.5 7.5 0 0 1 15 0" stroke="#6E5B61" stroke-width="2" stroke-linecap="round"/></svg><span style="font:500 11px Inter;color:#6E5B61">Profile</span></div>
+</div>
+</div>
+</div>
+
+<div>
+<p class="cap">Final year — Launch</p>
+<div style="width:360px;height:720px;background:#F1EFE8;border-radius:26px;border:1px solid rgba(0,0,0,.14);overflow:hidden;display:flex;flex-direction:column;font-family:Inter,system-ui,sans-serif;color:#23181C">
+<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 20px 0;font:600 12px Inter;color:#6E5B61;flex:none"><span>9:41</span><span style="display:flex;gap:6px;align-items:center"><span>4G</span><span style="width:20px;height:10px;border:1px solid #6E5B61;border-radius:2px;display:inline-block"></span></span></div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:12px 20px 0">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+    <span><span style="display:flex;align-items:center;gap:8px;margin-bottom:3px"><span style="font:600 10.5px 'IBM Plex Mono',monospace;letter-spacing:.1em;text-transform:uppercase;padding:4px 9px;border-radius:10px;background:#F3E7EA;color:#7A1B34">Launch · final year</span></span><span style="display:block;font:600 21px Outfit,Inter;letter-spacing:-.01em">Hi Rafiq</span></span>
+    <span style="width:40px;height:40px;border-radius:50%;background:#7A1B34;color:#fff;display:flex;align-items:center;justify-content:center;font:600 15px Inter">R</span>
+  </div>
+
+  <div style="background:#7A1B34;border-radius:20px;padding:18px 20px;color:#fff;margin-bottom:14px">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px"><p style="margin:0;font:600 17px Outfit,Inter">Next 7 days</p><span style="font:600 14px Inter;color:#FAC775">3 dates</span></div>
+    <div style="display:flex;align-items:center;gap:12px;min-height:44px;border-top:1px solid rgba(255,255,255,.15)"><span style="font:600 13px 'IBM Plex Mono',monospace;color:#FAC775;width:44px;flex:none">Tue 2</span><span style="flex:1;font:500 15px Inter">Brac Bank interview, 11:00</span></div>
+    <div style="display:flex;align-items:center;gap:12px;min-height:44px;border-top:1px solid rgba(255,255,255,.15)"><span style="font:600 13px 'IBM Plex Mono',monospace;color:#FAC775;width:44px;flex:none">Fri 5</span><span style="flex:1;font:500 15px Inter">Unilever assessment closes</span></div>
+    <div style="display:flex;align-items:center;gap:12px;min-height:44px;border-top:1px solid rgba(255,255,255,.15)"><span style="font:600 13px 'IBM Plex Mono',monospace;color:rgba(255,255,255,.7);width:44px;flex:none">Sun 7</span><span style="flex:1;font:500 15px Inter;color:rgba(255,255,255,.85)">City Bank deadline</span></div>
+  </div>
+
+  <div style="background:#fff;border-radius:20px;padding:18px 20px;margin-bottom:14px">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px"><p style="margin:0;font:600 16px Outfit,Inter">Applications</p><span style="font:600 14px Inter;color:#7A1B34">View all</span></div>
+    <div style="display:flex;gap:8px">
+      <span style="flex:1;text-align:center;padding:12px 0;border-radius:12px;background:#F1EFE8"><span style="display:block;font:600 20px Outfit,Inter">6</span><span style="display:block;font:400 12px Inter;color:#6E5B61;margin-top:2px">Applied</span></span>
+      <span style="flex:1;text-align:center;padding:12px 0;border-radius:12px;background:#EAF0F8"><span style="display:block;font:600 20px Outfit,Inter;color:#2E5C8A">2</span><span style="display:block;font:400 12px Inter;color:#6E5B61;margin-top:2px">Assessment</span></span>
+      <span style="flex:1;text-align:center;padding:12px 0;border-radius:12px;background:#FDF6E7"><span style="display:block;font:600 20px Outfit,Inter;color:#8A6415">1</span><span style="display:block;font:400 12px Inter;color:#6E5B61;margin-top:2px">Interview</span></span>
+      <span style="flex:1;text-align:center;padding:12px 0;border-radius:12px;background:#F1EFE8"><span style="display:block;font:600 20px Outfit,Inter">0</span><span style="display:block;font:400 12px Inter;color:#6E5B61;margin-top:2px">Offers</span></span>
+    </div>
+  </div>
+
+  <div style="background:#fff;border-radius:20px;padding:18px 20px;margin-bottom:14px;display:flex;align-items:center;gap:16px">
+    <div style="width:66px;height:66px;border-radius:50%;flex:none;background:conic-gradient(#5DCAA5 0 71%, #EDE7E4 0);display:flex;align-items:center;justify-content:center"><div style="width:52px;height:52px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font:600 21px Outfit,Inter;color:#7A1B34">71</div></div>
+    <div style="flex:1"><p style="margin:0 0 4px;font:600 15.5px Outfit,Inter">On track for final year</p><p style="margin:0;font:400 14.5px/1.45 Inter;color:#6E5B61;text-wrap:pretty">CV is current. Interview practice is the weak spot.</p></div>
+  </div>
+
+  <div style="background:#FDF6E7;border-radius:20px;padding:18px 20px;margin-bottom:24px">
+    <p style="margin:0 0 6px;font:600 16px Outfit,Inter">Prepare for Tuesday</p>
+    <p style="margin:0 0 14px;font:400 15px/1.5 Inter;color:#5E4B33;text-wrap:pretty">Five technical questions for the Brac Bank role. Twelve minutes.</p>
+    <button style="width:100%;height:50px;border:0;border-radius:14px;background:#7A1B34;color:#fff;font:600 16px Inter;cursor:pointer" style-hover="background:#5E1428">Start practice</button>
+  </div>
+</div>
+<div style="display:flex;background:#fff;border-top:1px solid #EDE7E4;padding:8px 2px 16px;flex:none">
+  <div style="flex:1;min-height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z" stroke="#7A1B34" stroke-width="2" stroke-linejoin="round"/></svg><span style="font:600 10.5px Inter;color:#7A1B34">Home</span></div>
+  <div style="flex:1;min-height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 21v-8M12 13 6 7M12 13l6-6" stroke="#6E5B61" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span style="font:500 10.5px Inter;color:#6E5B61">Paths</span></div>
+  <div style="flex:1;min-height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 19 9 11l5 4 7-10" stroke="#6E5B61" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span style="font:500 10.5px Inter;color:#6E5B61">Roadmap</span></div>
+  <div style="flex:1;min-height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3.5 7.5h17v12h-17zM9 7.5V5.5h6v2" stroke="#6E5B61" stroke-width="2" stroke-linejoin="round"/></svg><span style="font:500 10.5px Inter;color:#6E5B61">Apply</span></div>
+  <div style="flex:1;min-height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 11.5a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM4.5 20.5a7.5 7.5 0 0 1 15 0" stroke="#6E5B61" stroke-width="2" stroke-linecap="round"/></svg><span style="font:500 10.5px Inter;color:#6E5B61">Profile</span></div>
+</div>
+</div>
+</div>
+
+</div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1400,&quot;height&quot;:900}}">
+const ICONS = {
+  home: "M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z",
+  roadmap: "M3 19 9 11l5 4 7-10",
+  jobs: "M3.5 7.5h17v12h-17zM9 7.5V5.5h6v2",
+  vault: "M6 3.5h8l4 4v13H6zM14 3.5v4h4",
+  profile: "M12 11.5a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM4.5 20.5a7.5 7.5 0 0 1 15 0"
+};
+const TAB_LABELS = { home: "Home", roadmap: "Roadmap", jobs: "Applications", vault: "Vault", profile: "Profile" };
+
+class Component extends DCLogic {
+  tabs(active) {
+    return ["home", "roadmap", "jobs", "vault", "profile"].map(k => ({
+      key: k,
+      label: TAB_LABELS[k],
+      d: ICONS[k],
+      c: k === active ? "#7A1B34" : "#6E5B61",
+      w: k === active ? "600" : "500"
+    }));
+  }
+  renderVals() {
+    const skills = [
+      ["Python", 1], ["JavaScript", 1], ["React", 0], ["SQL", 1], ["Excel", 1],
+      ["Figma", 0], ["Data analysis", 1], ["Digital marketing", 0], ["Content writing", 0],
+      ["Customer support", 0], ["Java", 0], ["Git", 1], ["Public speaking", 0], ["Canva", 0]
+    ].map(([name, sel]) => ({
+      name,
+      bg: sel ? "#7A1B34" : "#FFFFFF",
+      fg: sel ? "#FFFFFF" : "#23181C",
+      bd: sel ? "#7A1B34" : "#DCD4CF",
+      mark: sel ? "✓ " : ""
+    }));
+
+    const components = [
+      ["Profile completeness", 9, 10, "Add your phone number and city", "#5DCAA5"],
+      ["Skills", 7, 12, "Add 3 more skills with a level", "#5DCAA5"],
+      ["Projects", 4, 12, "Add one project with a link", "#FAC775"],
+      ["Experience", 3, 12, "Add an internship or part-time job", "#FAC775"],
+      ["CV quality", 0, 15, "Upload a CV to get it checked", "#E4A0A0"],
+      ["Certifications", 2, 8, "Add one completed course", "#FAC775"],
+      ["Portfolio", 0, 8, "Add a GitHub or Behance link", "#E4A0A0"],
+      ["Interview practice", 0, 10, "Finish one practice session", "#E4A0A0"],
+      ["Application activity", 4, 13, "Apply to 3 more roles this month", "#FAC775"]
+    ].map(([name, score, max, action, colour]) => ({
+      name, score, max, action, colour,
+      pct: Math.round((score / max) * 100) + "%",
+      label: score + " of " + max,
+      gap: max - score
+    })).sort((a, b) => b.gap - a.gap);
+
+    const trend = "0,58 30,56 58,52 86,47 112,48 140,40 168,36 196,33 224,26 252,22 280,14";
+
+    const tasks = [
+      ["Write a one-page CV", "cv", "Due 28 Aug", 1],
+      ["Add two university projects", "project", "", 1],
+      ["Finish SQL basics course", "skill", "Due 3 Sep", 0],
+      ["Get a certificate for it", "cert", "", 0],
+      ["Message 3 seniors on LinkedIn", "network", "Due 6 Sep", 0],
+      ["Apply to 5 junior analyst roles", "apply", "", 0]
+    ].map(([title, type, due, done]) => ({
+      title, due, done,
+      tag: { cv: "CV", project: "Project", skill: "Skill", cert: "Certificate", network: "Networking", apply: "Application" }[type],
+      tagBg: { cv: "#F3E7EA", project: "#EAF8F2", skill: "#FDF6E7", cert: "#FDF6E7", network: "#EDE7E4", apply: "#F3E7EA" }[type],
+      tagFg: { cv: "#7A1B34", project: "#1A6B50", skill: "#8A6415", cert: "#8A6415", network: "#6E5B61", apply: "#7A1B34" }[type],
+      box: done ? "#7A1B34" : "#FFFFFF",
+      boxBd: done ? "#7A1B34" : "#C9B6BC",
+      tick: done ? "✓" : "",
+      titleColour: done ? "#6E5B61" : "#23181C",
+      strike: done ? "line-through" : "none"
+    }));
+
+    const apps = [
+      ["Junior data analyst", "Brac Bank", "Interview on 2 Sep", "Interview", "#FDF6E7", "#8A6415"],
+      ["Management trainee", "Unilever BD", "Applied 18 Aug", "Applied", "#EAF8F2", "#1F8A66"]
+    ].map(([role, company, when, status, sBg, sFg]) => ({ role, company, when, status, sBg, sFg }));
+
+    const matched = ["SQL", "Excel", "Data analysis", "Python"];
+    const missing = ["Power BI", "Statistics", "Stakeholder reporting"];
+
+    return {
+      tabsHome: this.tabs("home"),
+      tabsRoadmap: this.tabs("roadmap"),
+      tabsJobs: this.tabs("jobs"),
+      tabsVault: this.tabs("vault"),
+      tabsProfile: this.tabs("profile"),
+      skills, components, trend, tasks, apps, matched, missing
+    };
+  }
+}
+</script>
+</body>
+</html>

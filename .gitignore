@@ -1,0 +1,39 @@
+# secrets — never commit
+.env
+.env.*
+!.env.example
+env.json
+app/env/*.json
+!app/env/*.example.json
+supabase/.env
+supabase/.env.*
+!supabase/.env.example
+
+# flutter / dart
+app/.dart_tool/
+app/.flutter-plugins
+app/.flutter-plugins-dependencies
+app/build/
+app/ios/Pods/
+app/ios/.symlinks/
+app/ios/Flutter/Flutter.framework
+app/ios/Flutter/Flutter.podspec
+app/ios/Flutter/ephemeral/
+app/android/.gradle/
+app/android/local.properties
+app/android/key.properties
+app/android/app/*.jks
+app/android/app/google-services.json
+app/ios/Runner/GoogleService-Info.plist
+**/*.g.dart
+**/*.freezed.dart
+
+# node (tooling only)
+node_modules/
+tool/node_modules/
+
+# os / editor
+.DS_Store
+.idea/
+.vscode/
+*.iml

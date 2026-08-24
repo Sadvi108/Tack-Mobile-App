@@ -1,0 +1,72 @@
+-- Cities students actually study in, biggest first so the picker needs no scroll
+-- for most people.
+insert into public.cities (name, division, sort_order) values
+  ('Dhaka','Dhaka',1), ('Chattogram','Chattogram',2), ('Sylhet','Sylhet',3),
+  ('Khulna','Khulna',4), ('Rajshahi','Rajshahi',5), ('Gazipur','Dhaka',6),
+  ('Narayanganj','Dhaka',7), ('Cumilla','Chattogram',8), ('Bogura','Rajshahi',9),
+  ('Rangpur','Rangpur',10), ('Barishal','Barishal',11), ('Mymensingh','Mymensingh',12),
+  ('Jashore','Khulna',13), ('Cox''s Bazar','Chattogram',14), ('Dinajpur','Rangpur',15),
+  ('Savar','Dhaka',16), ('Tangail','Dhaka',17), ('Faridpur','Dhaka',18),
+  ('Pabna','Rajshahi',19), ('Noakhali','Chattogram',20), ('Kushtia','Khulna',21),
+  ('Feni','Chattogram',22), ('Brahmanbaria','Chattogram',23), ('Jamalpur','Mymensingh',24),
+  ('Sirajganj','Rajshahi',25), ('Naogaon','Rajshahi',26), ('Satkhira','Khulna',27),
+  ('Chandpur','Chattogram',28), ('Netrokona','Mymensingh',29), ('Patuakhali','Barishal',30),
+  ('Other','',999)
+on conflict (name) do nothing;
+
+insert into public.universities (name, short_name, city_id)
+select v.name, v.short_name, c.id
+from (values
+  ('University of Dhaka','DU','Dhaka'),
+  ('Bangladesh University of Engineering and Technology','BUET','Dhaka'),
+  ('Jahangirnagar University','JU','Savar'),
+  ('North South University','NSU','Dhaka'),
+  ('BRAC University','BRACU','Dhaka'),
+  ('Independent University, Bangladesh','IUB','Dhaka'),
+  ('East West University','EWU','Dhaka'),
+  ('American International University-Bangladesh','AIUB','Dhaka'),
+  ('United International University','UIU','Dhaka'),
+  ('Ahsanullah University of Science and Technology','AUST','Dhaka'),
+  ('Islamic University of Technology','IUT','Gazipur'),
+  ('Military Institute of Science and Technology','MIST','Dhaka'),
+  ('Daffodil International University','DIU','Dhaka'),
+  ('Brac Institute of Governance and Development','BIGD','Dhaka'),
+  ('Jagannath University','JnU','Dhaka'),
+  ('Bangladesh University of Professionals','BUP','Dhaka'),
+  ('University of Asia Pacific','UAP','Dhaka'),
+  ('Stamford University Bangladesh','SUB','Dhaka'),
+  ('Southeast University','SEU','Dhaka'),
+  ('Green University of Bangladesh','GUB','Dhaka'),
+  ('University of Liberal Arts Bangladesh','ULAB','Dhaka'),
+  ('Dhaka University of Engineering and Technology','DUET','Gazipur'),
+  ('National University','NU','Gazipur'),
+  ('Bangladesh Open University','BOU','Gazipur'),
+  ('Chittagong University of Engineering and Technology','CUET','Chattogram'),
+  ('University of Chittagong','CU','Chattogram'),
+  ('Premier University','PU','Chattogram'),
+  ('East Delta University','EDU','Chattogram'),
+  ('International Islamic University Chittagong','IIUC','Chattogram'),
+  ('Shahjalal University of Science and Technology','SUST','Sylhet'),
+  ('Metropolitan University','MU','Sylhet'),
+  ('Leading University','LU','Sylhet'),
+  ('Khulna University','KU','Khulna'),
+  ('Khulna University of Engineering and Technology','KUET','Khulna'),
+  ('University of Rajshahi','RU','Rajshahi'),
+  ('Rajshahi University of Engineering and Technology','RUET','Rajshahi'),
+  ('Bangladesh Agricultural University','BAU','Mymensingh'),
+  ('Hajee Mohammad Danesh Science and Technology University','HSTU','Dinajpur'),
+  ('Begum Rokeya University, Rangpur','BRUR','Rangpur'),
+  ('Islamic University, Kushtia','IU','Kushtia'),
+  ('Comilla University','CoU','Cumilla'),
+  ('Noakhali Science and Technology University','NSTU','Noakhali'),
+  ('Jashore University of Science and Technology','JUST','Jashore'),
+  ('Patuakhali Science and Technology University','PSTU','Patuakhali'),
+  ('Pabna University of Science and Technology','PUST','Pabna'),
+  ('Bangabandhu Sheikh Mujibur Rahman Science and Technology University','BSMRSTU','Dhaka'),
+  ('Barishal University','BU','Barishal'),
+  ('Sher-e-Bangla Agricultural University','SAU','Dhaka'),
+  ('Chittagong Independent University','CIU','Chattogram'),
+  ('Other','','Other')
+) as v(name, short_name, city)
+left join public.cities c on c.name = v.city
+on conflict (name) do nothing;

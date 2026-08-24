@@ -1,0 +1,88 @@
+name: tack
+description: "Tack — university-to-career workspace"
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.12.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # backend
+  supabase_flutter: ^2.10.4
+  google_sign_in: ^7.2.0
+
+  # state + routing
+  flutter_riverpod: ^3.0.3
+  riverpod_annotation: ^3.0.3
+  go_router: ^16.2.4
+
+  # local persistence / offline
+  drift: ^2.28.2
+  drift_flutter: ^0.2.6
+  sqlite3_flutter_libs: ^0.5.42
+  path_provider: ^2.1.5
+  shared_preferences: ^2.5.3
+
+  # models
+  freezed_annotation: ^3.1.0
+  json_annotation: ^4.9.0
+
+  # platform / io
+  connectivity_plus: ^7.0.0
+  file_picker: ^10.3.4
+  image_picker: ^1.2.0
+  mime: ^2.0.0
+  url_launcher: ^6.3.2
+  package_info_plus: ^9.0.0
+
+  # ui
+  flutter_svg: ^2.2.1
+  intl: ^0.20.2
+
+  # observability
+  posthog_flutter: ^5.1.2
+  sentry_flutter: ^9.7.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  build_runner: ^2.9.0
+  freezed: ^3.2.3
+  json_serializable: ^6.11.1
+  riverpod_generator: ^3.0.3
+  custom_lint: ^0.8.1
+  riverpod_lint: ^3.0.3
+  drift_dev: ^2.28.2
+  mocktail: ^1.0.4
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/icons/
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Inter-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Inter-SemiBold.ttf
+          weight: 600
+    - family: Outfit
+      fonts:
+        - asset: assets/fonts/Outfit-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Outfit-SemiBold.ttf
+          weight: 600
+    - family: IBMPlexMono
+      fonts:
+        - asset: assets/fonts/IBMPlexMono-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/IBMPlexMono-SemiBold.ttf
+          weight: 600
