@@ -1,0 +1,126 @@
+import 'package:flutter/widgets.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import '../core/supabase/client.dart';
+import '../design/tack.dart';
+
+/// Every route name in one place, so nothing is typed as a string literal at a
+/// call site.
+class Routes {
+  const Routes._();
+
+  static const splash = '/';
+  static const welcome = '/welcome';
+  static const login = '/login';
+  static const signup = '/signup';
+  static const forgotPassword = '/forgot-password';
+  static const resetPassword = '/reset-password';
+
+  static const onboarding = '/onboarding';
+
+  static const home = '/home';
+  static const paths = '/paths';
+  static const roadmap = '/roadmap';
+  static const applications = '/applications';
+  static const profile = '/profile';
+
+  static const score = '/score';
+  static const vault = '/vault';
+  static const analyser = '/analyser';
+  static const interview = '/interview';
+  static const notifications = '/notifications';
+
+  static String application(String id) => '/applications/$id';
+  static String path(String slug) => '/paths/$slug';
+}
+
+/// Rebuilds the router whenever auth changes, so the redirect below re-runs.
+class _AuthRefresh extends ChangeNotifier {
+  _AuthRefresh(Ref ref) {
+    _sub = ref.listen(authStateProvider, (_, _) => notifyListeners());
+  }
+
+  late final ProviderSubscription _sub;
+
+  @override
+  void dispose() {
+    _sub.close();
+    super.dispose();
+  }
+}
+
+final routerProvider = Provider<GoRouter>((ref) {
+  final refresh = _AuthRefresh(ref);
+  ref.onDispose(refresh.dispose);
+
+  return GoRouter(
+    initialLocation: Routes.splash,
+    refreshListenable: refresh,
+    redirect: (context, state) {
+      final signedIn = ref.read(supabaseProvider).auth.currentSession != null;
+      final loc = state.matchedLocation;
+      const publicRoutes = {
+        Routes.splash,
+        Routes.welcome,
+        Routes.login,
+        Routes.signup,
+        Routes.forgotPassword,
+        Routes.resetPassword,
+      };
+
+      if (!signedIn && !publicRoutes.contains(loc)) return Routes.welcome;
+      if (signedIn && (loc == Routes.welcome || loc == Routes.login || loc == Routes.signup)) {
+        return Routes.home;
+      }
+      return null;
+    },
+    routes: [
+      GoRoute(path: Routes.splash, builder: (context, state) => const _Placeholder('Splash')),
+      GoRoute(path: Routes.welcome, builder: (context, state) => const _Placeholder('Welcome')),
+      GoRoute(path: Routes.login, builder: (context, state) => const _Placeholder('Log in')),
+      GoRoute(path: Routes.signup, builder: (context, state) => const _Placeholder('Sign up')),
+      GoRoute(path: Routes.forgotPassword, builder: (context, state) => const _Placeholder('Forgot password')),
+      GoRoute(path: Routes.resetPassword, builder: (context, state) => const _Placeholder('Reset password')),
+      GoRoute(path: Routes.onboarding, builder: (context, state) => const _Placeholder('Onboarding')),
+      GoRoute(path: Routes.home, builder: (context, state) => const _Placeholder('Home')),
+      GoRoute(path: Routes.paths, builder: (context, state) => const _Placeholder('Career paths')),
+      GoRoute(path: Routes.roadmap, builder: (context, state) => const _Placeholder('Roadmap')),
+      GoRoute(path: Routes.applications, builder: (context, state) => const _Placeholder('Applications')),
+      GoRoute(path: Routes.profile, builder: (context, state) => const _Placeholder('Profile')),
+      GoRoute(path: Routes.score, builder: (context, state) => const _Placeholder('Readiness score')),
+      GoRoute(path: Routes.vault, builder: (context, state) => const _Placeholder('Document vault')),
+      GoRoute(path: Routes.analyser, builder: (context, state) => const _Placeholder('Job analyser')),
+      GoRoute(path: Routes.interview, builder: (context, state) => const _Placeholder('Interview practice')),
+      GoRoute(path: Routes.notifications, builder: (context, state) => const _Placeholder('Notifications')),
+    ],
+    errorBuilder: (context, state) => TackScaffold(
+      header: TackHeader(title: 'Not found', onBack: () => context.go(Routes.home)),
+      body: const TackErrorState(
+        title: 'That screen does not exist',
+        body: 'Go back to your dashboard and try again from there.',
+      ),
+    ),
+  );
+});
+
+/// Replaced screen by screen as each feature lands.
+class _Placeholder extends StatelessWidget {
+  const _Placeholder(this.name);
+
+  final String name;
+
+  @override
+  Widget build(BuildContext context) => TackScaffold(
+        header: TackHeader(title: name),
+        body: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: TackSpace.lg),
+            TackCard(
+              child: Text('$name is not built yet.', style: TackText.bodyMuted),
+            ),
+          ],
+        ),
+      );
+}
