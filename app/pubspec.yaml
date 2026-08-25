@@ -44,9 +44,8 @@ dependencies:
   flutter_svg: ^2.2.1
   intl: ^0.20.2
 
-  # observability
-  posthog_flutter: ^5.1.2
-  sentry_flutter: ^9.7.0
+  # Observability lives in Tack's own Supabase tables; there is no third-party
+  # analytics or crash service, by choice.
 
 dev_dependencies:
   flutter_test:

@@ -36,6 +36,10 @@ cd app && flutter run --dart-define-from-file=env/dev.json
 holds only the Supabase URL and anon key, which are safe in a client because
 Row Level Security is the actual boundary.
 
+Every piece of data Tack holds lives in one Supabase project: accounts, tables,
+documents, analytics and error reports. There is no third-party analytics or
+crash service, so nothing about a student leaves it.
+
 ## Checks
 
 ```bash

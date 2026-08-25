@@ -25,7 +25,8 @@ final-years, and that framing appears in words ("ahead of most first-years").
 - **Riverpod** for state, **go_router** for navigation, **Drift** for the local
   cache and the offline write queue.
 - **Supabase** — Postgres, Auth (email/password and Google), Storage, Edge
-  Functions (Deno/TypeScript).
+  Functions (Deno/TypeScript). Everything is in one project: there is no
+  third-party analytics or crash service, and no student data leaves it.
 - **Gemini** behind an Edge Function abstraction. Never called from Dart.
 - No Next.js, no Cloudflare Workers, no R2. The earlier build guide assumed a
   web app; the product is a Flutter app and the server side is Supabase.
@@ -45,6 +46,10 @@ final-years, and that framing appears in words ("ahead of most first-years").
   issued after an ownership check.
 - Validate everything crossing a boundary. Dart models parse defensively;
   Edge Functions validate request bodies with Zod.
+- Analytics go to `public.analytics_events` in Tack's own database. Event names
+  and counts only — never a name, email, phone, CV text, job description,
+  note or answer. The client filters properties as a last line of defence, and
+  that filter is tested.
 
 ## Architecture
 
