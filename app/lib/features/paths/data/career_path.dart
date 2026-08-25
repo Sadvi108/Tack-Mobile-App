@@ -4,14 +4,17 @@ enum SkillImportance {
   important,
   nice;
 
-  static SkillImportance fromWire(String? value) => SkillImportance.values
-      .firstWhere((i) => i.name == value, orElse: () => SkillImportance.important);
+  static SkillImportance fromWire(String? value) =>
+      SkillImportance.values.firstWhere(
+        (i) => i.name == value,
+        orElse: () => SkillImportance.important,
+      );
 
   String get label => switch (this) {
-        SkillImportance.core => 'Must have',
-        SkillImportance.important => 'Strongly helps',
-        SkillImportance.nice => 'Nice to have',
-      };
+    SkillImportance.core => 'Must have',
+    SkillImportance.important => 'Strongly helps',
+    SkillImportance.nice => 'Nice to have',
+  };
 }
 
 class PathSkill {
@@ -93,23 +96,24 @@ class CareerPath {
   }
 
   factory CareerPath.fromRow(Map<String, dynamic> row) => CareerPath(
-        id: row['id'] as String,
-        slug: row['slug'] as String,
-        title: row['title'] as String,
-        summary: row['summary'] as String,
-        category: (row['category'] as String?) ?? 'general',
-        salaryMin: (row['salary_min_bdt'] as num?)?.toInt(),
-        salaryMax: (row['salary_max_bdt'] as num?)?.toInt(),
-        monthsToJobReady: (row['months_to_job_ready'] as num?)?.toInt(),
-        demandLevel: row['demand_level'] as String?,
-        dayToDay: (row['day_to_day'] as List?)?.cast<String>() ?? const [],
-        goodFitIf: (row['good_fit_if'] as List?)?.cast<String>() ?? const [],
-        skills: ((row['career_path_skills'] as List?) ?? const [])
-            .cast<Map<String, dynamic>>()
-            .map(PathSkill.fromRow)
-            .toList(),
-        milestoneCount: ((row['career_path_milestones'] as List?) ?? const []).length,
-      );
+    id: row['id'] as String,
+    slug: row['slug'] as String,
+    title: row['title'] as String,
+    summary: row['summary'] as String,
+    category: (row['category'] as String?) ?? 'general',
+    salaryMin: (row['salary_min_bdt'] as num?)?.toInt(),
+    salaryMax: (row['salary_max_bdt'] as num?)?.toInt(),
+    monthsToJobReady: (row['months_to_job_ready'] as num?)?.toInt(),
+    demandLevel: row['demand_level'] as String?,
+    dayToDay: (row['day_to_day'] as List?)?.cast<String>() ?? const [],
+    goodFitIf: (row['good_fit_if'] as List?)?.cast<String>() ?? const [],
+    skills: ((row['career_path_skills'] as List?) ?? const [])
+        .cast<Map<String, dynamic>>()
+        .map(PathSkill.fromRow)
+        .toList(),
+    milestoneCount:
+        ((row['career_path_milestones'] as List?) ?? const []).length,
+  );
 }
 
 /// How well a student matches a path right now, computed by set comparison.
@@ -132,13 +136,15 @@ class PathMatch {
   int get percent {
     if (total == 0) return 0;
     double weight(SkillImportance i) => switch (i) {
-          SkillImportance.core => 3,
-          SkillImportance.important => 2,
-          SkillImportance.nice => 1,
-        };
+      SkillImportance.core => 3,
+      SkillImportance.important => 2,
+      SkillImportance.nice => 1,
+    };
     final earned = have.fold(0.0, (sum, s) => sum + weight(s.importance));
-    final possible =
-        [...have, ...missing].fold(0.0, (sum, s) => sum + weight(s.importance));
+    final possible = [
+      ...have,
+      ...missing,
+    ].fold(0.0, (sum, s) => sum + weight(s.importance));
     return possible == 0 ? 0 : (earned * 100 / possible).round();
   }
 

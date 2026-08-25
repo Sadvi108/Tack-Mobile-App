@@ -5,22 +5,25 @@ PathSkill skill(String id, SkillImportance importance) =>
     PathSkill(skillId: id, name: id, importance: importance);
 
 CareerPath pathWith(List<PathSkill> skills) => CareerPath(
-      id: 'p1',
-      slug: 'frontend-developer',
-      title: 'Frontend developer',
-      summary: 'Builds the part people see.',
-      category: 'software',
-      salaryMin: 25000,
-      salaryMax: 45000,
-      monthsToJobReady: 8,
-      skills: skills,
-    );
+  id: 'p1',
+  slug: 'frontend-developer',
+  title: 'Frontend developer',
+  summary: 'Builds the part people see.',
+  category: 'software',
+  salaryMin: 25000,
+  salaryMax: 45000,
+  monthsToJobReady: 8,
+  skills: skills,
+);
 
 void main() {
   group('matching is deterministic set comparison, never a model call', () {
     test('a student with none of the skills matches zero', () {
       final match = matchPath(
-        pathWith([skill('html', SkillImportance.core), skill('css', SkillImportance.core)]),
+        pathWith([
+          skill('html', SkillImportance.core),
+          skill('css', SkillImportance.core),
+        ]),
         <String>{},
       );
       expect(match.percent, 0);
@@ -30,7 +33,10 @@ void main() {
 
     test('a student with every skill matches fully', () {
       final match = matchPath(
-        pathWith([skill('html', SkillImportance.core), skill('css', SkillImportance.nice)]),
+        pathWith([
+          skill('html', SkillImportance.core),
+          skill('css', SkillImportance.nice),
+        ]),
         {'html', 'css'},
       );
       expect(match.percent, 100);
@@ -46,8 +52,11 @@ void main() {
       final hasCore = matchPath(path, {'html'});
       final hasNice = matchPath(path, {'figma'});
 
-      expect(hasCore.percent, greaterThan(hasNice.percent),
-          reason: 'holding the must-have should read as a better match');
+      expect(
+        hasCore.percent,
+        greaterThan(hasNice.percent),
+        reason: 'holding the must-have should read as a better match',
+      );
       expect(hasCore.percent, 75);
       expect(hasNice.percent, 25);
     });

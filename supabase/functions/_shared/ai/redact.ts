@@ -28,28 +28,33 @@ const NATIONAL_ID = /\b\d{10}\b|\b\d{13}\b|\b\d{17}\b/g;
 const URL = /https?:\/\/[^\s)]+/g;
 
 export function redact(input: string): Redaction {
-  const found = { emails: [] as string[], phones: [] as string[], urls: [] as string[], nationalIds: [] as string[] };
+  const found = {
+    emails: [] as string[],
+    phones: [] as string[],
+    urls: [] as string[],
+    nationalIds: [] as string[],
+  };
 
   let text = input.replace(EMAIL, (match) => {
     found.emails.push(match);
-    return '[email]';
+    return "[email]";
   });
 
   text = text.replace(PHONE, (match) => {
     found.phones.push(match);
-    return '[phone]';
+    return "[phone]";
   });
 
   text = text.replace(NATIONAL_ID, (match) => {
     found.nationalIds.push(match);
-    return '[id]';
+    return "[id]";
   });
 
   // Portfolio and repository links are kept in a structured field rather than
   // sent as free text.
   text = text.replace(URL, (match) => {
     found.urls.push(match);
-    return '[link]';
+    return "[link]";
   });
 
   return { text, found };
@@ -57,11 +62,13 @@ export function redact(input: string): Redaction {
 
 /** Throws if anything that looks personal survived redaction. */
 export function assertClean(text: string): void {
-  for (const [name, pattern] of [
-    ['an email address', EMAIL],
-    ['a phone number', PHONE],
-    ['a national ID', NATIONAL_ID],
-  ] as const) {
+  for (
+    const [name, pattern] of [
+      ["an email address", EMAIL],
+      ["a phone number", PHONE],
+      ["a national ID", NATIONAL_ID],
+    ] as const
+  ) {
     pattern.lastIndex = 0;
     if (pattern.test(text)) {
       throw new Error(`refusing to send text still containing ${name}`);

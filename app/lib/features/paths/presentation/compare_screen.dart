@@ -10,7 +10,11 @@ import '../data/path_repository.dart';
 /// rows: one question down the left, both answers beside each other. That
 /// keeps every comparison readable without horizontal scrolling.
 class ComparePathsScreen extends ConsumerWidget {
-  const ComparePathsScreen({super.key, required this.pathIdA, required this.pathIdB});
+  const ComparePathsScreen({
+    super.key,
+    required this.pathIdA,
+    required this.pathIdB,
+  });
 
   final String pathIdA;
   final String pathIdB;
@@ -20,18 +24,23 @@ class ComparePathsScreen extends ConsumerWidget {
     final matches = ref.watch(pathMatchesProvider);
 
     return TackScaffold(
-      header: TackHeader(title: 'Compare', onBack: () => Navigator.of(context).pop()),
+      header: TackHeader(
+        title: 'Compare',
+        onBack: () => Navigator.of(context).pop(),
+      ),
       body: matches.when(
         loading: () => const TackSkeleton(height: 320, radius: 20),
         error: (_, _) => const TackErrorState(
-          body: 'The comparison did not load. Check your connection and try again.',
+          body:
+              'The comparison did not load. Check your connection and try again.',
         ),
         data: (all) {
           final a = all.where((m) => m.path.id == pathIdA).firstOrNull;
           final b = all.where((m) => m.path.id == pathIdB).firstOrNull;
           if (a == null || b == null) {
             return const TackErrorState(
-              body: 'One of those paths is no longer available. Go back and pick again.',
+              body:
+                  'One of those paths is no longer available. Go back and pick again.',
             );
           }
 
@@ -41,7 +50,10 @@ class ComparePathsScreen extends ConsumerWidget {
               _HeaderRow(a: a.path.title, b: b.path.title),
               const SizedBox(height: TackSpace.md),
               TackCard(
-                padding: const EdgeInsets.symmetric(horizontal: TackSpace.cardX, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: TackSpace.cardX,
+                  vertical: 4,
+                ),
                 child: Column(
                   children: [
                     _CompareRow(
@@ -53,8 +65,14 @@ class ComparePathsScreen extends ConsumerWidget {
                     const TackDivider(),
                     _CompareRow(
                       label: 'Typical starting pay',
-                      a: a.path.salaryLabel.replaceAll(' BDT a month', '\nBDT a month'),
-                      b: b.path.salaryLabel.replaceAll(' BDT a month', '\nBDT a month'),
+                      a: a.path.salaryLabel.replaceAll(
+                        ' BDT a month',
+                        '\nBDT a month',
+                      ),
+                      b: b.path.salaryLabel.replaceAll(
+                        ' BDT a month',
+                        '\nBDT a month',
+                      ),
                     ),
                     const TackDivider(),
                     _CompareRow(
@@ -114,9 +132,13 @@ class _HeaderRow extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(width: 104),
-        Expanded(child: Text(a, style: TackText.cardTitle.copyWith(fontSize: 15))),
+        Expanded(
+          child: Text(a, style: TackText.cardTitle.copyWith(fontSize: 15)),
+        ),
         const SizedBox(width: TackSpace.sm),
-        Expanded(child: Text(b, style: TackText.cardTitle.copyWith(fontSize: 15))),
+        Expanded(
+          child: Text(b, style: TackText.cardTitle.copyWith(fontSize: 15)),
+        ),
       ],
     );
   }

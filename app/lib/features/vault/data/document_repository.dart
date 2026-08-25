@@ -14,13 +14,14 @@ import 'document_models.dart';
 /// Injectable so the upload flow can be tested without a network: the real
 /// implementation streams a PUT to a signed URL, which is the only way to get
 /// a real byte count out of the storage API.
-typedef UploadTransport = Future<void> Function({
-  required Uri url,
-  required Uint8List bytes,
-  required String contentType,
-  required void Function(int sent, int total) onProgress,
-  required Future<bool> Function() isCancelled,
-});
+typedef UploadTransport =
+    Future<void> Function({
+      required Uri url,
+      required Uint8List bytes,
+      required String contentType,
+      required void Function(int sent, int total) onProgress,
+      required Future<bool> Function() isCancelled,
+    });
 
 Future<void> streamingUpload({
   required Uri url,
@@ -73,7 +74,9 @@ class DocumentRepository {
 
   String get _uid {
     final id = _db.auth.currentUser?.id;
-    if (id == null) throw const Failure('You are signed out. Log in and try again.');
+    if (id == null) {
+      throw const Failure('You are signed out. Log in and try again.');
+    }
     return id;
   }
 
@@ -105,7 +108,10 @@ class DocumentRepository {
     void Function(double progress)? onProgress,
     Future<bool> Function()? isCancelled,
   }) async {
-    final rejection = UploadRules.reject(mimeType: mimeType, sizeBytes: bytes.length);
+    final rejection = UploadRules.reject(
+      mimeType: mimeType,
+      sizeBytes: bytes.length,
+    );
     if (rejection != null) throw Failure(rejection);
 
     final userId = _uid;
@@ -119,7 +125,8 @@ class DocumentRepository {
             'type': type.name,
             'title': title.trim(),
             // Provisional; replaced below once the id is known.
-            'storage_path': 'users/$userId/${type.name}/pending-${DateTime.now().microsecondsSinceEpoch}',
+            'storage_path':
+                'users/$userId/${type.name}/pending-${DateTime.now().microsecondsSinceEpoch}',
             'mime_type': mimeType,
             'size_bytes': bytes.length,
             'status': 'pending',
@@ -134,7 +141,10 @@ class DocumentRepository {
         documentId: documentId,
       );
 
-      await _db.from('documents').update({'storage_path': key}).eq('id', documentId);
+      await _db
+          .from('documents')
+          .update({'storage_path': key})
+          .eq('id', documentId);
 
       final signed = await _db.storage.from(bucket).createSignedUploadUrl(key);
 
@@ -142,7 +152,8 @@ class DocumentRepository {
         url: Uri.parse(signed.signedUrl),
         bytes: bytes,
         contentType: mimeType,
-        onProgress: (sent, total) => onProgress?.call(total == 0 ? 0 : sent / total),
+        onProgress: (sent, total) =>
+            onProgress?.call(total == 0 ? 0 : sent / total),
         isCancelled: isCancelled ?? () async => false,
       );
 
@@ -160,10 +171,10 @@ class DocumentRepository {
     } catch (e) {
       final failure = Failure.from(e);
       if (documentId != null) {
-        await _db.from('documents').update({
-          'status': 'failed',
-          'failure_reason': failure.message,
-        }).eq('id', documentId);
+        await _db
+            .from('documents')
+            .update({'status': 'failed', 'failure_reason': failure.message})
+            .eq('id', documentId);
       }
       throw failure;
     }
@@ -198,7 +209,10 @@ class DocumentRepository {
   /// directly trips a partial unique index.
   Future<void> makeDefault(String documentId) async {
     try {
-      await _db.rpc<void>('set_default_cv', params: {'p_document_id': documentId});
+      await _db.rpc<void>(
+        'set_default_cv',
+        params: {'p_document_id': documentId},
+      );
     } catch (e) {
       throw Failure.from(e);
     }
@@ -206,7 +220,10 @@ class DocumentRepository {
 
   Future<void> rename(String documentId, String title) async {
     try {
-      await _db.from('documents').update({'title': title.trim()}).eq('id', documentId);
+      await _db
+          .from('documents')
+          .update({'title': title.trim()})
+          .eq('id', documentId);
     } catch (e) {
       throw Failure.from(e);
     }
@@ -226,8 +243,9 @@ class DocumentRepository {
   }
 }
 
-final documentRepositoryProvider =
-    Provider<DocumentRepository>((ref) => DocumentRepository(ref.watch(supabaseProvider)));
+final documentRepositoryProvider = Provider<DocumentRepository>(
+  (ref) => DocumentRepository(ref.watch(supabaseProvider)),
+);
 
 final documentsProvider = FutureProvider<List<TackDocument>>((ref) async {
   if (!ref.watch(isSignedInProvider)) return const [];
@@ -237,7 +255,8 @@ final documentsProvider = FutureProvider<List<TackDocument>>((ref) async {
 /// The CV that gets attached to an application unless the student picks
 /// another one.
 final defaultCvProvider = Provider<TackDocument?>((ref) {
-  final documents = ref.watch(documentsProvider).value ?? const <TackDocument>[];
+  final documents =
+      ref.watch(documentsProvider).value ?? const <TackDocument>[];
   final cvs = documents.where((d) => d.type == DocumentType.cv).toList();
   for (final cv in cvs) {
     if (cv.isDefault) return cv;

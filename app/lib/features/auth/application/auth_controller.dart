@@ -14,12 +14,16 @@ class AuthUiState {
   /// A success message that is not an error — "check your inbox", for example.
   final String? notice;
 
-  AuthUiState copyWith({bool? busy, Failure? failure, String? notice, bool clear = false}) =>
-      AuthUiState(
-        busy: busy ?? this.busy,
-        failure: clear ? null : (failure ?? this.failure),
-        notice: clear ? null : (notice ?? this.notice),
-      );
+  AuthUiState copyWith({
+    bool? busy,
+    Failure? failure,
+    String? notice,
+    bool clear = false,
+  }) => AuthUiState(
+    busy: busy ?? this.busy,
+    failure: clear ? null : (failure ?? this.failure),
+    notice: clear ? null : (notice ?? this.notice),
+  );
 }
 
 class AuthController extends Notifier<AuthUiState> {
@@ -40,11 +44,18 @@ class AuthController extends Notifier<AuthUiState> {
     }
   }
 
-  Future<bool> signUp({required String email, required String password, required String fullName}) =>
-      _run(
-        () => _repo.signUpWithEmail(email: email, password: password, fullName: fullName),
-        notice: 'Check your inbox. We sent a link to confirm your email.',
-      );
+  Future<bool> signUp({
+    required String email,
+    required String password,
+    required String fullName,
+  }) => _run(
+    () => _repo.signUpWithEmail(
+      email: email,
+      password: password,
+      fullName: fullName,
+    ),
+    notice: 'Check your inbox. We sent a link to confirm your email.',
+  );
 
   Future<bool> signIn({required String email, required String password}) =>
       _run(() => _repo.signInWithEmail(email: email, password: password));
@@ -52,19 +63,19 @@ class AuthController extends Notifier<AuthUiState> {
   Future<bool> signInWithGoogle() => _run(() => _repo.signInWithGoogle());
 
   Future<bool> sendReset(String email) => _run(
-        () => _repo.sendPasswordReset(email),
-        notice: 'Check your inbox. We sent a link to set a new password.',
-      );
+    () => _repo.sendPasswordReset(email),
+    notice: 'Check your inbox. We sent a link to set a new password.',
+  );
 
   Future<bool> updatePassword(String password) => _run(
-        () => _repo.updatePassword(password),
-        notice: 'Your password is updated.',
-      );
+    () => _repo.updatePassword(password),
+    notice: 'Your password is updated.',
+  );
 
   Future<bool> resendConfirmation(String email) => _run(
-        () => _repo.resendConfirmation(email),
-        notice: 'Sent again. Check your inbox.',
-      );
+    () => _repo.resendConfirmation(email),
+    notice: 'Sent again. Check your inbox.',
+  );
 
   Future<void> signOut() async {
     await _repo.signOut();
@@ -74,5 +85,6 @@ class AuthController extends Notifier<AuthUiState> {
   void clear() => state = const AuthUiState();
 }
 
-final authControllerProvider =
-    NotifierProvider<AuthController, AuthUiState>(AuthController.new);
+final authControllerProvider = NotifierProvider<AuthController, AuthUiState>(
+  AuthController.new,
+);

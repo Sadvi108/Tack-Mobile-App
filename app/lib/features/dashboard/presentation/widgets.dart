@@ -23,8 +23,14 @@ class ModeChip extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(color: background, borderRadius: TackRadius.pillAll),
-      child: Text(mode.chipText, style: TackText.pill.copyWith(color: foreground)),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: TackRadius.pillAll,
+      ),
+      child: Text(
+        mode.chipText,
+        style: TackText.pill.copyWith(color: foreground),
+      ),
     );
   }
 }
@@ -63,9 +69,13 @@ class ScoreSummaryCard extends StatelessWidget {
                 const SizedBox(height: TackSpace.xs),
                 if (weekChange != 0)
                   Text(
-                    weekChange > 0 ? '+$weekChange this week' : '$weekChange this week',
+                    weekChange > 0
+                        ? '+$weekChange this week'
+                        : '$weekChange this week',
                     style: TackText.pill.copyWith(
-                      color: weekChange > 0 ? TackColors.tealText : TackColors.muted,
+                      color: weekChange > 0
+                          ? TackColors.tealText
+                          : TackColors.muted,
                     ),
                   )
                 else
@@ -245,7 +255,12 @@ class ApplicationFunnel extends StatelessWidget {
 
 /// A plain section heading with an optional "see all" affordance.
 class SectionHeading extends StatelessWidget {
-  const SectionHeading(this.title, {super.key, this.actionLabel, this.onAction});
+  const SectionHeading(
+    this.title, {
+    super.key,
+    this.actionLabel,
+    this.onAction,
+  });
 
   final String title;
   final String? actionLabel;
@@ -263,11 +278,16 @@ class SectionHeading extends StatelessWidget {
               onTap: onAction,
               behavior: HitTestBehavior.opaque,
               child: ConstrainedBox(
-                constraints: const BoxConstraints(minHeight: TackSpace.tapTarget),
+                constraints: const BoxConstraints(
+                  minHeight: TackSpace.tapTarget,
+                ),
                 child: Center(
                   child: Text(
                     actionLabel!,
-                    style: TackText.pill.copyWith(color: TackColors.maroon, fontSize: 14),
+                    style: TackText.pill.copyWith(
+                      color: TackColors.maroon,
+                      fontSize: 14,
+                    ),
                   ),
                 ),
               ),

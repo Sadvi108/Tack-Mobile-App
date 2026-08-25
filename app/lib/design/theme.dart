@@ -45,7 +45,9 @@ ThemeData buildTackTheme() {
       labelSmall: TackText.monoLabel,
     ),
     dividerTheme: const DividerThemeData(
-      color: TackColors.line, thickness: 1, space: 1,
+      color: TackColors.line,
+      thickness: 1,
+      space: 1,
     ),
     // Tack draws its own text fields; this only keeps stray Material inputs
     // from looking foreign if one slips in.
@@ -76,10 +78,12 @@ ThemeData buildTackTheme() {
       shape: RoundedRectangleBorder(borderRadius: TackRadius.sheetTop),
       showDragHandle: false,
     ),
-    pageTransitionsTheme: const PageTransitionsTheme(builders: {
-      TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
-      TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
-    }),
+    pageTransitionsTheme: const PageTransitionsTheme(
+      builders: {
+        TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
+        TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+      },
+    ),
   );
 }
 

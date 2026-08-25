@@ -19,7 +19,9 @@ Future<void> initSupabase() async {
   );
 }
 
-final supabaseProvider = Provider<SupabaseClient>((ref) => Supabase.instance.client);
+final supabaseProvider = Provider<SupabaseClient>(
+  (ref) => Supabase.instance.client,
+);
 
 /// Emits on every sign-in, sign-out and token refresh.
 final authStateProvider = StreamProvider<AuthState>(
@@ -33,4 +35,6 @@ final currentUserProvider = Provider<User?>((ref) {
   return ref.watch(supabaseProvider).auth.currentUser;
 });
 
-final isSignedInProvider = Provider<bool>((ref) => ref.watch(currentUserProvider) != null);
+final isSignedInProvider = Provider<bool>(
+  (ref) => ref.watch(currentUserProvider) != null,
+);

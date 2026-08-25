@@ -43,7 +43,9 @@ class ProfileScreen extends ConsumerWidget {
           child: const SizedBox(
             width: TackSpace.tapTarget,
             height: TackSpace.tapTarget,
-            child: Center(child: TackIcon(TackIcons.more, size: 22, color: TackColors.ink)),
+            child: Center(
+              child: TackIcon(TackIcons.more, size: 22, color: TackColors.ink),
+            ),
           ),
         ),
       ),
@@ -56,7 +58,8 @@ class ProfileScreen extends ConsumerWidget {
           ],
         ),
         error: (_, _) => TackErrorState(
-          body: 'Your profile did not load. Check your connection and try again.',
+          body:
+              'Your profile did not load. Check your connection and try again.',
           onRetry: () => ref.invalidate(profileProvider),
         ),
         data: (profile) {
@@ -74,13 +77,18 @@ class ProfileScreen extends ConsumerWidget {
                       Row(
                         children: [
                           Expanded(
-                            child: Text('Profile ${completeness.percent}% complete',
-                                style: TackText.cardTitle),
+                            child: Text(
+                              'Profile ${completeness.percent}% complete',
+                              style: TackText.cardTitle,
+                            ),
                           ),
                         ],
                       ),
                       const SizedBox(height: TackSpace.sm),
-                      TackProgressBar(value: completeness.percent / 100, height: 8),
+                      TackProgressBar(
+                        value: completeness.percent / 100,
+                        height: 8,
+                      ),
                       const SizedBox(height: TackSpace.md),
                       // Names what to do, rather than only how far off it is.
                       Text(completeness.sentence, style: TackText.bodyMuted),
@@ -115,9 +123,15 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _add(BuildContext context, WidgetRef ref, ProfileSection section) async {
+  Future<void> _add(
+    BuildContext context,
+    WidgetRef ref,
+    ProfileSection section,
+  ) async {
     final fields = _fieldsFor(section);
-    final controllers = {for (final field in fields) field.key: TextEditingController()};
+    final controllers = {
+      for (final field in fields) field.key: TextEditingController(),
+    };
 
     final saved = await showTackSheet<bool>(
       context: context,
@@ -155,7 +169,8 @@ class ProfileScreen extends ConsumerWidget {
     );
 
     final values = {
-      for (final entry in controllers.entries) entry.key: entry.value.text.trim(),
+      for (final entry in controllers.entries)
+        entry.key: entry.value.text.trim(),
     };
     for (final controller in controllers.values) {
       controller.dispose();
@@ -166,13 +181,10 @@ class ProfileScreen extends ConsumerWidget {
     if ((values[required] ?? '').isEmpty) return;
 
     try {
-      await ref.read(profileSectionsRepositoryProvider).insert(
-            section,
-            {
-              for (final entry in values.entries)
-                if (entry.value.isNotEmpty) entry.key: entry.value,
-            },
-          );
+      await ref.read(profileSectionsRepositoryProvider).insert(section, {
+        for (final entry in values.entries)
+          if (entry.value.isNotEmpty) entry.key: entry.value,
+      });
       ref
         ..invalidate(profileSectionsProvider)
         ..invalidate(completenessProvider);
@@ -217,10 +229,17 @@ class ProfileScreen extends ConsumerWidget {
         children: [
           TackTapRow(
             onTap: () => Navigator.of(context).pop('documents'),
-            padding: const EdgeInsets.symmetric(horizontal: TackSpace.screen, vertical: 14),
+            padding: const EdgeInsets.symmetric(
+              horizontal: TackSpace.screen,
+              vertical: 14,
+            ),
             child: Row(
               children: [
-                const TackIcon(TackIcons.vault, size: 20, color: TackColors.ink),
+                const TackIcon(
+                  TackIcons.vault,
+                  size: 20,
+                  color: TackColors.ink,
+                ),
                 const SizedBox(width: TackSpace.md),
                 Text('Your documents', style: TackText.rowTitle),
               ],
@@ -229,12 +248,22 @@ class ProfileScreen extends ConsumerWidget {
           const TackDivider(indent: TackSpace.screen),
           TackTapRow(
             onTap: () => Navigator.of(context).pop('signout'),
-            padding: const EdgeInsets.symmetric(horizontal: TackSpace.screen, vertical: 14),
+            padding: const EdgeInsets.symmetric(
+              horizontal: TackSpace.screen,
+              vertical: 14,
+            ),
             child: Row(
               children: [
-                const TackIcon(TackIcons.logout, size: 20, color: TackColors.danger),
+                const TackIcon(
+                  TackIcons.logout,
+                  size: 20,
+                  color: TackColors.danger,
+                ),
                 const SizedBox(width: TackSpace.md),
-                Text('Log out', style: TackText.rowTitle.copyWith(color: TackColors.danger)),
+                Text(
+                  'Log out',
+                  style: TackText.rowTitle.copyWith(color: TackColors.danger),
+                ),
               ],
             ),
           ),
@@ -251,41 +280,46 @@ class ProfileScreen extends ConsumerWidget {
   }
 
   static List<_Field> _fieldsFor(ProfileSection section) => switch (section) {
-        ProfileSection.education => const [
-            _Field('degree', 'Degree', 'BSc, BBA, BA'),
-            _Field('university_name', 'University', 'Where you study'),
-            _Field('field_of_study', 'Subject', 'Computer science'),
-          ],
-        ProfileSection.courses => const [
-            _Field('title', 'Course', 'Data structures'),
-            _Field('semester', 'Semester', 'Spring 2026'),
-            _Field('grade', 'Grade', 'A, optional'),
-          ],
-        ProfileSection.projects => const [
-            _Field('title', 'What you built', 'Shop inventory app'),
-            _Field('summary', 'What it does', 'One or two sentences', multiline: true),
-            _Field('url', 'Link', 'Optional'),
-          ],
-        ProfileSection.experience => const [
-            _Field('title', 'Your role', 'Intern'),
-            _Field('company_name', 'Where', 'Company name'),
-            _Field('description', 'What you did', 'Optional', multiline: true),
-          ],
-        ProfileSection.activities => const [
-            _Field('title', 'What it was', 'Debate club'),
-            _Field('organisation', 'Where', 'Optional'),
-            _Field('role', 'Your part in it', 'Optional'),
-          ],
-        ProfileSection.certifications => const [
-            _Field('title', 'Certificate', 'Google Data Analytics'),
-            _Field('issuer', 'Who gave it', 'Optional'),
-          ],
-        ProfileSection.portfolio => const [
-            _Field('kind', 'What it is', 'GitHub, LinkedIn, portfolio'),
-            _Field('url', 'Link', 'https://…'),
-          ],
-        ProfileSection.skills => const [],
-      };
+    ProfileSection.education => const [
+      _Field('degree', 'Degree', 'BSc, BBA, BA'),
+      _Field('university_name', 'University', 'Where you study'),
+      _Field('field_of_study', 'Subject', 'Computer science'),
+    ],
+    ProfileSection.courses => const [
+      _Field('title', 'Course', 'Data structures'),
+      _Field('semester', 'Semester', 'Spring 2026'),
+      _Field('grade', 'Grade', 'A, optional'),
+    ],
+    ProfileSection.projects => const [
+      _Field('title', 'What you built', 'Shop inventory app'),
+      _Field(
+        'summary',
+        'What it does',
+        'One or two sentences',
+        multiline: true,
+      ),
+      _Field('url', 'Link', 'Optional'),
+    ],
+    ProfileSection.experience => const [
+      _Field('title', 'Your role', 'Intern'),
+      _Field('company_name', 'Where', 'Company name'),
+      _Field('description', 'What you did', 'Optional', multiline: true),
+    ],
+    ProfileSection.activities => const [
+      _Field('title', 'What it was', 'Debate club'),
+      _Field('organisation', 'Where', 'Optional'),
+      _Field('role', 'Your part in it', 'Optional'),
+    ],
+    ProfileSection.certifications => const [
+      _Field('title', 'Certificate', 'Google Data Analytics'),
+      _Field('issuer', 'Who gave it', 'Optional'),
+    ],
+    ProfileSection.portfolio => const [
+      _Field('kind', 'What it is', 'GitHub, LinkedIn, portfolio'),
+      _Field('url', 'Link', 'https://…'),
+    ],
+    ProfileSection.skills => const [],
+  };
 }
 
 class _Field {
@@ -310,11 +344,17 @@ class _PersonalCard extends StatelessWidget {
           Container(
             width: 56,
             height: 56,
-            decoration: const BoxDecoration(color: TackColors.maroon, shape: BoxShape.circle),
+            decoration: const BoxDecoration(
+              color: TackColors.maroon,
+              shape: BoxShape.circle,
+            ),
             alignment: Alignment.center,
             child: Text(
               profile.initials,
-              style: TackText.cardTitle.copyWith(color: TackColors.white, fontSize: 20),
+              style: TackText.cardTitle.copyWith(
+                color: TackColors.white,
+                fontSize: 20,
+              ),
             ),
           ),
           const SizedBox(width: TackSpace.lg),
@@ -322,7 +362,10 @@ class _PersonalCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(profile.fullName ?? 'Add your name', style: TackText.cardTitle),
+                Text(
+                  profile.fullName ?? 'Add your name',
+                  style: TackText.cardTitle,
+                ),
                 const SizedBox(height: 3),
                 Text(
                   [
@@ -355,7 +398,9 @@ class _SkillsCard extends ConsumerWidget {
         children: [
           Row(
             children: [
-              _HealthDot(health: healthFor(ProfileSection.skills, skills.length)),
+              _HealthDot(
+                health: healthFor(ProfileSection.skills, skills.length),
+              ),
               const SizedBox(width: TackSpace.sm),
               Expanded(child: Text('Skills', style: TackText.cardTitle)),
               Text('${skills.length}', style: TackText.meta),
@@ -370,7 +415,10 @@ class _SkillsCard extends ConsumerWidget {
               Row(
                 children: [
                   Expanded(child: Text(skill.name, style: TackText.rowTitle)),
-                  Text(skill.proficiencyLabel, style: TackText.meta.copyWith(fontSize: 13)),
+                  Text(
+                    skill.proficiencyLabel,
+                    style: TackText.meta.copyWith(fontSize: 13),
+                  ),
                 ],
               ),
               const SizedBox(height: 6),
@@ -418,7 +466,11 @@ class _SectionCard extends StatelessWidget {
                   width: TackSpace.tapTarget,
                   height: TackSpace.tapTarget,
                   child: Center(
-                    child: TackIcon(TackIcons.plus, size: 20, color: TackColors.maroon),
+                    child: TackIcon(
+                      TackIcons.plus,
+                      size: 20,
+                      color: TackColors.maroon,
+                    ),
                   ),
                 ),
               ),
@@ -458,7 +510,10 @@ class _SectionCard extends StatelessWidget {
                     ),
                     if (entry.meta != null) ...[
                       const SizedBox(width: TackSpace.sm),
-                      Text(entry.meta!, style: TackText.meta.copyWith(fontSize: 13)),
+                      Text(
+                        entry.meta!,
+                        style: TackText.meta.copyWith(fontSize: 13),
+                      ),
                     ],
                   ],
                 ),

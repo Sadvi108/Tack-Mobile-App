@@ -71,8 +71,8 @@ class _TackTextFieldState extends State<TackTextField> {
     final borderColor = hasError
         ? TackColors.danger
         : _focus.hasFocus
-            ? TackColors.maroon
-            : TackColors.line2;
+        ? TackColors.maroon
+        : TackColors.line2;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -83,7 +83,9 @@ class _TackTextFieldState extends State<TackTextField> {
         ],
         AnimatedContainer(
           duration: TackMotion.fast,
-          constraints: BoxConstraints(minHeight: widget.maxLines > 1 ? 110 : 52),
+          constraints: BoxConstraints(
+            minHeight: widget.maxLines > 1 ? 110 : 52,
+          ),
           decoration: BoxDecoration(
             color: widget.enabled ? TackColors.white : TackColors.sailWhite,
             borderRadius: TackRadius.inputAll,
@@ -91,8 +93,9 @@ class _TackTextFieldState extends State<TackTextField> {
           ),
           padding: const EdgeInsets.symmetric(horizontal: 14),
           child: Row(
-            crossAxisAlignment:
-                widget.maxLines > 1 ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+            crossAxisAlignment: widget.maxLines > 1
+                ? CrossAxisAlignment.start
+                : CrossAxisAlignment.center,
             children: [
               if (widget.prefix != null) ...[
                 Padding(
@@ -158,7 +161,10 @@ class _TackTextFieldState extends State<TackTextField> {
           Text(widget.errorText!, style: TackText.fieldError),
         ] else if (widget.helperText != null) ...[
           const SizedBox(height: 6),
-          Text(widget.helperText!, style: TackText.meta.copyWith(fontSize: 13.5)),
+          Text(
+            widget.helperText!,
+            style: TackText.meta.copyWith(fontSize: 13.5),
+          ),
         ],
       ],
     );
@@ -223,11 +229,17 @@ class TackSelectField<T> extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TackText.body.copyWith(
-                        color: value == null ? TackColors.muted : TackColors.ink,
+                        color: value == null
+                            ? TackColors.muted
+                            : TackColors.ink,
                       ),
                     ),
                   ),
-                  const TackIcon(TackIcons.chevronDown, size: 20, color: TackColors.muted),
+                  const TackIcon(
+                    TackIcons.chevronDown,
+                    size: 20,
+                    color: TackColors.muted,
+                  ),
                 ],
               ),
             ),
@@ -265,7 +277,11 @@ class TackSearchField extends StatelessWidget {
       onChanged: onChanged,
       autofocus: autofocus,
       textInputAction: TextInputAction.search,
-      prefix: const TackIcon(TackIcons.search, size: 20, color: TackColors.muted),
+      prefix: const TackIcon(
+        TackIcons.search,
+        size: 20,
+        color: TackColors.muted,
+      ),
     );
   }
 }

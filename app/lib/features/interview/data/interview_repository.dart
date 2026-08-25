@@ -21,7 +21,9 @@ class InterviewRepository {
 
   String get _uid {
     final id = _db.auth.currentUser?.id;
-    if (id == null) throw const Failure('You are signed out. Log in and try again.');
+    if (id == null) {
+      throw const Failure('You are signed out. Log in and try again.');
+    }
     return id;
   }
 
@@ -118,7 +120,9 @@ class InterviewRepository {
       ]);
 
       final created = await byId(sessionId);
-      if (created == null) throw const Failure('The session could not be opened.');
+      if (created == null) {
+        throw const Failure('The session could not be opened.');
+      }
       return created;
     } catch (e) {
       throw Failure.from(e);
@@ -145,7 +149,9 @@ class InterviewRepository {
         );
       }
 
-      return AnswerFeedback.fromJson((body['feedback'] as Map).cast<String, dynamic>());
+      return AnswerFeedback.fromJson(
+        (body['feedback'] as Map).cast<String, dynamic>(),
+      );
     } catch (e) {
       throw Failure.from(e);
     }
@@ -153,10 +159,13 @@ class InterviewRepository {
 
   Future<void> skip(String questionId) async {
     try {
-      await _db.from('interview_questions').update({
-        'skipped': true,
-        'answered_at': DateTime.now().toUtc().toIso8601String(),
-      }).eq('id', questionId);
+      await _db
+          .from('interview_questions')
+          .update({
+            'skipped': true,
+            'answered_at': DateTime.now().toUtc().toIso8601String(),
+          })
+          .eq('id', questionId);
     } catch (e) {
       throw Failure.from(e);
     }
@@ -167,7 +176,9 @@ class InterviewRepository {
   Future<InterviewSession> complete(InterviewSession session) async {
     try {
       final average = session.averageScore;
-      final scored = session.questions.where((q) => q.feedback != null && !q.skipped).toList();
+      final scored = session.questions
+          .where((q) => q.feedback != null && !q.skipped)
+          .toList();
 
       String? strongest;
       String? weakest;
@@ -178,13 +189,16 @@ class InterviewRepository {
         weakest = sorted.last.category ?? 'your structure';
       }
 
-      await _db.from('interview_sessions').update({
-        'completed_at': DateTime.now().toUtc().toIso8601String(),
-        'overall_score': average,
-        'strongest_area': strongest,
-        'weakest_area': weakest,
-        'points_earned': 3 + scored.length,
-      }).eq('id', session.id);
+      await _db
+          .from('interview_sessions')
+          .update({
+            'completed_at': DateTime.now().toUtc().toIso8601String(),
+            'overall_score': average,
+            'strongest_area': strongest,
+            'weakest_area': weakest,
+            'points_earned': 3 + scored.length,
+          })
+          .eq('id', session.id);
 
       final updated = await byId(session.id);
       return updated ?? session;
@@ -194,10 +208,13 @@ class InterviewRepository {
   }
 }
 
-final interviewRepositoryProvider =
-    Provider<InterviewRepository>((ref) => InterviewRepository(ref.watch(supabaseProvider)));
+final interviewRepositoryProvider = Provider<InterviewRepository>(
+  (ref) => InterviewRepository(ref.watch(supabaseProvider)),
+);
 
-final interviewHistoryProvider = FutureProvider<List<InterviewSession>>((ref) async {
+final interviewHistoryProvider = FutureProvider<List<InterviewSession>>((
+  ref,
+) async {
   if (!ref.watch(isSignedInProvider)) return const [];
   return ref.watch(interviewRepositoryProvider).history();
 });

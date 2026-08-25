@@ -7,17 +7,19 @@ enum TaskType {
   application,
   cv;
 
-  static TaskType fromWire(String? value) =>
-      TaskType.values.firstWhere((t) => t.name == value, orElse: () => TaskType.skill);
+  static TaskType fromWire(String? value) => TaskType.values.firstWhere(
+    (t) => t.name == value,
+    orElse: () => TaskType.skill,
+  );
 
   String get label => switch (this) {
-        TaskType.skill => 'Skill',
-        TaskType.project => 'Project',
-        TaskType.certificate => 'Certificate',
-        TaskType.networking => 'Networking',
-        TaskType.application => 'Application',
-        TaskType.cv => 'CV',
-      };
+    TaskType.skill => 'Skill',
+    TaskType.project => 'Project',
+    TaskType.certificate => 'Certificate',
+    TaskType.networking => 'Networking',
+    TaskType.application => 'Application',
+    TaskType.cv => 'CV',
+  };
 }
 
 enum MilestoneState {
@@ -25,8 +27,8 @@ enum MilestoneState {
   active,
   completed;
 
-  static MilestoneState fromWire(String? value) =>
-      MilestoneState.values.firstWhere((s) => s.name == value, orElse: () => MilestoneState.locked);
+  static MilestoneState fromWire(String? value) => MilestoneState.values
+      .firstWhere((s) => s.name == value, orElse: () => MilestoneState.locked);
 }
 
 class RoadmapTask {
@@ -64,19 +66,19 @@ class RoadmapTask {
       !isDone && dueDate != null && dueDate!.isBefore(DateTime.now());
 
   factory RoadmapTask.fromRow(Map<String, dynamic> row) => RoadmapTask(
-        id: row['id'] as String,
-        milestoneId: row['milestone_id'] as String,
-        title: row['title'] as String,
-        type: TaskType.fromWire(row['type'] as String?),
-        points: (row['points'] as num?)?.toInt() ?? 0,
-        isDone: row['is_done'] as bool? ?? false,
-        estMinutes: (row['est_minutes'] as num?)?.toInt(),
-        dueDate: DateTime.tryParse('${row['due_date']}'),
-        isCustom: row['is_custom'] as bool? ?? false,
-        orderIndex: (row['order_index'] as num?)?.toInt() ?? 0,
-        sharedWithRoadmaps:
-            (row['shared_with_roadmaps'] as List?)?.cast<String>() ?? const [],
-      );
+    id: row['id'] as String,
+    milestoneId: row['milestone_id'] as String,
+    title: row['title'] as String,
+    type: TaskType.fromWire(row['type'] as String?),
+    points: (row['points'] as num?)?.toInt() ?? 0,
+    isDone: row['is_done'] as bool? ?? false,
+    estMinutes: (row['est_minutes'] as num?)?.toInt(),
+    dueDate: DateTime.tryParse('${row['due_date']}'),
+    isCustom: row['is_custom'] as bool? ?? false,
+    orderIndex: (row['order_index'] as num?)?.toInt() ?? 0,
+    sharedWithRoadmaps:
+        (row['shared_with_roadmaps'] as List?)?.cast<String>() ?? const [],
+  );
 }
 
 class RoadmapMilestone {
@@ -114,11 +116,9 @@ class RoadmapMilestone {
 
   factory RoadmapMilestone.fromRow(Map<String, dynamic> row) {
     final rawTasks = (row['roadmap_tasks'] as List?) ?? const [];
-    final tasks = rawTasks
-        .cast<Map<String, dynamic>>()
-        .map(RoadmapTask.fromRow)
-        .toList()
-      ..sort((a, b) => a.orderIndex.compareTo(b.orderIndex));
+    final tasks =
+        rawTasks.cast<Map<String, dynamic>>().map(RoadmapTask.fromRow).toList()
+          ..sort((a, b) => a.orderIndex.compareTo(b.orderIndex));
     return RoadmapMilestone(
       id: row['id'] as String,
       roadmapId: row['roadmap_id'] as String,
@@ -133,16 +133,16 @@ class RoadmapMilestone {
   }
 
   RoadmapMilestone copyWith({List<RoadmapTask>? tasks}) => RoadmapMilestone(
-        id: id,
-        roadmapId: roadmapId,
-        orderIndex: orderIndex,
-        title: title,
-        state: state,
-        description: description,
-        unlockText: unlockText,
-        typicalSemester: typicalSemester,
-        tasks: tasks ?? this.tasks,
-      );
+    id: id,
+    roadmapId: roadmapId,
+    orderIndex: orderIndex,
+    title: title,
+    state: state,
+    description: description,
+    unlockText: unlockText,
+    typicalSemester: typicalSemester,
+    tasks: tasks ?? this.tasks,
+  );
 }
 
 class Roadmap {
@@ -180,11 +180,12 @@ class Roadmap {
   factory Roadmap.fromRow(Map<String, dynamic> row) {
     final path = row['career_paths'];
     final rawMilestones = (row['roadmap_milestones'] as List?) ?? const [];
-    final milestones = rawMilestones
-        .cast<Map<String, dynamic>>()
-        .map(RoadmapMilestone.fromRow)
-        .toList()
-      ..sort((a, b) => a.orderIndex.compareTo(b.orderIndex));
+    final milestones =
+        rawMilestones
+            .cast<Map<String, dynamic>>()
+            .map(RoadmapMilestone.fromRow)
+            .toList()
+          ..sort((a, b) => a.orderIndex.compareTo(b.orderIndex));
     return Roadmap(
       id: row['id'] as String,
       title: row['title'] as String,

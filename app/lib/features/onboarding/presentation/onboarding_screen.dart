@@ -28,7 +28,8 @@ class OnboardingScreen extends ConsumerWidget {
       error: (error, _) => TackScaffold(
         header: const TackHeader(title: 'Getting set up'),
         body: TackErrorState(
-          body: 'Your details did not load. Check your connection and try again.',
+          body:
+              'Your details did not load. Check your connection and try again.',
           onRetry: () => ref.invalidate(onboardingControllerProvider),
         ),
       ),
@@ -40,7 +41,10 @@ class OnboardingScreen extends ConsumerWidget {
             title: step.title,
             subtitle: step.blurb,
             onBack: step.index == 0 ? null : controller.back,
-            progress: SegmentedProgress(total: draft.stepCount, current: draft.stepNumber),
+            progress: SegmentedProgress(
+              total: draft.stepCount,
+              current: draft.stepNumber,
+            ),
           ),
           pinnedCta: Column(
             mainAxisSize: MainAxisSize.min,
@@ -70,12 +74,26 @@ class OnboardingScreen extends ConsumerWidget {
             children: [
               const SizedBox(height: TackSpace.sm),
               switch (step) {
-                OnboardingStep.you => StepYou(key: const ValueKey('you'), draft: draft),
-                OnboardingStep.education =>
-                  StepEducation(key: const ValueKey('education'), draft: draft),
-                OnboardingStep.year => StepYear(key: const ValueKey('year'), draft: draft),
-                OnboardingStep.skills => StepSkills(key: const ValueKey('skills'), draft: draft),
-                OnboardingStep.target => StepTarget(key: const ValueKey('target'), draft: draft),
+                OnboardingStep.you => StepYou(
+                  key: const ValueKey('you'),
+                  draft: draft,
+                ),
+                OnboardingStep.education => StepEducation(
+                  key: const ValueKey('education'),
+                  draft: draft,
+                ),
+                OnboardingStep.year => StepYear(
+                  key: const ValueKey('year'),
+                  draft: draft,
+                ),
+                OnboardingStep.skills => StepSkills(
+                  key: const ValueKey('skills'),
+                  draft: draft,
+                ),
+                OnboardingStep.target => StepTarget(
+                  key: const ValueKey('target'),
+                  draft: draft,
+                ),
               },
               const SizedBox(height: TackSpace.xl),
             ],

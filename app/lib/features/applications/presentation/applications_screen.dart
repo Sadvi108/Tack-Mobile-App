@@ -25,7 +25,8 @@ class _ApplicationsScreenState extends ConsumerState<ApplicationsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final counts = ref.watch(applicationCountsProvider).value ?? ApplicationCounts.empty;
+    final counts =
+        ref.watch(applicationCountsProvider).value ?? ApplicationCounts.empty;
     final listAsync = ref.watch(applicationsProvider(_filter));
     final mode = ref.watch(modeProvider);
     final tabs = TackTabs.forMode(mode.name);
@@ -41,7 +42,11 @@ class _ApplicationsScreenState extends ConsumerState<ApplicationsScreen> {
       floatingAction: TackFab(
         semanticLabel: 'Add an application',
         onPressed: () => _add(context),
-        child: const TackIcon(TackIcons.plus, size: 26, color: TackColors.white),
+        child: const TackIcon(
+          TackIcons.plus,
+          size: 26,
+          color: TackColors.white,
+        ),
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -80,7 +85,8 @@ class _ApplicationsScreenState extends ConsumerState<ApplicationsScreen> {
               ],
             ),
             error: (_, _) => TackErrorState(
-              body: 'Your applications did not load. Check your connection and try again.',
+              body:
+                  'Your applications did not load. Check your connection and try again.',
               onRetry: () => ref.invalidate(applicationsProvider(_filter)),
             ),
             data: (applications) {
@@ -91,9 +97,11 @@ class _ApplicationsScreenState extends ConsumerState<ApplicationsScreen> {
                       : 'Nothing at ${_filter!.label.toLowerCase()}',
                   body: _filter == null
                       ? 'Track every job you apply to in one place. You will start to see '
-                          'what is working and what is not.'
+                            'what is working and what is not.'
                       : 'Applications you move to this stage will show up here.',
-                  primaryLabel: _filter == null ? 'Add your first application' : null,
+                  primaryLabel: _filter == null
+                      ? 'Add your first application'
+                      : null,
                   onPrimary: _filter == null ? () => _add(context) : null,
                 );
               }
@@ -103,7 +111,8 @@ class _ApplicationsScreenState extends ConsumerState<ApplicationsScreen> {
                   for (final application in applications) ...[
                     _ApplicationCard(
                       application: application,
-                      onTap: () => context.push(Routes.application(application.id)),
+                      onTap: () =>
+                          context.push(Routes.application(application.id)),
                     ),
                     const SizedBox(height: TackSpace.stack),
                   ],
@@ -151,7 +160,9 @@ class _ApplicationCard extends StatelessWidget {
                 TackIcon(
                   TackIcons.calendar,
                   size: 15,
-                  color: (days ?? 1) < 0 ? TackColors.danger : TackColors.maroon,
+                  color: (days ?? 1) < 0
+                      ? TackColors.danger
+                      : TackColors.maroon,
                 ),
                 const SizedBox(width: 6),
                 Expanded(
@@ -160,7 +171,9 @@ class _ApplicationCard extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TackText.pill.copyWith(
-                      color: (days ?? 1) < 0 ? TackColors.danger : TackColors.maroon,
+                      color: (days ?? 1) < 0
+                          ? TackColors.danger
+                          : TackColors.maroon,
                     ),
                   ),
                 ),
@@ -184,7 +197,8 @@ class _ApplicationCard extends StatelessWidget {
                     const SizedBox(height: 3),
                     Text(
                       [
-                        if (application.companyName != null) application.companyName!,
+                        if (application.companyName != null)
+                          application.companyName!,
                         if (application.location != null) application.location!,
                       ].join(' · '),
                       style: TackText.meta,

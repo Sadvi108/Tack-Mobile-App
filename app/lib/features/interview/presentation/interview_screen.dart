@@ -30,10 +30,7 @@ class _InterviewScreenState extends ConsumerState<InterviewScreen> {
     final session = _session;
 
     if (session == null) {
-      return _Setup(
-        busy: _busy,
-        onStart: _start,
-      );
+      return _Setup(busy: _busy, onStart: _start);
     }
     if (session.isComplete) {
       return _Summary(
@@ -56,7 +53,9 @@ class _InterviewScreenState extends ConsumerState<InterviewScreen> {
   }) async {
     setState(() => _busy = true);
     try {
-      final session = await ref.read(interviewRepositoryProvider).start(
+      final session = await ref
+          .read(interviewRepositoryProvider)
+          .start(
             role: role,
             type: type,
             difficulty: difficulty,
@@ -80,7 +79,9 @@ class _InterviewScreenState extends ConsumerState<InterviewScreen> {
 
   Future<void> _complete(InterviewSession session) async {
     try {
-      final done = await ref.read(interviewRepositoryProvider).complete(session);
+      final done = await ref
+          .read(interviewRepositoryProvider)
+          .complete(session);
       ref
         ..invalidate(interviewHistoryProvider)
         ..invalidate(readinessProvider);
@@ -106,14 +107,16 @@ class _Setup extends ConsumerStatefulWidget {
     required InterviewType type,
     required Difficulty difficulty,
     required bool timer,
-  }) onStart;
+  })
+  onStart;
 
   @override
   ConsumerState<_Setup> createState() => _SetupState();
 }
 
 class _SetupState extends ConsumerState<_Setup> {
-  late String _role = ref.read(profileProvider).value?.targetRole ?? 'Frontend developer';
+  late String _role =
+      ref.read(profileProvider).value?.targetRole ?? 'Frontend developer';
   InterviewType _type = InterviewType.mixed;
   Difficulty _difficulty = Difficulty.medium;
 
@@ -135,10 +138,14 @@ class _SetupState extends ConsumerState<_Setup> {
 
   @override
   Widget build(BuildContext context) {
-    final history = ref.watch(interviewHistoryProvider).value ?? const <InterviewSession>[];
+    final history =
+        ref.watch(interviewHistoryProvider).value ?? const <InterviewSession>[];
 
     return TackScaffold(
-      header: TackHeader(title: 'Interview practice', onBack: () => context.pop()),
+      header: TackHeader(
+        title: 'Interview practice',
+        onBack: () => context.pop(),
+      ),
       pinnedCta: TackButton(
         'Start practising',
         loading: widget.busy,
@@ -266,7 +273,9 @@ class _SetupState extends ConsumerState<_Setup> {
                         ),
                       ),
                       if (past.overallScore != null)
-                        TackPill.teal('${past.overallScore!.toStringAsFixed(1)}/10'),
+                        TackPill.teal(
+                          '${past.overallScore!.toStringAsFixed(1)}/10',
+                        ),
                     ],
                   ),
                 ),
@@ -322,8 +331,9 @@ class _QuestionState extends ConsumerState<_Question> {
         total: session.questions.length,
         isLast: index == session.questions.length - 1,
         onNext: () async {
-          final refreshed =
-              await ref.read(interviewRepositoryProvider).byId(session.id);
+          final refreshed = await ref
+              .read(interviewRepositoryProvider)
+              .byId(session.id);
           if (!mounted) return;
           setState(() {
             _feedback = null;
@@ -332,8 +342,9 @@ class _QuestionState extends ConsumerState<_Question> {
           if (refreshed != null) widget.onAnswered(refreshed);
         },
         onFinish: () async {
-          final refreshed =
-              await ref.read(interviewRepositoryProvider).byId(session.id);
+          final refreshed = await ref
+              .read(interviewRepositoryProvider)
+              .byId(session.id);
           await widget.onFinished(refreshed ?? session);
         },
       );
@@ -390,10 +401,9 @@ class _QuestionState extends ConsumerState<_Question> {
   Future<void> _submit() async {
     setState(() => _busy = true);
     try {
-      final feedback = await ref.read(interviewRepositoryProvider).submitAnswer(
-            questionId: _current.id,
-            answer: _answer.text,
-          );
+      final feedback = await ref
+          .read(interviewRepositoryProvider)
+          .submitAnswer(questionId: _current.id, answer: _answer.text);
       if (!mounted) return;
       setState(() {
         _feedback = feedback;
@@ -412,7 +422,9 @@ class _QuestionState extends ConsumerState<_Question> {
 
   Future<void> _skip() async {
     await ref.read(interviewRepositoryProvider).skip(_current.id);
-    final refreshed = await ref.read(interviewRepositoryProvider).byId(widget.session.id);
+    final refreshed = await ref
+        .read(interviewRepositoryProvider)
+        .byId(widget.session.id);
     if (!mounted || refreshed == null) return;
     _answer.clear();
     if (refreshed.nextUnanswered == null) {
@@ -476,8 +488,8 @@ class _FeedbackState extends State<_Feedback> {
                     feedback.score >= 7
                         ? 'A strong answer.'
                         : feedback.score >= 5
-                            ? 'A solid answer with room to sharpen it.'
-                            : 'A start. The notes below are the fastest way to improve it.',
+                        ? 'A solid answer with room to sharpen it.'
+                        : 'A start. The notes below are the fastest way to improve it.',
                     style: TackText.bodyMuted,
                   ),
                 ),
@@ -517,10 +529,15 @@ class _FeedbackState extends State<_Feedback> {
                   Row(
                     children: [
                       Expanded(
-                        child: Text('One way to answer it', style: TackText.cardTitle),
+                        child: Text(
+                          'One way to answer it',
+                          style: TackText.cardTitle,
+                        ),
                       ),
                       TackIcon(
-                        _showModel ? TackIcons.chevronUp : TackIcons.chevronDown,
+                        _showModel
+                            ? TackIcons.chevronUp
+                            : TackIcons.chevronDown,
                         size: 20,
                         color: TackColors.muted,
                       ),
@@ -612,7 +629,10 @@ class _Summary extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('${session.role} practice', style: TackText.cardTitle),
+                      Text(
+                        '${session.role} practice',
+                        style: TackText.cardTitle,
+                      ),
                       const SizedBox(height: TackSpace.xs),
                       Text(
                         '${session.answeredCount} of ${session.questions.length} answered',
@@ -676,7 +696,9 @@ class _Summary extends StatelessWidget {
                         foreground: TackColors.muted,
                       )
                     else if (question.feedback != null)
-                      TackPill.teal(question.feedback!.score.toStringAsFixed(1)),
+                      TackPill.teal(
+                        question.feedback!.score.toStringAsFixed(1),
+                      ),
                   ],
                 ),
               ),

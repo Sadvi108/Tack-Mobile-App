@@ -31,7 +31,8 @@ class ScoreTrendChart extends StatelessWidget {
 
     final totals = [for (final s in history) s.total];
     return Semantics(
-      label: 'Score trend over the last 90 days, from ${totals.first} to ${totals.last}',
+      label:
+          'Score trend over the last 90 days, from ${totals.first} to ${totals.last}',
       excludeSemantics: true,
       child: SizedBox(
         height: height,

@@ -72,14 +72,20 @@ class TackScaffold extends StatelessWidget {
                     Positioned.fill(
                       child: scrollable
                           ? SingleChildScrollView(
-                              padding: const EdgeInsets.only(bottom: TackSpace.xl),
+                              padding: const EdgeInsets.only(
+                                bottom: TackSpace.xl,
+                              ),
                               physics: const AlwaysScrollableScrollPhysics(),
                               child: content,
                             )
                           : content,
                     ),
                     if (floatingAction != null)
-                      Positioned(right: TackSpace.screen, bottom: TackSpace.lg, child: floatingAction!),
+                      Positioned(
+                        right: TackSpace.screen,
+                        bottom: TackSpace.lg,
+                        child: floatingAction!,
+                      ),
                   ],
                 ),
               ),
@@ -88,12 +94,16 @@ class TackScaffold extends StatelessWidget {
                   width: double.infinity,
                   color: background,
                   padding: const EdgeInsets.fromLTRB(
-                    TackSpace.screen, TackSpace.md, TackSpace.screen, TackSpace.md,
+                    TackSpace.screen,
+                    TackSpace.md,
+                    TackSpace.screen,
+                    TackSpace.md,
                   ),
                   child: pinnedCta,
                 ),
               ?bottomNav,
-              if (bottomNav == null) SizedBox(height: MediaQuery.paddingOf(context).bottom),
+              if (bottomNav == null)
+                SizedBox(height: MediaQuery.paddingOf(context).bottom),
             ],
           ),
         ),
@@ -124,7 +134,10 @@ class TackHeader extends StatelessWidget {
     return Container(
       color: TackColors.sailWhite,
       padding: const EdgeInsets.fromLTRB(
-        TackSpace.screen, TackSpace.sm, TackSpace.screen, TackSpace.md,
+        TackSpace.screen,
+        TackSpace.sm,
+        TackSpace.screen,
+        TackSpace.md,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -146,7 +159,11 @@ class TackHeader extends StatelessWidget {
                       width: TackSpace.tapTarget,
                       height: TackSpace.tapTarget,
                       child: Center(
-                        child: TackIcon(TackIcons.chevronLeft, size: 24, color: TackColors.ink),
+                        child: TackIcon(
+                          TackIcons.chevronLeft,
+                          size: 24,
+                          color: TackColors.ink,
+                        ),
                       ),
                     ),
                   ),
@@ -176,7 +193,13 @@ class TackHeader extends StatelessWidget {
 /// The header used on the four dashboards: wordmark on the left, avatar on the
 /// right, no back affordance.
 class TackHomeHeader extends StatelessWidget {
-  const TackHomeHeader({super.key, required this.initials, this.onAvatarTap, this.onBellTap, this.unread = 0});
+  const TackHomeHeader({
+    super.key,
+    required this.initials,
+    this.onAvatarTap,
+    this.onBellTap,
+    this.unread = 0,
+  });
 
   final String initials;
   final VoidCallback? onAvatarTap;
@@ -187,7 +210,10 @@ class TackHomeHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(
-        TackSpace.screen, TackSpace.sm, TackSpace.screen, TackSpace.lg,
+        TackSpace.screen,
+        TackSpace.sm,
+        TackSpace.screen,
+        TackSpace.lg,
       ),
       child: Row(
         children: [
@@ -196,7 +222,9 @@ class TackHomeHeader extends StatelessWidget {
           if (onBellTap != null)
             Semantics(
               button: true,
-              label: unread > 0 ? '$unread unread notifications' : 'Notifications',
+              label: unread > 0
+                  ? '$unread unread notifications'
+                  : 'Notifications',
               child: GestureDetector(
                 onTap: onBellTap,
                 behavior: HitTestBehavior.opaque,
@@ -206,7 +234,11 @@ class TackHomeHeader extends StatelessWidget {
                   child: Stack(
                     alignment: Alignment.center,
                     children: [
-                      const TackIcon(TackIcons.bell, size: 22, color: TackColors.ink),
+                      const TackIcon(
+                        TackIcons.bell,
+                        size: 22,
+                        color: TackColors.ink,
+                      ),
                       if (unread > 0)
                         Positioned(
                           top: 8,
@@ -241,7 +273,10 @@ class TackHomeHeader extends StatelessWidget {
                 alignment: Alignment.center,
                 child: Text(
                   initials,
-                  style: TackText.pill.copyWith(color: TackColors.white, fontSize: 14),
+                  style: TackText.pill.copyWith(
+                    color: TackColors.white,
+                    fontSize: 14,
+                  ),
                 ),
               ),
             ),
@@ -266,11 +301,31 @@ class TackTab {
 class TackTabs {
   const TackTabs._();
 
-  static const home = TackTab(label: 'Home', icon: TackIcons.home, route: '/home');
-  static const paths = TackTab(label: 'Paths', icon: TackIcons.paths, route: '/paths');
-  static const roadmap = TackTab(label: 'Roadmap', icon: TackIcons.roadmap, route: '/roadmap');
-  static const apply = TackTab(label: 'Apply', icon: TackIcons.apply, route: '/applications');
-  static const profile = TackTab(label: 'Profile', icon: TackIcons.profile, route: '/profile');
+  static const home = TackTab(
+    label: 'Home',
+    icon: TackIcons.home,
+    route: '/home',
+  );
+  static const paths = TackTab(
+    label: 'Paths',
+    icon: TackIcons.paths,
+    route: '/paths',
+  );
+  static const roadmap = TackTab(
+    label: 'Roadmap',
+    icon: TackIcons.roadmap,
+    route: '/roadmap',
+  );
+  static const apply = TackTab(
+    label: 'Apply',
+    icon: TackIcons.apply,
+    route: '/applications',
+  );
+  static const profile = TackTab(
+    label: 'Profile',
+    icon: TackIcons.profile,
+    route: '/profile',
+  );
 
   static const junior = <TackTab>[home, paths, roadmap, profile];
   static const finalYear = <TackTab>[home, paths, roadmap, apply, profile];
@@ -299,7 +354,10 @@ class TackBottomNav extends StatelessWidget {
         border: Border(top: BorderSide(color: Color(0x1423181C))),
       ),
       padding: EdgeInsets.fromLTRB(
-        6, TackSpace.sm, 6, MediaQuery.paddingOf(context).bottom + 10,
+        6,
+        TackSpace.sm,
+        6,
+        MediaQuery.paddingOf(context).bottom + 10,
       ),
       child: Row(
         children: [
@@ -313,19 +371,25 @@ class TackBottomNav extends StatelessWidget {
                   onTap: () => onTap(i),
                   behavior: HitTestBehavior.opaque,
                   child: ConstrainedBox(
-                    constraints: const BoxConstraints(minHeight: TackSpace.tapTarget),
+                    constraints: const BoxConstraints(
+                      minHeight: TackSpace.tapTarget,
+                    ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         TackIcon(
                           tabs[i].icon,
                           size: 20,
-                          color: i == currentIndex ? TackColors.maroon : TackColors.muted,
+                          color: i == currentIndex
+                              ? TackColors.maroon
+                              : TackColors.muted,
                         ),
                         const SizedBox(height: 5),
                         Text(
                           tabs[i].label,
-                          style: i == currentIndex ? TackText.tabLabelActive : TackText.tabLabel,
+                          style: i == currentIndex
+                              ? TackText.tabLabelActive
+                              : TackText.tabLabel,
                         ),
                       ],
                     ),

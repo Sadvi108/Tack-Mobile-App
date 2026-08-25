@@ -34,10 +34,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       _passwordError = AuthValidators.existingPassword(_password.text);
     });
     if (_emailError != null || _passwordError != null) return;
-    await ref.read(authControllerProvider.notifier).signIn(
-          email: _email.text,
-          password: _password.text,
-        );
+    await ref
+        .read(authControllerProvider.notifier)
+        .signIn(email: _email.text, password: _password.text);
     // A successful sign-in flips the router's redirect; nothing to do here.
   }
 
@@ -62,7 +61,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             GoogleSignInButton(
               label: 'Log in with Google',
               busy: auth.busy,
-              onPressed: () => ref.read(authControllerProvider.notifier).signInWithGoogle(),
+              onPressed: () =>
+                  ref.read(authControllerProvider.notifier).signInWithGoogle(),
             ),
             const SizedBox(height: TackSpace.md),
             const TackOrDivider(),
@@ -110,7 +110,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 onTap: () => context.go(Routes.signup),
                 behavior: HitTestBehavior.opaque,
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(minHeight: TackSpace.tapTarget),
+                  constraints: const BoxConstraints(
+                    minHeight: TackSpace.tapTarget,
+                  ),
                   child: Center(
                     child: Text.rich(
                       TextSpan(

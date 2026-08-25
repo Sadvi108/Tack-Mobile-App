@@ -24,67 +24,72 @@ class ScoreComponent {
   bool get isHealthy => ratio >= 0.7;
 
   String get label => switch (key) {
-        'profile_completeness' => 'Profile completeness',
-        'academic' => 'Academic performance',
-        'skills' => 'Skills',
-        'projects' => 'Projects',
-        'activities' => 'Extracurricular activities',
-        'experience' => 'Work experience',
-        'cv_quality' => 'CV quality',
-        'certifications' => 'Certifications',
-        'interview_practice' => 'Interview practice',
-        'application_activity' => 'Application activity',
-        'roadmap_progress' => 'Roadmap progress',
-        _ => key,
-      };
+    'profile_completeness' => 'Profile completeness',
+    'academic' => 'Academic performance',
+    'skills' => 'Skills',
+    'projects' => 'Projects',
+    'activities' => 'Extracurricular activities',
+    'experience' => 'Work experience',
+    'cv_quality' => 'CV quality',
+    'certifications' => 'Certifications',
+    'interview_practice' => 'Interview practice',
+    'application_activity' => 'Application activity',
+    'roadmap_progress' => 'Roadmap progress',
+    _ => key,
+  };
 
   /// One concrete thing to do next. Never a scolding, never a percentage.
   String get action => switch (key) {
-        'profile_completeness' => 'Fill in the rest of your profile',
-        'academic' => 'Add your CGPA and this semester\'s courses',
-        'skills' => 'Add a few more skills you have used',
-        'projects' => 'Add a project you have built',
-        'activities' => 'Add a club, competition or volunteering role',
-        'experience' => 'Add an internship or part-time job',
-        'cv_quality' => 'Upload your CV so it can be checked',
-        'certifications' => 'Add a certificate you have earned',
-        'interview_practice' => 'Practise one interview',
-        'application_activity' => 'Apply to a job you have saved',
-        'roadmap_progress' => 'Finish a task on your roadmap',
-        _ => 'Open this section',
-      };
+    'profile_completeness' => 'Fill in the rest of your profile',
+    'academic' => 'Add your CGPA and this semester\'s courses',
+    'skills' => 'Add a few more skills you have used',
+    'projects' => 'Add a project you have built',
+    'activities' => 'Add a club, competition or volunteering role',
+    'experience' => 'Add an internship or part-time job',
+    'cv_quality' => 'Upload your CV so it can be checked',
+    'certifications' => 'Add a certificate you have earned',
+    'interview_practice' => 'Practise one interview',
+    'application_activity' => 'Apply to a job you have saved',
+    'roadmap_progress' => 'Finish a task on your roadmap',
+    _ => 'Open this section',
+  };
 
   /// Where the action takes the student.
   String get route => switch (key) {
-        'profile_completeness' || 'academic' || 'skills' ||
-        'projects' || 'activities' || 'experience' || 'certifications' =>
-          '/profile',
-        'cv_quality' => '/vault',
-        'interview_practice' => '/interview',
-        'application_activity' => '/applications',
-        'roadmap_progress' => '/roadmap',
-        _ => '/profile',
-      };
+    'profile_completeness' ||
+    'academic' ||
+    'skills' ||
+    'projects' ||
+    'activities' ||
+    'experience' ||
+    'certifications' => '/profile',
+    'cv_quality' => '/vault',
+    'interview_practice' => '/interview',
+    'application_activity' => '/applications',
+    'roadmap_progress' => '/roadmap',
+    _ => '/profile',
+  };
 
   /// Rough minutes of effort, used to rank the next three actions by value for
   /// time rather than by raw points. A student with twenty spare minutes
   /// should be pointed at something that fits in twenty minutes.
   int get effortMinutes => switch (key) {
-        'profile_completeness' => 5,
-        'skills' => 5,
-        'academic' => 10,
-        'activities' => 10,
-        'certifications' => 10,
-        'application_activity' => 20,
-        'cv_quality' => 20,
-        'interview_practice' => 25,
-        'experience' => 15,
-        'roadmap_progress' => 45,
-        'projects' => 240,
-        _ => 30,
-      };
+    'profile_completeness' => 5,
+    'skills' => 5,
+    'academic' => 10,
+    'activities' => 10,
+    'certifications' => 10,
+    'application_activity' => 20,
+    'cv_quality' => 20,
+    'interview_practice' => 25,
+    'experience' => 15,
+    'roadmap_progress' => 45,
+    'projects' => 240,
+    _ => 30,
+  };
 
-  factory ScoreComponent.fromJson(String key, Map<String, dynamic> json) => ScoreComponent(
+  factory ScoreComponent.fromJson(String key, Map<String, dynamic> json) =>
+      ScoreComponent(
         key: key,
         earned: (json['earned'] as num?)?.toInt() ?? 0,
         max: (json['max'] as num?)?.toInt() ?? 0,
@@ -148,16 +153,21 @@ class ReadinessScore {
       components.where((c) => c.max == 0).toList();
 
   factory ReadinessScore.fromRow(Map<String, dynamic> row) {
-    final raw = (row['components'] as Map?)?.cast<String, dynamic>() ?? const {};
+    final raw =
+        (row['components'] as Map?)?.cast<String, dynamic>() ?? const {};
     return ReadinessScore(
       total: (row['total'] as num?)?.toInt() ?? 0,
       mode: YearMode.fromWire(row['mode'] as String?),
       components: [
         for (final entry in raw.entries)
-          ScoreComponent.fromJson(entry.key, (entry.value as Map).cast<String, dynamic>()),
+          ScoreComponent.fromJson(
+            entry.key,
+            (entry.value as Map).cast<String, dynamic>(),
+          ),
       ],
       delta: (row['delta'] as num?)?.toInt() ?? 0,
-      computedAt: DateTime.tryParse('${row['computed_at']}')?.toLocal() ?? _epochValue,
+      computedAt:
+          DateTime.tryParse('${row['computed_at']}')?.toLocal() ?? _epochValue,
     );
   }
 }

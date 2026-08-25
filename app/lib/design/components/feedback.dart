@@ -34,10 +34,16 @@ class TackToast {
         backgroundColor: TackColors.ink,
         elevation: 0,
         margin: const EdgeInsets.fromLTRB(
-          TackSpace.lg, 0, TackSpace.lg, TackSpace.lg,
+          TackSpace.lg,
+          0,
+          TackSpace.lg,
+          TackSpace.lg,
         ),
         shape: const RoundedRectangleBorder(borderRadius: TackRadius.buttonAll),
-        padding: const EdgeInsets.symmetric(horizontal: TackSpace.lg, vertical: 14),
+        padding: const EdgeInsets.symmetric(
+          horizontal: TackSpace.lg,
+          vertical: 14,
+        ),
         content: Row(
           children: [
             TackIcon(glyph, size: 20, color: colour, strokeWidth: 2.4),
@@ -45,7 +51,10 @@ class TackToast {
             Expanded(
               child: Text(
                 message,
-                style: TackText.body.copyWith(color: TackColors.white, fontSize: 15),
+                style: TackText.body.copyWith(
+                  color: TackColors.white,
+                  fontSize: 15,
+                ),
               ),
             ),
             if (actionLabel != null && onAction != null) ...[
@@ -58,7 +67,10 @@ class TackToast {
                 behavior: HitTestBehavior.opaque,
                 child: Text(
                   actionLabel,
-                  style: TackText.pill.copyWith(color: TackColors.amber, fontSize: 14),
+                  style: TackText.pill.copyWith(
+                    color: TackColors.amber,
+                    fontSize: 14,
+                  ),
                 ),
               ),
             ],
@@ -119,7 +131,10 @@ class TackSheetBody extends StatelessWidget {
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(
-                TackSpace.screen, TackSpace.lg, TackSpace.screen, TackSpace.md,
+                TackSpace.screen,
+                TackSpace.lg,
+                TackSpace.screen,
+                TackSpace.md,
               ),
               child: Text(title, style: TackText.sectionHeader),
             ),
@@ -146,7 +161,10 @@ Future<bool> confirmTackAction(
     title: title,
     child: Padding(
       padding: const EdgeInsets.fromLTRB(
-        TackSpace.screen, 0, TackSpace.screen, TackSpace.lg,
+        TackSpace.screen,
+        0,
+        TackSpace.screen,
+        TackSpace.lg,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -202,7 +220,9 @@ class _SheetButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: background,
           borderRadius: TackRadius.buttonAll,
-          border: border ? Border.all(color: TackColors.line2, width: 1.5) : null,
+          border: border
+              ? Border.all(color: TackColors.line2, width: 1.5)
+              : null,
         ),
         child: Text(label, style: TackText.button.copyWith(color: foreground)),
       ),

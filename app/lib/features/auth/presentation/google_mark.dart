@@ -26,7 +26,10 @@ class _GoogleMarkPainter extends CustomPainter {
     final centre = rect.center;
     final radius = size.shortestSide / 2;
     final stroke = size.shortestSide * 0.26;
-    final arcRect = Rect.fromCircle(center: centre, radius: radius - stroke / 2);
+    final arcRect = Rect.fromCircle(
+      center: centre,
+      radius: radius - stroke / 2,
+    );
 
     void arc(Color colour, double startDeg, double sweepDeg) {
       canvas.drawArc(

@@ -16,11 +16,17 @@ class University {
   final String name;
   final String? shortName;
 
-  String get display => shortName == null || shortName!.isEmpty ? name : '$name ($shortName)';
+  String get display =>
+      shortName == null || shortName!.isEmpty ? name : '$name ($shortName)';
 }
 
 class Skill {
-  const Skill({required this.id, required this.slug, required this.name, required this.category});
+  const Skill({
+    required this.id,
+    required this.slug,
+    required this.name,
+    required this.category,
+  });
   final String id;
   final String slug;
   final String name;
@@ -36,8 +42,13 @@ class ReferenceRepository {
 
   Future<List<City>> cities() async {
     try {
-      final rows = await _db.from('cities').select('id, name').order('sort_order');
-      return rows.map((r) => City(id: r['id'] as String, name: r['name'] as String)).toList();
+      final rows = await _db
+          .from('cities')
+          .select('id, name')
+          .order('sort_order');
+      return rows
+          .map((r) => City(id: r['id'] as String, name: r['name'] as String))
+          .toList();
     } catch (e) {
       throw Failure.from(e);
     }
@@ -51,11 +62,13 @@ class ReferenceRepository {
           .eq('is_active', true)
           .order('name');
       return rows
-          .map((r) => University(
-                id: r['id'] as String,
-                name: r['name'] as String,
-                shortName: r['short_name'] as String?,
-              ))
+          .map(
+            (r) => University(
+              id: r['id'] as String,
+              name: r['name'] as String,
+              shortName: r['short_name'] as String?,
+            ),
+          )
           .toList();
     } catch (e) {
       throw Failure.from(e);
@@ -70,7 +83,14 @@ class ReferenceRepository {
           .from('skills')
           .select('id, slug, name, category')
           .eq('is_active', true)
-          .inFilter('category', ['soft', 'tools', 'programming', 'business', 'marketing', 'design'])
+          .inFilter('category', [
+            'soft',
+            'tools',
+            'programming',
+            'business',
+            'marketing',
+            'design',
+          ])
           .order('name')
           .limit(limit);
       return rows.map(_skill).toList();
@@ -97,24 +117,28 @@ class ReferenceRepository {
   }
 
   static Skill _skill(Map<String, dynamic> r) => Skill(
-        id: r['id'] as String,
-        slug: r['slug'] as String,
-        name: r['name'] as String,
-        category: r['category'] as String,
-      );
+    id: r['id'] as String,
+    slug: r['slug'] as String,
+    name: r['name'] as String,
+    category: r['category'] as String,
+  );
 }
 
-final referenceRepositoryProvider =
-    Provider<ReferenceRepository>((ref) => ReferenceRepository(ref.watch(supabaseProvider)));
+final referenceRepositoryProvider = Provider<ReferenceRepository>(
+  (ref) => ReferenceRepository(ref.watch(supabaseProvider)),
+);
 
-final citiesProvider =
-    FutureProvider<List<City>>((ref) => ref.watch(referenceRepositoryProvider).cities());
+final citiesProvider = FutureProvider<List<City>>(
+  (ref) => ref.watch(referenceRepositoryProvider).cities(),
+);
 
-final universitiesProvider =
-    FutureProvider<List<University>>((ref) => ref.watch(referenceRepositoryProvider).universities());
+final universitiesProvider = FutureProvider<List<University>>(
+  (ref) => ref.watch(referenceRepositoryProvider).universities(),
+);
 
-final popularSkillsProvider =
-    FutureProvider<List<Skill>>((ref) => ref.watch(referenceRepositoryProvider).popularSkills());
+final popularSkillsProvider = FutureProvider<List<Skill>>(
+  (ref) => ref.watch(referenceRepositoryProvider).popularSkills(),
+);
 
 final skillSearchProvider = FutureProvider.family<List<Skill>, String>(
   (ref, query) => ref.watch(referenceRepositoryProvider).searchSkills(query),

@@ -3,14 +3,16 @@ enum InterviewType {
   technical,
   mixed;
 
-  static InterviewType fromWire(String? v) =>
-      InterviewType.values.firstWhere((t) => t.name == v, orElse: () => InterviewType.mixed);
+  static InterviewType fromWire(String? v) => InterviewType.values.firstWhere(
+    (t) => t.name == v,
+    orElse: () => InterviewType.mixed,
+  );
 
   String get label => switch (this) {
-        InterviewType.behavioural => 'About you',
-        InterviewType.technical => 'Technical',
-        InterviewType.mixed => 'A bit of both',
-      };
+    InterviewType.behavioural => 'About you',
+    InterviewType.technical => 'Technical',
+    InterviewType.mixed => 'A bit of both',
+  };
 }
 
 enum Difficulty {
@@ -18,14 +20,16 @@ enum Difficulty {
   medium,
   hard;
 
-  static Difficulty fromWire(String? v) =>
-      Difficulty.values.firstWhere((d) => d.name == v, orElse: () => Difficulty.medium);
+  static Difficulty fromWire(String? v) => Difficulty.values.firstWhere(
+    (d) => d.name == v,
+    orElse: () => Difficulty.medium,
+  );
 
   String get label => switch (this) {
-        Difficulty.easy => 'Gentle',
-        Difficulty.medium => 'Realistic',
-        Difficulty.hard => 'Tough',
-      };
+    Difficulty.easy => 'Gentle',
+    Difficulty.medium => 'Realistic',
+    Difficulty.hard => 'Tough',
+  };
 }
 
 class InterviewQuestion {
@@ -85,18 +89,18 @@ class AnswerFeedback {
   final String? modelAnswer;
 
   factory AnswerFeedback.fromRow(Map<String, dynamic> row) => AnswerFeedback(
-        score: (row['score'] as num?)?.toDouble() ?? 0,
-        wentWell: (row['went_well'] as List?)?.cast<String>() ?? const [],
-        toImprove: (row['to_improve'] as List?)?.cast<String>() ?? const [],
-        modelAnswer: row['model_answer'] as String?,
-      );
+    score: (row['score'] as num?)?.toDouble() ?? 0,
+    wentWell: (row['went_well'] as List?)?.cast<String>() ?? const [],
+    toImprove: (row['to_improve'] as List?)?.cast<String>() ?? const [],
+    modelAnswer: row['model_answer'] as String?,
+  );
 
   factory AnswerFeedback.fromJson(Map<String, dynamic> json) => AnswerFeedback(
-        score: (json['score'] as num?)?.toDouble() ?? 0,
-        wentWell: (json['went_well'] as List?)?.cast<String>() ?? const [],
-        toImprove: (json['to_improve'] as List?)?.cast<String>() ?? const [],
-        modelAnswer: json['model_answer'] as String?,
-      );
+    score: (json['score'] as num?)?.toDouble() ?? 0,
+    wentWell: (json['went_well'] as List?)?.cast<String>() ?? const [],
+    toImprove: (json['to_improve'] as List?)?.cast<String>() ?? const [],
+    modelAnswer: json['model_answer'] as String?,
+  );
 }
 
 class InterviewSession {
@@ -148,11 +152,12 @@ class InterviewSession {
   }
 
   factory InterviewSession.fromRow(Map<String, dynamic> row) {
-    final questions = ((row['interview_questions'] as List?) ?? const [])
-        .cast<Map<String, dynamic>>()
-        .map(InterviewQuestion.fromRow)
-        .toList()
-      ..sort((a, b) => a.orderIndex.compareTo(b.orderIndex));
+    final questions =
+        ((row['interview_questions'] as List?) ?? const [])
+            .cast<Map<String, dynamic>>()
+            .map(InterviewQuestion.fromRow)
+            .toList()
+          ..sort((a, b) => a.orderIndex.compareTo(b.orderIndex));
 
     return InterviewSession(
       id: row['id'] as String,

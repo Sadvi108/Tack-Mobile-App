@@ -39,12 +39,12 @@ class UserSkill {
   final String source;
 
   String get proficiencyLabel => switch (proficiency) {
-        1 => 'Just started',
-        2 => 'Getting there',
-        3 => 'Comfortable',
-        4 => 'Strong',
-        _ => 'Could teach it',
-      };
+    1 => 'Just started',
+    2 => 'Getting there',
+    3 => 'Comfortable',
+    4 => 'Strong',
+    _ => 'Could teach it',
+  };
 
   factory UserSkill.fromRow(Map<String, dynamic> row) {
     final skill = (row['skills'] as Map?)?.cast<String, dynamic>() ?? const {};
@@ -70,37 +70,37 @@ enum ProfileSection {
   portfolio;
 
   String get title => switch (this) {
-        ProfileSection.education => 'Education',
-        ProfileSection.courses => 'Courses',
-        ProfileSection.skills => 'Skills',
-        ProfileSection.projects => 'Projects',
-        ProfileSection.experience => 'Experience',
-        ProfileSection.activities => 'Activities',
-        ProfileSection.certifications => 'Certificates',
-        ProfileSection.portfolio => 'Links',
-      };
+    ProfileSection.education => 'Education',
+    ProfileSection.courses => 'Courses',
+    ProfileSection.skills => 'Skills',
+    ProfileSection.projects => 'Projects',
+    ProfileSection.experience => 'Experience',
+    ProfileSection.activities => 'Activities',
+    ProfileSection.certifications => 'Certificates',
+    ProfileSection.portfolio => 'Links',
+  };
 
   String get emptyHint => switch (this) {
-        ProfileSection.education => 'Add where you study',
-        ProfileSection.courses => 'Add this semester\'s courses',
-        ProfileSection.skills => 'Add what you can do',
-        ProfileSection.projects => 'Add something you built',
-        ProfileSection.experience => 'Add an internship or job',
-        ProfileSection.activities => 'Add a club or competition',
-        ProfileSection.certifications => 'Add a certificate you earned',
-        ProfileSection.portfolio => 'Add your GitHub or LinkedIn',
-      };
+    ProfileSection.education => 'Add where you study',
+    ProfileSection.courses => 'Add this semester\'s courses',
+    ProfileSection.skills => 'Add what you can do',
+    ProfileSection.projects => 'Add something you built',
+    ProfileSection.experience => 'Add an internship or job',
+    ProfileSection.activities => 'Add a club or competition',
+    ProfileSection.certifications => 'Add a certificate you earned',
+    ProfileSection.portfolio => 'Add your GitHub or LinkedIn',
+  };
 
   String get table => switch (this) {
-        ProfileSection.education => 'education',
-        ProfileSection.courses => 'courses',
-        ProfileSection.skills => 'user_skills',
-        ProfileSection.projects => 'projects',
-        ProfileSection.experience => 'experiences',
-        ProfileSection.activities => 'activities',
-        ProfileSection.certifications => 'certifications',
-        ProfileSection.portfolio => 'portfolio_links',
-      };
+    ProfileSection.education => 'education',
+    ProfileSection.courses => 'courses',
+    ProfileSection.skills => 'user_skills',
+    ProfileSection.projects => 'projects',
+    ProfileSection.experience => 'experiences',
+    ProfileSection.activities => 'activities',
+    ProfileSection.certifications => 'certifications',
+    ProfileSection.portfolio => 'portfolio_links',
+  };
 }
 
 /// A section's health, shown as a dot: teal when it is in good shape, amber

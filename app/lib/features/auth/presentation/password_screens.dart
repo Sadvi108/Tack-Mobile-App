@@ -11,7 +11,8 @@ class ForgotPasswordScreen extends ConsumerStatefulWidget {
   const ForgotPasswordScreen({super.key});
 
   @override
-  ConsumerState<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
+  ConsumerState<ForgotPasswordScreen> createState() =>
+      _ForgotPasswordScreenState();
 }
 
 class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
@@ -39,7 +40,11 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
         title: 'Reset your password',
         onBack: () => context.go(Routes.login),
       ),
-      pinnedCta: TackButton('Send the link', loading: auth.busy, onPressed: _submit),
+      pinnedCta: TackButton(
+        'Send the link',
+        loading: auth.busy,
+        onPressed: _submit,
+      ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -62,7 +67,10 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
             TackCard(
               background: TackColors.tealTint,
               compact: true,
-              child: Text(auth.notice!, style: TackText.body.copyWith(color: TackColors.tealText)),
+              child: Text(
+                auth.notice!,
+                style: TackText.body.copyWith(color: TackColors.tealText),
+              ),
             ),
           ],
           if (auth.failure != null) ...[
@@ -81,7 +89,8 @@ class ResetPasswordScreen extends ConsumerStatefulWidget {
   const ResetPasswordScreen({super.key});
 
   @override
-  ConsumerState<ResetPasswordScreen> createState() => _ResetPasswordScreenState();
+  ConsumerState<ResetPasswordScreen> createState() =>
+      _ResetPasswordScreenState();
 }
 
 class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
@@ -100,11 +109,15 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
   Future<void> _submit() async {
     setState(() {
       _passwordError = AuthValidators.password(_password.text);
-      _confirmError = _confirm.text == _password.text ? null : 'The two passwords do not match.';
+      _confirmError = _confirm.text == _password.text
+          ? null
+          : 'The two passwords do not match.';
     });
     if (_passwordError != null || _confirmError != null) return;
 
-    final ok = await ref.read(authControllerProvider.notifier).updatePassword(_password.text);
+    final ok = await ref
+        .read(authControllerProvider.notifier)
+        .updatePassword(_password.text);
     if (!mounted) return;
     if (ok) {
       TackToast.show(context, message: 'Your password is updated.');
@@ -118,11 +131,18 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
 
     return TackScaffold(
       header: const TackHeader(title: 'Set a new password'),
-      pinnedCta: TackButton('Save password', loading: auth.busy, onPressed: _submit),
+      pinnedCta: TackButton(
+        'Save password',
+        loading: auth.busy,
+        onPressed: _submit,
+      ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Pick something you have not used before.', style: TackText.bodyMuted),
+          Text(
+            'Pick something you have not used before.',
+            style: TackText.bodyMuted,
+          ),
           const SizedBox(height: TackSpace.xl),
           TackTextField(
             label: 'New password',

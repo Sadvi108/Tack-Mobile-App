@@ -24,7 +24,9 @@ class RoadmapRepository {
 
   String get _uid {
     final id = _db.auth.currentUser?.id;
-    if (id == null) throw const Failure('You are signed out. Log in and try again.');
+    if (id == null) {
+      throw const Failure('You are signed out. Log in and try again.');
+    }
     return id;
   }
 
@@ -61,14 +63,21 @@ class RoadmapRepository {
 
       final roadmap = await _db
           .from('roadmaps')
-          .insert({'user_id': _uid, 'path_id': pathId, 'title': title, 'origin': 'template'})
+          .insert({
+            'user_id': _uid,
+            'path_id': pathId,
+            'title': title,
+            'origin': 'template',
+          })
           .select('id')
           .single();
       final roadmapId = roadmap['id'] as String;
 
       final templateMilestones = await _db
           .from('career_path_milestones')
-          .select('id, order_index, title, description, unlock_text, typical_semester')
+          .select(
+            'id, order_index, title, description, unlock_text, typical_semester',
+          )
           .eq('path_id', pathId)
           .order('order_index');
 
@@ -92,14 +101,16 @@ class RoadmapRepository {
 
       final templateTasks = await _db
           .from('career_path_tasks')
-          .select('milestone_id, order_index, title, type, points, est_minutes, skill_id')
-          .inFilter(
-            'milestone_id',
-            [for (final m in templateMilestones) m['id'] as String],
-          );
+          .select(
+            'milestone_id, order_index, title, type, points, est_minutes, skill_id',
+          )
+          .inFilter('milestone_id', [
+            for (final m in templateMilestones) m['id'] as String,
+          ]);
 
       final byTemplate = {
-        for (final m in inserted) m['source_milestone_id'] as String: m['id'] as String,
+        for (final m in inserted)
+          m['source_milestone_id'] as String: m['id'] as String,
       };
 
       await _db.from('roadmap_tasks').insert([
@@ -128,7 +139,10 @@ class RoadmapRepository {
   /// by database triggers, so this only writes the flag and refetches.
   Future<void> setTaskDone(String taskId, {required bool done}) async {
     try {
-      await _db.from('roadmap_tasks').update({'is_done': done}).eq('id', taskId);
+      await _db
+          .from('roadmap_tasks')
+          .update({'is_done': done})
+          .eq('id', taskId);
     } catch (e) {
       throw Failure.from(e);
     }
@@ -166,9 +180,10 @@ class RoadmapRepository {
 
   Future<void> setTaskDue(String taskId, DateTime? due) async {
     try {
-      await _db.from('roadmap_tasks').update({
-        'due_date': due?.toIso8601String().substring(0, 10),
-      }).eq('id', taskId);
+      await _db
+          .from('roadmap_tasks')
+          .update({'due_date': due?.toIso8601String().substring(0, 10)})
+          .eq('id', taskId);
     } catch (e) {
       throw Failure.from(e);
     }
@@ -186,8 +201,9 @@ class RoadmapRepository {
   }
 }
 
-final roadmapRepositoryProvider =
-    Provider<RoadmapRepository>((ref) => RoadmapRepository(ref.watch(supabaseProvider)));
+final roadmapRepositoryProvider = Provider<RoadmapRepository>(
+  (ref) => RoadmapRepository(ref.watch(supabaseProvider)),
+);
 
 final roadmapsProvider = FutureProvider<List<Roadmap>>((ref) async {
   if (!ref.watch(isSignedInProvider)) return const [];

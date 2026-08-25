@@ -19,13 +19,19 @@ class ProfileRepository {
 
   String get _uid {
     final id = _db.auth.currentUser?.id;
-    if (id == null) throw const Failure('You are signed out. Log in and try again.');
+    if (id == null) {
+      throw const Failure('You are signed out. Log in and try again.');
+    }
     return id;
   }
 
   Future<Profile> fetch() async {
     try {
-      final row = await _db.from('profiles').select(_columns).eq('id', _uid).single();
+      final row = await _db
+          .from('profiles')
+          .select(_columns)
+          .eq('id', _uid)
+          .single();
       return Profile.fromRow(row);
     } catch (e) {
       throw Failure.from(e);
@@ -34,10 +40,18 @@ class ProfileRepository {
 
   /// Partial update. `mode` is a generated column and is never sent.
   Future<Profile> update(Map<String, Object?> patch) async {
-    assert(!patch.containsKey('mode'), 'mode is derived server-side and cannot be written');
+    assert(
+      !patch.containsKey('mode'),
+      'mode is derived server-side and cannot be written',
+    );
     assert(!patch.containsKey('id'), 'a profile id cannot be changed');
     try {
-      final row = await _db.from('profiles').update(patch).eq('id', _uid).select(_columns).single();
+      final row = await _db
+          .from('profiles')
+          .update(patch)
+          .eq('id', _uid)
+          .select(_columns)
+          .single();
       return Profile.fromRow(row);
     } catch (e) {
       throw Failure.from(e);
@@ -45,8 +59,9 @@ class ProfileRepository {
   }
 }
 
-final profileRepositoryProvider =
-    Provider<ProfileRepository>((ref) => ProfileRepository(ref.watch(supabaseProvider)));
+final profileRepositoryProvider = Provider<ProfileRepository>(
+  (ref) => ProfileRepository(ref.watch(supabaseProvider)),
+);
 
 /// The signed-in student's profile. Null while signed out.
 final profileProvider = FutureProvider<Profile?>((ref) async {
@@ -57,5 +72,6 @@ final profileProvider = FutureProvider<Profile?>((ref) async {
 /// The current mode, defaulting to explore until the profile has loaded — the
 /// gentlest of the four, so a slow connection never shows a first-year
 /// deadline language by accident.
-final modeProvider = Provider<YearMode>((ref) =>
-    ref.watch(profileProvider).value?.mode ?? YearMode.explore);
+final modeProvider = Provider<YearMode>(
+  (ref) => ref.watch(profileProvider).value?.mode ?? YearMode.explore,
+);

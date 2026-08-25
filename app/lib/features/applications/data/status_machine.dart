@@ -44,27 +44,27 @@ class StatusMachine {
 
   /// Every legal destination from here, excluding staying put.
   static List<TackStatus> movesFrom(TackStatus from) => [
-        for (final status in TackStatus.values)
-          if (status != from && canMove(from, status)) status,
-      ];
+    for (final status in TackStatus.values)
+      if (status != from && canMove(from, status)) status,
+  ];
 
   /// The single move the tracker offers as a one-tap button, so the common
   /// case does not need the full sheet.
   static TackStatus? primaryMove(TackStatus from) => switch (from) {
-        TackStatus.saved => TackStatus.applied,
-        TackStatus.applied => TackStatus.interview,
-        TackStatus.assessment => TackStatus.interview,
-        TackStatus.interview => TackStatus.offer,
-        TackStatus.offer => null,
-        TackStatus.rejected => null,
-      };
+    TackStatus.saved => TackStatus.applied,
+    TackStatus.applied => TackStatus.interview,
+    TackStatus.assessment => TackStatus.interview,
+    TackStatus.interview => TackStatus.offer,
+    TackStatus.offer => null,
+    TackStatus.rejected => null,
+  };
 
   static String moveLabel(TackStatus to) => switch (to) {
-        TackStatus.saved => 'Move back to saved',
-        TackStatus.applied => 'Mark as applied',
-        TackStatus.assessment => 'Got an assessment',
-        TackStatus.interview => 'Got an interview',
-        TackStatus.offer => 'Got an offer',
-        TackStatus.rejected => 'Mark as rejected',
-      };
+    TackStatus.saved => 'Move back to saved',
+    TackStatus.applied => 'Mark as applied',
+    TackStatus.assessment => 'Got an assessment',
+    TackStatus.interview => 'Got an interview',
+    TackStatus.offer => 'Got an offer',
+    TackStatus.rejected => 'Mark as rejected',
+  };
 }

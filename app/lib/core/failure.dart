@@ -26,32 +26,72 @@ class Failure implements Exception {
     if (error is AuthException) {
       final m = error.message.toLowerCase();
       if (m.contains('invalid login')) {
-        return Failure('That email and password do not match. Check both and try again.', cause: error);
+        return Failure(
+          'That email and password do not match. Check both and try again.',
+          cause: error,
+        );
       }
-      if (m.contains('already registered') || m.contains('already been registered')) {
-        return Failure('There is already an account with that email. Log in instead.', cause: error);
+      if (m.contains('already registered') ||
+          m.contains('already been registered')) {
+        return Failure(
+          'There is already an account with that email. Log in instead.',
+          cause: error,
+        );
       }
       if (m.contains('email not confirmed')) {
-        return Failure('Confirm your email first. Check your inbox for the link we sent.', cause: error);
+        return Failure(
+          'Confirm your email first. Check your inbox for the link we sent.',
+          cause: error,
+        );
       }
       if (m.contains('weak password') || m.contains('at least')) {
-        return Failure('Use a password of at least 8 characters.', cause: error);
+        return Failure(
+          'Use a password of at least 8 characters.',
+          cause: error,
+        );
       }
-      return Failure('That did not work. Try again in a moment.', cause: error, code: error.statusCode);
+      return Failure(
+        'That did not work. Try again in a moment.',
+        cause: error,
+        code: error.statusCode,
+      );
     }
 
     if (error is PostgrestException) {
       return switch (error.code) {
-        '23505' => Failure('That is already saved.', cause: error, code: error.code),
-        '23503' => Failure('Something it depends on is missing. Reload and try again.', cause: error, code: error.code),
-        '23514' => Failure('That change is not allowed from here.', cause: error, code: error.code),
-        '42501' => Failure('You do not have access to that.', cause: error, code: error.code),
-        _ => Failure('That did not save. Try again in a moment.', cause: error, code: error.code),
+        '23505' => Failure(
+          'That is already saved.',
+          cause: error,
+          code: error.code,
+        ),
+        '23503' => Failure(
+          'Something it depends on is missing. Reload and try again.',
+          cause: error,
+          code: error.code,
+        ),
+        '23514' => Failure(
+          'That change is not allowed from here.',
+          cause: error,
+          code: error.code,
+        ),
+        '42501' => Failure(
+          'You do not have access to that.',
+          cause: error,
+          code: error.code,
+        ),
+        _ => Failure(
+          'That did not save. Try again in a moment.',
+          cause: error,
+          code: error.code,
+        ),
       };
     }
 
     if (error is StorageException) {
-      return Failure('That file did not upload. Check your connection and try again.', cause: error);
+      return Failure(
+        'That file did not upload. Check your connection and try again.',
+        cause: error,
+      );
     }
 
     final text = error.toString().toLowerCase();
@@ -62,7 +102,10 @@ class Failure implements Exception {
       return Failure.offline;
     }
 
-    return Failure('Something went wrong. Try again in a moment.', cause: error);
+    return Failure(
+      'Something went wrong. Try again in a moment.',
+      cause: error,
+    );
   }
 
   @override

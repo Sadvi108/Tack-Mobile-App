@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/offline/sync.dart';
 import '../../../design/tack.dart';
 import '../../../routing/router.dart';
 import '../../applications/data/application_models.dart';
@@ -33,7 +34,8 @@ class DashboardScreen extends ConsumerWidget {
         bottomNav: const _Nav(mode: YearMode.explore),
         header: const TackHomeHeader(initials: '–'),
         body: TackErrorState(
-          body: 'Your dashboard did not load. Check your connection and try again.',
+          body:
+              'Your dashboard did not load. Check your connection and try again.',
           onRetry: () => ref.invalidate(profileProvider),
         ),
       ),
@@ -56,8 +58,11 @@ class _Dashboard extends ConsumerWidget {
     final score = ref.watch(readinessProvider).value ?? ReadinessScore.empty;
     final weekChange = ref.watch(weekChangeProvider).value ?? 0;
     final cohort = ref.watch(cohortProvider).value;
-    final actions = ref.watch(nextActionsProvider).value ?? const <NextAction>[];
+    final actions =
+        ref.watch(nextActionsProvider).value ?? const <NextAction>[];
     final roadmaps = ref.watch(roadmapsProvider).value ?? const <Roadmap>[];
+    final online = ref.watch(isOnlineProvider);
+    final queued = ref.watch(pendingChangesProvider).value ?? 0;
 
     Future<void> refresh() async {
       ref.invalidate(profileProvider);
@@ -85,6 +90,10 @@ class _Dashboard extends ConsumerWidget {
           padding: EdgeInsets.zero,
           physics: const AlwaysScrollableScrollPhysics(),
           children: [
+            if (!online) ...[
+              TackOfflineState(queuedChanges: queued),
+              const SizedBox(height: TackSpace.stackLoose),
+            ],
             ModeChip(mode),
             const SizedBox(height: TackSpace.md),
             Text('Hi ${profile.firstName}', style: TackText.screenTitle),
@@ -128,7 +137,10 @@ class _Dashboard extends ConsumerWidget {
                 ref.invalidate(roadmapsProvider);
                 ref.invalidate(readinessProvider);
                 if (context.mounted) {
-                  TackToast.show(context, message: 'Done. +${action.points} points.');
+                  TackToast.show(
+                    context,
+                    message: 'Done. +${action.points} points.',
+                  );
                 }
               },
             ),
@@ -156,12 +168,12 @@ class _Dashboard extends ConsumerWidget {
   }
 
   static String _greeting(YearMode mode) => switch (mode) {
-        YearMode.explore =>
-          'There is no rush this year. Look around and try a few things.',
-        YearMode.build => 'This is the year skills start to add up.',
-        YearMode.prove => 'Time to show what you can do, and to meet people.',
-        YearMode.launch => 'Let us get you hired.',
-      };
+    YearMode.explore =>
+      'There is no rush this year. Look around and try a few things.',
+    YearMode.build => 'This is the year skills start to add up.',
+    YearMode.prove => 'Time to show what you can do, and to meet people.',
+    YearMode.launch => 'Let us get you hired.',
+  };
 }
 
 class _ExploreCta extends StatelessWidget {
@@ -200,7 +212,9 @@ class _SevenDayCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final upcoming = ref.watch(upcomingApplicationsProvider).value ?? const <JobApplication>[];
+    final upcoming =
+        ref.watch(upcomingApplicationsProvider).value ??
+        const <JobApplication>[];
 
     return TackCard(
       background: TackColors.maroon,
@@ -208,12 +222,17 @@ class _SevenDayCard extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Next seven days', style: TackText.cardTitle.copyWith(color: TackColors.white)),
+          Text(
+            'Next seven days',
+            style: TackText.cardTitle.copyWith(color: TackColors.white),
+          ),
           const SizedBox(height: TackSpace.md),
           if (upcoming.isEmpty)
             Text(
               'Nothing due this week. A good week to add two applications.',
-              style: TackText.bodyMuted.copyWith(color: const Color(0xD1FFFFFF)),
+              style: TackText.bodyMuted.copyWith(
+                color: const Color(0xD1FFFFFF),
+              ),
             )
           else
             for (final application in upcoming.take(4))
@@ -233,7 +252,10 @@ class _SevenDayCard extends ConsumerWidget {
                         application.nextAction ?? application.title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: TackText.body.copyWith(color: TackColors.white, fontSize: 15),
+                        style: TackText.body.copyWith(
+                          color: TackColors.white,
+                          fontSize: 15,
+                        ),
                       ),
                     ),
                   ],
@@ -245,12 +267,12 @@ class _SevenDayCard extends ConsumerWidget {
   }
 
   static String _relativeDay(int? days) => switch (days) {
-        null => '',
-        < 0 => 'Overdue',
-        0 => 'Today',
-        1 => 'Tomorrow',
-        _ => 'In $days d',
-      };
+    null => '',
+    < 0 => 'Overdue',
+    0 => 'Today',
+    1 => 'Tomorrow',
+    _ => 'In $days d',
+  };
 }
 
 class _Funnel extends ConsumerWidget {
@@ -258,7 +280,8 @@ class _Funnel extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final counts = ref.watch(applicationCountsProvider).value ?? ApplicationCounts.empty;
+    final counts =
+        ref.watch(applicationCountsProvider).value ?? ApplicationCounts.empty;
     return ApplicationFunnel(
       counts: counts.asWireMap,
       onTap: () => context.go(Routes.applications),
@@ -286,7 +309,10 @@ class _RoadmapProgressCard extends StatelessWidget {
           Row(
             children: [
               Expanded(child: Text('Your roadmap', style: TackText.cardTitle)),
-              Text('$percent%', style: TackText.cardTitle.copyWith(color: TackColors.maroon)),
+              Text(
+                '$percent%',
+                style: TackText.cardTitle.copyWith(color: TackColors.maroon),
+              ),
             ],
           ),
           const SizedBox(height: TackSpace.md),

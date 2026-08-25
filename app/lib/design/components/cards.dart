@@ -29,7 +29,8 @@ class TackCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final content = Container(
       width: double.infinity,
-      padding: padding ??
+      padding:
+          padding ??
           EdgeInsets.symmetric(
             horizontal: compact ? TackSpace.cardCompactX : TackSpace.cardX,
             vertical: compact ? TackSpace.cardCompactY : TackSpace.cardY,
@@ -37,18 +38,24 @@ class TackCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: background,
         borderRadius: compact ? TackRadius.listCardAll : TackRadius.cardAll,
-        border: emphasised ? Border.all(color: TackColors.maroon, width: 1.5) : null,
+        border: emphasised
+            ? Border.all(color: TackColors.maroon, width: 1.5)
+            : null,
         boxShadow: emphasised
             ? null
             : raised
-                ? TackShadow.raised
-                : TackShadow.resting,
+            ? TackShadow.raised
+            : TackShadow.resting,
       ),
       child: child,
     );
 
     if (onTap == null) return content;
-    return GestureDetector(onTap: onTap, behavior: HitTestBehavior.opaque, child: content);
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: content,
+    );
   }
 }
 
@@ -60,13 +67,13 @@ class TackDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: EdgeInsets.only(left: indent),
-        child: const SizedBox(
-          height: 1,
-          width: double.infinity,
-          child: DecoratedBox(decoration: BoxDecoration(color: TackColors.line)),
-        ),
-      );
+    padding: EdgeInsets.only(left: indent),
+    child: const SizedBox(
+      height: 1,
+      width: double.infinity,
+      child: DecoratedBox(decoration: BoxDecoration(color: TackColors.line)),
+    ),
+  );
 }
 
 /// Any tappable row. Enforces the 44px minimum tap target so no caller has to
@@ -86,7 +93,8 @@ class TackTapRow extends StatelessWidget {
       child: ConstrainedBox(
         constraints: const BoxConstraints(minHeight: TackSpace.tapTarget),
         child: Padding(
-          padding: padding ?? const EdgeInsets.symmetric(vertical: TackSpace.sm),
+          padding:
+              padding ?? const EdgeInsets.symmetric(vertical: TackSpace.sm),
           child: child,
         ),
       ),

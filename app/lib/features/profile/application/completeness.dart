@@ -44,23 +44,40 @@ ProfileCompleteness computeCompleteness({
     (profile.phone?.isNotEmpty ?? false, 'add your phone number'),
     (profile.yearOfStudy != null, 'say which year you are in'),
     (profile.targetRole != null, 'pick a target role'),
-    ((sections[ProfileSection.education] ?? const []).isNotEmpty, 'add your education'),
+    (
+      (sections[ProfileSection.education] ?? const []).isNotEmpty,
+      'add your education',
+    ),
     (skillCount >= 5, 'add a few more skills'),
-    ((sections[ProfileSection.projects] ?? const []).isNotEmpty, 'add a project'),
-    ((sections[ProfileSection.experience] ?? const []).isNotEmpty,
-        'add an internship or job'),
-    ((sections[ProfileSection.activities] ?? const []).isNotEmpty,
-        'add a club or competition'),
-    ((sections[ProfileSection.certifications] ?? const []).isNotEmpty,
-        'add a certificate'),
-    ((sections[ProfileSection.portfolio] ?? const []).isNotEmpty,
-        'add your GitHub or LinkedIn'),
+    (
+      (sections[ProfileSection.projects] ?? const []).isNotEmpty,
+      'add a project',
+    ),
+    (
+      (sections[ProfileSection.experience] ?? const []).isNotEmpty,
+      'add an internship or job',
+    ),
+    (
+      (sections[ProfileSection.activities] ?? const []).isNotEmpty,
+      'add a club or competition',
+    ),
+    (
+      (sections[ProfileSection.certifications] ?? const []).isNotEmpty,
+      'add a certificate',
+    ),
+    (
+      (sections[ProfileSection.portfolio] ?? const []).isNotEmpty,
+      'add your GitHub or LinkedIn',
+    ),
   ];
 
   final done = checks.where((c) => c.$1).length;
   return ProfileCompleteness(
     percent: (done * 100 / checks.length).round(),
-    missing: [for (final check in checks) if (!check.$1) check.$2],
+    missing: [
+      for (final check in checks)
+        if (!check.$1) check.$2,
+    ],
   );
 }
 

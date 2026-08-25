@@ -52,12 +52,15 @@ class _AnalyserScreenState extends ConsumerState<AnalyserScreen> {
       ),
       pinnedCta: switch (state) {
         AnalysisIdle() => TackButton(
-            'Analyse it',
-            onPressed: (remaining ?? 0) > 0 && _text.text.trim().length >= 80
-                ? () => ref.read(analyserControllerProvider.notifier).analyse(_text.text)
-                : null,
-          ),
-        AnalysisReady(match: final match) when match.missing.isNotEmpty => TackButton(
+          'Analyse it',
+          onPressed: (remaining ?? 0) > 0 && _text.text.trim().length >= 80
+              ? () => ref
+                    .read(analyserControllerProvider.notifier)
+                    .analyse(_text.text)
+              : null,
+        ),
+        AnalysisReady(match: final match) when match.missing.isNotEmpty =>
+          TackButton(
             'Add missing skills to my roadmap',
             onPressed: () => _addToRoadmap(match),
           ),
@@ -65,12 +68,15 @@ class _AnalyserScreenState extends ConsumerState<AnalyserScreen> {
       },
       body: switch (state) {
         AnalysisIdle() => _Input(
-            controller: _text,
-            remaining: remaining,
-            onChanged: () => setState(() {}),
-          ),
+          controller: _text,
+          remaining: remaining,
+          onChanged: () => setState(() {}),
+        ),
         AnalysisQueued() => const _Processing(),
-        AnalysisFailed(message: final message, quotaExhausted: final exhausted) =>
+        AnalysisFailed(
+          message: final message,
+          quotaExhausted: final exhausted,
+        ) =>
           exhausted
               ? TackQuotaState(
                   resetsAt: 'midnight',
@@ -78,9 +84,14 @@ class _AnalyserScreenState extends ConsumerState<AnalyserScreen> {
                 )
               : TackErrorState(
                   body: message,
-                  onRetry: () => ref.read(analyserControllerProvider.notifier).reset(),
+                  onRetry: () =>
+                      ref.read(analyserControllerProvider.notifier).reset(),
                 ),
-        AnalysisReady(analysis: final analysis, match: final match, cached: final cached) =>
+        AnalysisReady(
+          analysis: final analysis,
+          match: final match,
+          cached: final cached,
+        ) =>
           _Result(analysis: analysis, match: match, cached: cached),
       },
     );
@@ -112,7 +123,11 @@ class _AnalyserScreenState extends ConsumerState<AnalyserScreen> {
 }
 
 class _Input extends StatelessWidget {
-  const _Input({required this.controller, required this.remaining, required this.onChanged});
+  const _Input({
+    required this.controller,
+    required this.remaining,
+    required this.onChanged,
+  });
 
   final TextEditingController controller;
   final int? remaining;
@@ -141,7 +156,7 @@ class _Input extends StatelessWidget {
                 child: Text(
                   left > 0
                       ? '$left of ${AnalysisRepository.dailyQuota} analyses left today. '
-                          'They reset at midnight.'
+                            'They reset at midnight.'
                       : 'No analyses left today. They reset at midnight.',
                   style: TackText.bodyMuted,
                 ),
@@ -212,7 +227,11 @@ class _Processing extends StatelessWidget {
 }
 
 class _Result extends StatelessWidget {
-  const _Result({required this.analysis, required this.match, required this.cached});
+  const _Result({
+    required this.analysis,
+    required this.match,
+    required this.cached,
+  });
 
   final JdAnalysis analysis;
   final JdMatch match;
@@ -230,7 +249,9 @@ class _Result extends StatelessWidget {
             children: [
               Text(
                 analysis.jobTitle,
-                style: TackText.bodyMuted.copyWith(color: const Color(0xD1FFFFFF)),
+                style: TackText.bodyMuted.copyWith(
+                  color: const Color(0xD1FFFFFF),
+                ),
               ),
               const SizedBox(height: TackSpace.sm),
               Row(
@@ -238,14 +259,18 @@ class _Result extends StatelessWidget {
                 children: [
                   Text(
                     '${match.matchPercent}%',
-                    style: TackText.heroNumber.copyWith(color: TackColors.white),
+                    style: TackText.heroNumber.copyWith(
+                      color: TackColors.white,
+                    ),
                   ),
                   const SizedBox(width: TackSpace.md),
                   Padding(
                     padding: const EdgeInsets.only(bottom: 8),
                     child: Text(
                       'match',
-                      style: TackText.cardTitle.copyWith(color: const Color(0xD1FFFFFF)),
+                      style: TackText.cardTitle.copyWith(
+                        color: const Color(0xD1FFFFFF),
+                      ),
                     ),
                   ),
                 ],
@@ -255,8 +280,10 @@ class _Result extends StatelessWidget {
                 match.missing.isEmpty
                     ? 'You have everything this role asks for.'
                     : 'You have ${match.matched.length} of '
-                        '${match.matched.length + match.missing.length} skills it asks for.',
-                style: TackText.bodyMuted.copyWith(color: const Color(0xD1FFFFFF)),
+                          '${match.matched.length + match.missing.length} skills it asks for.',
+                style: TackText.bodyMuted.copyWith(
+                  color: const Color(0xD1FFFFFF),
+                ),
               ),
             ],
           ),
@@ -284,8 +311,14 @@ class _Result extends StatelessWidget {
           const SizedBox(height: TackSpace.stackLoose),
         ],
 
-        _ListCard(title: 'Qualifications it asks for', items: analysis.qualifications),
-        _ListCard(title: 'What you would be doing', items: analysis.responsibilities),
+        _ListCard(
+          title: 'Qualifications it asks for',
+          items: analysis.qualifications,
+        ),
+        _ListCard(
+          title: 'What you would be doing',
+          items: analysis.responsibilities,
+        ),
         if (analysis.experience != null)
           _ListCard(title: 'Experience', items: [analysis.experience!]),
 

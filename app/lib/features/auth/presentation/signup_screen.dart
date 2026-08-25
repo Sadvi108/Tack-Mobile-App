@@ -55,9 +55,13 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
       _emailError = AuthValidators.email(_email.text);
       _passwordError = AuthValidators.password(_password.text);
     });
-    if (_nameError != null || _emailError != null || _passwordError != null) return;
+    if (_nameError != null || _emailError != null || _passwordError != null) {
+      return;
+    }
 
-    final ok = await ref.read(authControllerProvider.notifier).signUp(
+    final ok = await ref
+        .read(authControllerProvider.notifier)
+        .signUp(
           email: _email.text,
           password: _password.text,
           fullName: _name.text,
@@ -93,7 +97,8 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
 
             GoogleSignInButton(
               busy: auth.busy,
-              onPressed: () => ref.read(authControllerProvider.notifier).signInWithGoogle(),
+              onPressed: () =>
+                  ref.read(authControllerProvider.notifier).signInWithGoogle(),
             ),
             const SizedBox(height: TackSpace.md),
             const TackOrDivider(),
@@ -135,7 +140,11 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
             ],
 
             const SizedBox(height: TackSpace.md),
-            TackButton('Create account', loading: auth.busy, onPressed: _submit),
+            TackButton(
+              'Create account',
+              loading: auth.busy,
+              onPressed: _submit,
+            ),
 
             const Spacer(),
 
@@ -144,7 +153,11 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
               children: [
                 const Padding(
                   padding: EdgeInsets.only(top: 1),
-                  child: TackIcon(TackIcons.shield, size: 17, color: TackColors.muted),
+                  child: TackIcon(
+                    TackIcons.shield,
+                    size: 17,
+                    color: TackColors.muted,
+                  ),
                 ),
                 const SizedBox(width: TackSpace.sm),
                 Expanded(
@@ -163,7 +176,9 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                   onTap: () => context.go(Routes.login),
                   behavior: HitTestBehavior.opaque,
                   child: ConstrainedBox(
-                    constraints: const BoxConstraints(minHeight: TackSpace.tapTarget),
+                    constraints: const BoxConstraints(
+                      minHeight: TackSpace.tapTarget,
+                    ),
                     child: Center(
                       child: Text.rich(
                         TextSpan(

@@ -19,7 +19,9 @@ class SplashScreen extends ConsumerWidget {
       if (profile == null) return;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!context.mounted) return;
-        context.go(profile.hasFinishedOnboarding ? Routes.home : Routes.onboarding);
+        context.go(
+          profile.hasFinishedOnboarding ? Routes.home : Routes.onboarding,
+        );
       });
     });
 
@@ -36,7 +38,9 @@ class SplashScreen extends ConsumerWidget {
             const SizedBox(height: TackSpace.xl),
             if (profile.hasError)
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: TackSpace.screen),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: TackSpace.screen,
+                ),
                 child: TackErrorState(
                   title: 'That did not load',
                   body: 'Check your connection and try again.',

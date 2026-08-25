@@ -87,20 +87,47 @@ final routerProvider = Provider<GoRouter>((ref) {
       };
 
       if (!signedIn && !publicRoutes.contains(loc)) return Routes.welcome;
-      if (signedIn && (loc == Routes.welcome || loc == Routes.login || loc == Routes.signup)) {
+      if (signedIn &&
+          (loc == Routes.welcome ||
+              loc == Routes.login ||
+              loc == Routes.signup)) {
         return Routes.home;
       }
       return null;
     },
     routes: [
-      GoRoute(path: Routes.splash, builder: (context, state) => const SplashScreen()),
-      GoRoute(path: Routes.welcome, builder: (context, state) => const WelcomeScreen()),
-      GoRoute(path: Routes.login, builder: (context, state) => const LoginScreen()),
-      GoRoute(path: Routes.signup, builder: (context, state) => const SignUpScreen()),
-      GoRoute(path: Routes.forgotPassword, builder: (context, state) => const ForgotPasswordScreen()),
-      GoRoute(path: Routes.resetPassword, builder: (context, state) => const ResetPasswordScreen()),
-      GoRoute(path: Routes.onboarding, builder: (context, state) => const OnboardingScreen()),
-      GoRoute(path: Routes.home, builder: (context, state) => const DashboardScreen()),
+      GoRoute(
+        path: Routes.splash,
+        builder: (context, state) => const SplashScreen(),
+      ),
+      GoRoute(
+        path: Routes.welcome,
+        builder: (context, state) => const WelcomeScreen(),
+      ),
+      GoRoute(
+        path: Routes.login,
+        builder: (context, state) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: Routes.signup,
+        builder: (context, state) => const SignUpScreen(),
+      ),
+      GoRoute(
+        path: Routes.forgotPassword,
+        builder: (context, state) => const ForgotPasswordScreen(),
+      ),
+      GoRoute(
+        path: Routes.resetPassword,
+        builder: (context, state) => const ResetPasswordScreen(),
+      ),
+      GoRoute(
+        path: Routes.onboarding,
+        builder: (context, state) => const OnboardingScreen(),
+      ),
+      GoRoute(
+        path: Routes.home,
+        builder: (context, state) => const DashboardScreen(),
+      ),
       GoRoute(
         path: Routes.paths,
         builder: (context, state) => const PathsScreen(),
@@ -112,7 +139,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
         ],
       ),
-      GoRoute(path: Routes.roadmap, builder: (context, state) => const RoadmapScreen()),
+      GoRoute(
+        path: Routes.roadmap,
+        builder: (context, state) => const RoadmapScreen(),
+      ),
       GoRoute(
         path: Routes.applications,
         builder: (context, state) => const ApplicationsScreen(),
@@ -124,15 +154,36 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
         ],
       ),
-      GoRoute(path: Routes.profile, builder: (context, state) => const ProfileScreen()),
-      GoRoute(path: Routes.score, builder: (context, state) => const ScoreScreen()),
-      GoRoute(path: Routes.vault, builder: (context, state) => const VaultScreen()),
-      GoRoute(path: Routes.analyser, builder: (context, state) => const AnalyserScreen()),
-      GoRoute(path: Routes.interview, builder: (context, state) => const InterviewScreen()),
-      GoRoute(path: Routes.notifications, builder: (context, state) => const _Placeholder('Notifications')),
+      GoRoute(
+        path: Routes.profile,
+        builder: (context, state) => const ProfileScreen(),
+      ),
+      GoRoute(
+        path: Routes.score,
+        builder: (context, state) => const ScoreScreen(),
+      ),
+      GoRoute(
+        path: Routes.vault,
+        builder: (context, state) => const VaultScreen(),
+      ),
+      GoRoute(
+        path: Routes.analyser,
+        builder: (context, state) => const AnalyserScreen(),
+      ),
+      GoRoute(
+        path: Routes.interview,
+        builder: (context, state) => const InterviewScreen(),
+      ),
+      GoRoute(
+        path: Routes.notifications,
+        builder: (context, state) => const _Placeholder('Notifications'),
+      ),
     ],
     errorBuilder: (context, state) => TackScaffold(
-      header: TackHeader(title: 'Not found', onBack: () => context.go(Routes.home)),
+      header: TackHeader(
+        title: 'Not found',
+        onBack: () => context.go(Routes.home),
+      ),
       body: const TackErrorState(
         title: 'That screen does not exist',
         body: 'Go back to your dashboard and try again from there.',
@@ -149,15 +200,15 @@ class _Placeholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => TackScaffold(
-        header: TackHeader(title: name),
-        body: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: TackSpace.lg),
-            TackCard(
-              child: Text('$name is not built yet.', style: TackText.bodyMuted),
-            ),
-          ],
+    header: TackHeader(title: name),
+    body: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: TackSpace.lg),
+        TackCard(
+          child: Text('$name is not built yet.', style: TackText.bodyMuted),
         ),
-      );
+      ],
+    ),
+  );
 }

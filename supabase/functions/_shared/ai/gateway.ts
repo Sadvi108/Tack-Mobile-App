@@ -1,7 +1,7 @@
-import { SupabaseClient } from 'jsr:@supabase/supabase-js@2';
+import { SupabaseClient } from "@supabase/supabase-js";
 
-import { CompletionRequest, selectProvider } from './provider.ts';
-import { validate } from './schemas.ts';
+import { CompletionRequest, selectProvider } from "./provider.ts";
+import { validate } from "./schemas.ts";
 
 /** Three AI actions a day, per student. */
 export const DAILY_AI_QUOTA = 3;
@@ -14,7 +14,7 @@ export interface GatewayOutcome {
 
 export class QuotaExhausted extends Error {
   constructor() {
-    super('quota exhausted');
+    super("quota exhausted");
   }
 }
 
@@ -38,9 +38,9 @@ export async function runCompletion(
 ): Promise<GatewayOutcome> {
   let remaining = DAILY_AI_QUOTA;
   if (options.consumeQuota ?? true) {
-    const { data, error: quotaError } = await service.rpc('consume_quota', {
+    const { data, error: quotaError } = await service.rpc("consume_quota", {
       p_user_id: userId,
-      p_bucket: 'ai_actions',
+      p_bucket: "ai_actions",
       p_limit: DAILY_AI_QUOTA,
     });
     if (quotaError) throw quotaError;
@@ -55,7 +55,7 @@ export async function runCompletion(
   try {
     result = await provider.complete(request);
   } catch (error) {
-    await service.from('ai_usage').insert({
+    await service.from("ai_usage").insert({
       user_id: userId,
       feature: request.feature,
       provider: provider.name,
@@ -72,7 +72,10 @@ export async function runCompletion(
   if (problems.length > 0) {
     const retry = await provider.complete({
       ...request,
-      user: `${request.user}\n\nYour previous reply was rejected: ${problems.join('; ')}. ` +
+      user:
+        `${request.user}\n\nYour previous reply was rejected: ${
+          problems.join("; ")
+        }. ` +
         `Reply again with valid JSON only.`,
     });
     const retryProblems = validate(retry.data, shape, required);
@@ -82,7 +85,7 @@ export async function runCompletion(
     }
   }
 
-  await service.from('ai_usage').insert({
+  await service.from("ai_usage").insert({
     user_id: userId,
     feature: request.feature,
     provider: result.provider,
@@ -90,11 +93,13 @@ export async function runCompletion(
     prompt_tokens: result.promptTokens,
     completion_tokens: result.completionTokens,
     succeeded: problems.length === 0,
-    error_code: problems.length === 0 ? null : problems.join('; ').slice(0, 120),
+    error_code: problems.length === 0
+      ? null
+      : problems.join("; ").slice(0, 120),
   });
 
   if (problems.length > 0) {
-    throw new Error(`model reply failed validation: ${problems.join('; ')}`);
+    throw new Error(`model reply failed validation: ${problems.join("; ")}`);
   }
 
   return { data: result.data, cached: false, remaining };
@@ -106,10 +111,10 @@ export async function recordCacheHit(
   userId: string,
   feature: string,
 ): Promise<void> {
-  await service.from('ai_usage').insert({
+  await service.from("ai_usage").insert({
     user_id: userId,
     feature,
-    provider: 'cache',
+    provider: "cache",
     cached: true,
     succeeded: true,
   });
@@ -119,9 +124,9 @@ export async function quotaRemaining(
   service: SupabaseClient,
   userId: string,
 ): Promise<number> {
-  const { data } = await service.rpc('quota_remaining', {
+  const { data } = await service.rpc("quota_remaining", {
     p_user_id: userId,
-    p_bucket: 'ai_actions',
+    p_bucket: "ai_actions",
     p_limit: DAILY_AI_QUOTA,
   });
   return (data as number | null) ?? DAILY_AI_QUOTA;
@@ -129,9 +134,12 @@ export async function quotaRemaining(
 
 /** Content hash, so identical text is never analysed twice. */
 export async function hashText(text: string): Promise<string> {
-  const normalised = text.trim().toLowerCase().replace(/\s+/g, ' ');
-  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(normalised));
+  const normalised = text.trim().toLowerCase().replace(/\s+/g, " ");
+  const digest = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(normalised),
+  );
   return Array.from(new Uint8Array(digest))
-    .map((b) => b.toString(16).padStart(2, '0'))
-    .join('');
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 }

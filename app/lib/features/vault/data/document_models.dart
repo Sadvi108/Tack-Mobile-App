@@ -5,24 +5,26 @@ enum DocumentType {
   transcript,
   other;
 
-  static DocumentType fromWire(String? value) =>
-      DocumentType.values.firstWhere((t) => t.name == value, orElse: () => DocumentType.other);
+  static DocumentType fromWire(String? value) => DocumentType.values.firstWhere(
+    (t) => t.name == value,
+    orElse: () => DocumentType.other,
+  );
 
   String get label => switch (this) {
-        DocumentType.cv => 'CV',
-        DocumentType.certificate => 'Certificate',
-        DocumentType.project => 'Project file',
-        DocumentType.transcript => 'Transcript',
-        DocumentType.other => 'Other',
-      };
+    DocumentType.cv => 'CV',
+    DocumentType.certificate => 'Certificate',
+    DocumentType.project => 'Project file',
+    DocumentType.transcript => 'Transcript',
+    DocumentType.other => 'Other',
+  };
 
   String get plural => switch (this) {
-        DocumentType.cv => 'CVs',
-        DocumentType.certificate => 'Certificates',
-        DocumentType.project => 'Project files',
-        DocumentType.transcript => 'Transcripts',
-        DocumentType.other => 'Other files',
-      };
+    DocumentType.cv => 'CVs',
+    DocumentType.certificate => 'Certificates',
+    DocumentType.project => 'Project files',
+    DocumentType.transcript => 'Transcripts',
+    DocumentType.other => 'Other files',
+  };
 }
 
 enum DocumentStatus {
@@ -76,19 +78,20 @@ class TackDocument {
   }
 
   factory TackDocument.fromRow(Map<String, dynamic> row) => TackDocument(
-        id: row['id'] as String,
-        type: DocumentType.fromWire(row['type'] as String?),
-        title: row['title'] as String,
-        storagePath: row['storage_path'] as String,
-        status: DocumentStatus.fromWire(row['status'] as String?),
-        mimeType: row['mime_type'] as String?,
-        sizeBytes: (row['size_bytes'] as num?)?.toInt(),
-        isDefault: row['is_default'] as bool? ?? false,
-        version: (row['version'] as num?)?.toInt() ?? 1,
-        parentDocumentId: row['parent_document_id'] as String?,
-        failureReason: row['failure_reason'] as String?,
-        createdAt: DateTime.tryParse('${row['created_at']}')?.toLocal() ?? DateTime.now(),
-      );
+    id: row['id'] as String,
+    type: DocumentType.fromWire(row['type'] as String?),
+    title: row['title'] as String,
+    storagePath: row['storage_path'] as String,
+    status: DocumentStatus.fromWire(row['status'] as String?),
+    mimeType: row['mime_type'] as String?,
+    sizeBytes: (row['size_bytes'] as num?)?.toInt(),
+    isDefault: row['is_default'] as bool? ?? false,
+    version: (row['version'] as num?)?.toInt() ?? 1,
+    parentDocumentId: row['parent_document_id'] as String?,
+    failureReason: row['failure_reason'] as String?,
+    createdAt:
+        DateTime.tryParse('${row['created_at']}')?.toLocal() ?? DateTime.now(),
+  );
 }
 
 /// What the vault will accept, checked on this device before anything is sent
@@ -128,6 +131,5 @@ class UploadRules {
     required String userId,
     required DocumentType type,
     required String documentId,
-  }) =>
-      'users/$userId/${type.name}/$documentId';
+  }) => 'users/$userId/${type.name}/$documentId';
 }

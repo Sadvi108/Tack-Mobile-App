@@ -61,14 +61,20 @@ class UploadController extends Notifier<UploadState> {
     state = UploadState(fileName: title, transferring: true);
 
     try {
-      final document = await ref.read(documentRepositoryProvider).upload(
+      final document = await ref
+          .read(documentRepositoryProvider)
+          .upload(
             type: type,
             title: title,
             bytes: bytes,
             mimeType: mimeType,
             onProgress: (p) {
               if (state.transferring) {
-                state = UploadState(fileName: title, progress: p, transferring: true);
+                state = UploadState(
+                  fileName: title,
+                  progress: p,
+                  transferring: true,
+                );
               }
             },
             isCancelled: () async => _cancelRequested,

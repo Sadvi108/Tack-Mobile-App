@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'dart:convert';
+
 import '../../../core/failure.dart';
+import '../../../core/offline/sync.dart';
 import '../../../design/tack.dart';
 import '../../../routing/router.dart';
 import '../../profile/data/profile_repository.dart';
@@ -29,21 +32,47 @@ class _RoadmapScreenState extends ConsumerState<RoadmapScreen> {
   final _expanded = <String>{};
 
   Future<void> _toggle(RoadmapTask task) async {
+    final done = !task.isDone;
+
     try {
-      await ref.read(roadmapRepositoryProvider).setTaskDone(task.id, done: !task.isDone);
+      await ref
+          .read(roadmapRepositoryProvider)
+          .setTaskDone(task.id, done: done);
       ref
         ..invalidate(roadmapsProvider)
         ..invalidate(readinessProvider)
         ..invalidate(weekChangeProvider);
       if (!mounted) return;
-      if (!task.isDone) {
+      if (done) {
         TackToast.show(context, message: 'Done. +${task.points} points.');
       }
     } catch (e) {
+      final failure = Failure.from(e);
       if (!mounted) return;
+
+      // Ticking a task is the change students make most often, and the one
+      // most likely to happen with no signal. Queue it instead of losing it.
+      if (failure.isOffline) {
+        await ref
+            .read(localDbProvider)
+            .enqueue(
+              kind: 'task_done',
+              targetId: task.id,
+              payload: jsonEncode({'is_done': done}),
+            );
+        if (!mounted) return;
+        TackToast.show(
+          context,
+          message:
+              'Saved on this phone. It will sync when you are back online.',
+          kind: TackToastKind.info,
+        );
+        return;
+      }
+
       TackToast.show(
         context,
-        message: Failure.from(e).message,
+        message: failure.message,
         kind: TackToastKind.error,
       );
     }
@@ -56,7 +85,10 @@ class _RoadmapScreenState extends ConsumerState<RoadmapScreen> {
       title: 'Add your own step',
       child: Padding(
         padding: const EdgeInsets.fromLTRB(
-          TackSpace.screen, 0, TackSpace.screen, TackSpace.xl,
+          TackSpace.screen,
+          0,
+          TackSpace.screen,
+          TackSpace.xl,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -76,7 +108,8 @@ class _RoadmapScreenState extends ConsumerState<RoadmapScreen> {
             Builder(
               builder: (sheetContext) => TackButton(
                 'Add it',
-                onPressed: () => Navigator.of(sheetContext).pop(controller.text.trim()),
+                onPressed: () =>
+                    Navigator.of(sheetContext).pop(controller.text.trim()),
               ),
             ),
           ],
@@ -86,10 +119,9 @@ class _RoadmapScreenState extends ConsumerState<RoadmapScreen> {
     controller.dispose();
 
     if (title == null || title.isEmpty || !mounted) return;
-    await ref.read(roadmapRepositoryProvider).addCustomTask(
-          milestoneId: milestoneId,
-          title: title,
-        );
+    await ref
+        .read(roadmapRepositoryProvider)
+        .addCustomTask(milestoneId: milestoneId, title: title);
     ref.invalidate(roadmapsProvider);
     if (mounted) TackToast.show(context, message: 'Added to your roadmap.');
   }
@@ -117,14 +149,16 @@ class _RoadmapScreenState extends ConsumerState<RoadmapScreen> {
           ],
         ),
         error: (_, _) => TackErrorState(
-          body: 'Your roadmap did not load. Check your connection and try again.',
+          body:
+              'Your roadmap did not load. Check your connection and try again.',
           onRetry: () => ref.invalidate(roadmapsProvider),
         ),
         data: (roadmaps) {
           if (roadmaps.isEmpty) {
             return TackEmptyState(
               title: 'No roadmap yet',
-              body: 'Pick a career path and Tack turns it into a route you can '
+              body:
+                  'Pick a career path and Tack turns it into a route you can '
                   'actually follow, one step at a time.',
               primaryLabel: 'Explore career paths',
               onPrimary: () => context.go(Routes.paths),
@@ -164,10 +198,14 @@ class _RoadmapScreenState extends ConsumerState<RoadmapScreen> {
                   children: [
                     Row(
                       children: [
-                        Expanded(child: Text(roadmap.title, style: TackText.cardTitle)),
+                        Expanded(
+                          child: Text(roadmap.title, style: TackText.cardTitle),
+                        ),
                         Text(
                           '${(roadmap.progress * 100).round()}%',
-                          style: TackText.cardTitle.copyWith(color: TackColors.maroon),
+                          style: TackText.cardTitle.copyWith(
+                            color: TackColors.maroon,
+                          ),
                         ),
                       ],
                     ),
@@ -186,13 +224,16 @@ class _RoadmapScreenState extends ConsumerState<RoadmapScreen> {
               for (final milestone in roadmap.milestones) ...[
                 _MilestoneCard(
                   milestone: milestone,
-                  expanded: _expanded.contains(milestone.id) ||
+                  expanded:
+                      _expanded.contains(milestone.id) ||
                       (milestone.state == MilestoneState.active &&
                           !_expanded.contains('collapsed:${milestone.id}')),
                   onToggleExpanded: () => setState(() {
                     if (milestone.state == MilestoneState.active) {
                       final key = 'collapsed:${milestone.id}';
-                      _expanded.contains(key) ? _expanded.remove(key) : _expanded.add(key);
+                      _expanded.contains(key)
+                          ? _expanded.remove(key)
+                          : _expanded.add(key);
                     } else {
                       _expanded.contains(milestone.id)
                           ? _expanded.remove(milestone.id)
@@ -268,7 +309,10 @@ class _MilestoneCard extends StatelessWidget {
                             style: TackText.meta.copyWith(fontSize: 13.5),
                           ),
                           if (milestone.typicalSemester != null) ...[
-                            Text(' · ', style: TackText.meta.copyWith(fontSize: 13.5)),
+                            Text(
+                              ' · ',
+                              style: TackText.meta.copyWith(fontSize: 13.5),
+                            ),
                             Text(
                               'around semester ${milestone.typicalSemester}',
                               style: TackText.meta.copyWith(fontSize: 13.5),
@@ -323,7 +367,11 @@ class _MilestoneCard extends StatelessWidget {
             if (!locked) ...[
               const TackDivider(),
               const SizedBox(height: TackSpace.sm),
-              TackButton.ghost('+ Add your own step', onPressed: onAddTask, fullWidth: false),
+              TackButton.ghost(
+                '+ Add your own step',
+                onPressed: onAddTask,
+                fullWidth: false,
+              ),
             ],
           ],
         ],
@@ -355,7 +403,12 @@ class _StateDot extends StatelessWidget {
         border: Border.all(color: colour, width: 1.5),
       ),
       child: state == MilestoneState.completed
-          ? const TackIcon(TackIcons.check, size: 14, color: TackColors.white, strokeWidth: 3)
+          ? const TackIcon(
+              TackIcons.check,
+              size: 14,
+              color: TackColors.white,
+              strokeWidth: 3,
+            )
           : null,
     );
   }

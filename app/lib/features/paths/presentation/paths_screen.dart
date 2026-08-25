@@ -50,9 +50,12 @@ class _PathsScreenState extends ConsumerState<PathsScreen> {
               'Compare these two',
               onPressed: () {
                 final ids = _toCompare.toList();
-                Navigator.of(context).push(MaterialPageRoute(
-                  builder: (_) => ComparePathsScreen(pathIdA: ids[0], pathIdB: ids[1]),
-                ));
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        ComparePathsScreen(pathIdA: ids[0], pathIdB: ids[1]),
+                  ),
+                );
               },
             )
           : null,
@@ -175,9 +178,16 @@ class _PathCard extends StatelessWidget {
           const SizedBox(height: 4),
           Row(
             children: [
-              const TackIcon(TackIcons.clock, size: 16, color: TackColors.muted),
+              const TackIcon(
+                TackIcons.clock,
+                size: 16,
+                color: TackColors.muted,
+              ),
               const SizedBox(width: 6),
-              Text('${path.timeLabel} to job-ready', style: TackText.meta.copyWith(fontSize: 14)),
+              Text(
+                '${path.timeLabel} to job-ready',
+                style: TackText.meta.copyWith(fontSize: 14),
+              ),
             ],
           ),
           const SizedBox(height: TackSpace.md),

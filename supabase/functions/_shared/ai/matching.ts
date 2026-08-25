@@ -15,7 +15,7 @@ export interface MatchResult {
 
 /** Loose equality: "Node.js" and "nodejs" are the same skill to a student. */
 function normalise(skill: string): string {
-  return skill.toLowerCase().replace(/[^a-z0-9]/g, '');
+  return skill.toLowerCase().replace(/[^a-z0-9]/g, "");
 }
 
 export function matchSkills(

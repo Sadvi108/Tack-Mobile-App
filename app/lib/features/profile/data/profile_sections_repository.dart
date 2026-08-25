@@ -16,77 +16,123 @@ class ProfileSectionsRepository {
 
   String get _uid {
     final id = _db.auth.currentUser?.id;
-    if (id == null) throw const Failure('You are signed out. Log in and try again.');
+    if (id == null) {
+      throw const Failure('You are signed out. Log in and try again.');
+    }
     return id;
   }
 
   Future<Map<ProfileSection, List<ProfileEntry>>> loadAll() async {
     try {
       final results = await Future.wait([
-        _db.from('education').select().eq('user_id', _uid).isFilter('deleted_at', null),
-        _db.from('courses').select().eq('user_id', _uid).isFilter('deleted_at', null)
+        _db
+            .from('education')
+            .select()
+            .eq('user_id', _uid)
+            .isFilter('deleted_at', null),
+        _db
+            .from('courses')
+            .select()
+            .eq('user_id', _uid)
+            .isFilter('deleted_at', null)
             .order('semester_order'),
-        _db.from('projects').select().eq('user_id', _uid).isFilter('deleted_at', null),
-        _db.from('experiences').select().eq('user_id', _uid).isFilter('deleted_at', null),
-        _db.from('activities').select().eq('user_id', _uid).isFilter('deleted_at', null),
-        _db.from('certifications').select().eq('user_id', _uid).isFilter('deleted_at', null),
-        _db.from('portfolio_links').select().eq('user_id', _uid).isFilter('deleted_at', null),
+        _db
+            .from('projects')
+            .select()
+            .eq('user_id', _uid)
+            .isFilter('deleted_at', null),
+        _db
+            .from('experiences')
+            .select()
+            .eq('user_id', _uid)
+            .isFilter('deleted_at', null),
+        _db
+            .from('activities')
+            .select()
+            .eq('user_id', _uid)
+            .isFilter('deleted_at', null),
+        _db
+            .from('certifications')
+            .select()
+            .eq('user_id', _uid)
+            .isFilter('deleted_at', null),
+        _db
+            .from('portfolio_links')
+            .select()
+            .eq('user_id', _uid)
+            .isFilter('deleted_at', null),
       ]);
 
       return {
         ProfileSection.education: results[0]
-            .map((r) => ProfileEntry(
-                  id: r['id'] as String,
-                  title: (r['degree'] as String?) ?? 'Degree',
-                  subtitle: r['university_name'] as String?,
-                  meta: r['graduation_year'] == null ? null : 'Graduating ${r['graduation_year']}',
-                ))
+            .map(
+              (r) => ProfileEntry(
+                id: r['id'] as String,
+                title: (r['degree'] as String?) ?? 'Degree',
+                subtitle: r['university_name'] as String?,
+                meta: r['graduation_year'] == null
+                    ? null
+                    : 'Graduating ${r['graduation_year']}',
+              ),
+            )
             .toList(),
         ProfileSection.courses: results[1]
-            .map((r) => ProfileEntry(
-                  id: r['id'] as String,
-                  title: r['title'] as String,
-                  subtitle: r['code'] as String?,
-                  meta: r['grade'] as String?,
-                ))
+            .map(
+              (r) => ProfileEntry(
+                id: r['id'] as String,
+                title: r['title'] as String,
+                subtitle: r['code'] as String?,
+                meta: r['grade'] as String?,
+              ),
+            )
             .toList(),
         ProfileSection.projects: results[2]
-            .map((r) => ProfileEntry(
-                  id: r['id'] as String,
-                  title: r['title'] as String,
-                  detail: r['summary'] as String?,
-                  meta: r['url'] as String?,
-                ))
+            .map(
+              (r) => ProfileEntry(
+                id: r['id'] as String,
+                title: r['title'] as String,
+                detail: r['summary'] as String?,
+                meta: r['url'] as String?,
+              ),
+            )
             .toList(),
         ProfileSection.experience: results[3]
-            .map((r) => ProfileEntry(
-                  id: r['id'] as String,
-                  title: r['title'] as String,
-                  subtitle: r['company_name'] as String?,
-                  detail: r['description'] as String?,
-                ))
+            .map(
+              (r) => ProfileEntry(
+                id: r['id'] as String,
+                title: r['title'] as String,
+                subtitle: r['company_name'] as String?,
+                detail: r['description'] as String?,
+              ),
+            )
             .toList(),
         ProfileSection.activities: results[4]
-            .map((r) => ProfileEntry(
-                  id: r['id'] as String,
-                  title: r['title'] as String,
-                  subtitle: r['organisation'] as String?,
-                  meta: r['category'] as String?,
-                ))
+            .map(
+              (r) => ProfileEntry(
+                id: r['id'] as String,
+                title: r['title'] as String,
+                subtitle: r['organisation'] as String?,
+                meta: r['category'] as String?,
+              ),
+            )
             .toList(),
         ProfileSection.certifications: results[5]
-            .map((r) => ProfileEntry(
-                  id: r['id'] as String,
-                  title: r['title'] as String,
-                  subtitle: r['issuer'] as String?,
-                ))
+            .map(
+              (r) => ProfileEntry(
+                id: r['id'] as String,
+                title: r['title'] as String,
+                subtitle: r['issuer'] as String?,
+              ),
+            )
             .toList(),
         ProfileSection.portfolio: results[6]
-            .map((r) => ProfileEntry(
-                  id: r['id'] as String,
-                  title: r['kind'] as String,
-                  subtitle: r['url'] as String?,
-                ))
+            .map(
+              (r) => ProfileEntry(
+                id: r['id'] as String,
+                title: r['kind'] as String,
+                subtitle: r['url'] as String?,
+              ),
+            )
             .toList(),
       };
     } catch (e) {
@@ -121,17 +167,27 @@ class ProfileSectionsRepository {
 
   Future<void> addSkill(String skillId) async {
     try {
-      await _db.from('user_skills').upsert(
-        {'user_id': _uid, 'skill_id': skillId, 'proficiency': 2, 'source': 'self'},
-        onConflict: 'user_id,skill_id',
-        ignoreDuplicates: true,
-      );
+      await _db
+          .from('user_skills')
+          .upsert(
+            {
+              'user_id': _uid,
+              'skill_id': skillId,
+              'proficiency': 2,
+              'source': 'self',
+            },
+            onConflict: 'user_id,skill_id',
+            ignoreDuplicates: true,
+          );
     } catch (e) {
       throw Failure.from(e);
     }
   }
 
-  Future<void> insert(ProfileSection section, Map<String, Object?> values) async {
+  Future<void> insert(
+    ProfileSection section,
+    Map<String, Object?> values,
+  ) async {
     try {
       await _db.from(section.table).insert({...values, 'user_id': _uid});
     } catch (e) {
@@ -143,7 +199,8 @@ class ProfileSectionsRepository {
   /// the only rows small enough to remove outright.
   Future<void> remove(ProfileSection section, String id) async {
     try {
-      if (section == ProfileSection.skills || section == ProfileSection.portfolio) {
+      if (section == ProfileSection.skills ||
+          section == ProfileSection.portfolio) {
         await _db.from(section.table).delete().eq('id', id).eq('user_id', _uid);
       } else {
         await _db
@@ -164,9 +221,9 @@ final profileSectionsRepositoryProvider = Provider<ProfileSectionsRepository>(
 
 final profileSectionsProvider =
     FutureProvider<Map<ProfileSection, List<ProfileEntry>>>((ref) async {
-  if (!ref.watch(isSignedInProvider)) return const {};
-  return ref.watch(profileSectionsRepositoryProvider).loadAll();
-});
+      if (!ref.watch(isSignedInProvider)) return const {};
+      return ref.watch(profileSectionsRepositoryProvider).loadAll();
+    });
 
 final userSkillsProvider = FutureProvider<List<UserSkill>>((ref) async {
   if (!ref.watch(isSignedInProvider)) return const [];

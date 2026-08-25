@@ -67,7 +67,9 @@ class _StepYouState extends ConsumerState<StepYou> {
                 selected: list.where((c) => c.id == draft.cityId).firstOrNull,
                 searchHint: 'Search cities',
               );
-              if (picked != null) controller.patch((d) => d.copyWith(cityId: picked.id));
+              if (picked != null) {
+                controller.patch((d) => d.copyWith(cityId: picked.id));
+              }
             },
           ),
         ),
@@ -79,7 +81,10 @@ class _StepYouState extends ConsumerState<StepYou> {
           keyboardType: TextInputType.phone,
           maxLength: 10,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-          prefix: Text('+880', style: TackText.body.copyWith(color: TackColors.muted)),
+          prefix: Text(
+            '+880',
+            style: TackText.body.copyWith(color: TackColors.muted),
+          ),
           helperText: 'We only use this if an employer needs to reach you.',
           onChanged: (v) => controller.patch((d) => d.copyWith(phone: v)),
         ),
@@ -104,7 +109,9 @@ class _StepEducationState extends ConsumerState<StepEducation> {
   late final _cgpa = TextEditingController(
     text: widget.draft.cgpa?.toStringAsFixed(2) ?? '',
   );
-  late final _otherUniversity = TextEditingController(text: widget.draft.universityName);
+  late final _otherUniversity = TextEditingController(
+    text: widget.draft.universityName,
+  );
 
   bool _useOther = false;
 
@@ -144,25 +151,32 @@ class _StepEducationState extends ConsumerState<StepEducation> {
                 title: 'Your university',
                 options: list,
                 labelOf: (u) => u.display,
-                selected: list.where((u) => u.id == draft.universityId).firstOrNull,
+                selected: list
+                    .where((u) => u.id == draft.universityId)
+                    .firstOrNull,
                 searchHint: 'Search universities',
               );
               if (picked == null) return;
               final isOther = picked.name == 'Other';
               setState(() => _useOther = isOther);
-              controller.patch((d) => d.copyWith(
-                    universityId: isOther ? null : picked.id,
-                    universityName: isOther ? d.universityName : picked.name,
-                  ));
+              controller.patch(
+                (d) => d.copyWith(
+                  universityId: isOther ? null : picked.id,
+                  universityName: isOther ? d.universityName : picked.name,
+                ),
+              );
             },
           ),
         ),
-        if (_useOther || (draft.universityId == null && draft.universityName.isNotEmpty)) ...[
+        if (_useOther ||
+            (draft.universityId == null &&
+                draft.universityName.isNotEmpty)) ...[
           const SizedBox(height: TackSpace.row),
           TackTextField(
             hint: 'Type your university name',
             controller: _otherUniversity,
-            onChanged: (v) => controller.patch((d) => d.copyWith(universityName: v)),
+            onChanged: (v) =>
+                controller.patch((d) => d.copyWith(universityName: v)),
           ),
         ],
         const SizedBox(height: TackSpace.stack),
@@ -179,7 +193,8 @@ class _StepEducationState extends ConsumerState<StepEducation> {
           hint: 'Computer science, finance, English…',
           controller: _field,
           textInputAction: TextInputAction.next,
-          onChanged: (v) => controller.patch((d) => d.copyWith(fieldOfStudy: v)),
+          onChanged: (v) =>
+              controller.patch((d) => d.copyWith(fieldOfStudy: v)),
         ),
         const SizedBox(height: TackSpace.stack),
         TackSelectField<int>(
@@ -188,7 +203,9 @@ class _StepEducationState extends ConsumerState<StepEducation> {
           value: draft.graduationYear,
           valueLabel: (y) => '$y',
           onTap: () async {
-            final years = [for (var y = thisYear - 2; y <= thisYear + 8; y++) y];
+            final years = [
+              for (var y = thisYear - 2; y <= thisYear + 8; y++) y,
+            ];
             final picked = await showPickerSheet<int>(
               context: context,
               title: 'Graduation year',
@@ -197,7 +214,9 @@ class _StepEducationState extends ConsumerState<StepEducation> {
               selected: draft.graduationYear,
               searchable: false,
             );
-            if (picked != null) controller.patch((d) => d.copyWith(graduationYear: picked));
+            if (picked != null) {
+              controller.patch((d) => d.copyWith(graduationYear: picked));
+            }
           },
         ),
         const SizedBox(height: TackSpace.stack),
@@ -206,13 +225,17 @@ class _StepEducationState extends ConsumerState<StepEducation> {
           hint: '3.45',
           controller: _cgpa,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))],
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+          ],
           helperText: 'Never shown to anyone. It only feeds your own score.',
           onChanged: (v) {
             final parsed = double.tryParse(v);
-            controller.patch((d) => parsed == null
-                ? d.copyWith(clearCgpa: true)
-                : d.copyWith(cgpa: parsed.clamp(0, 5)));
+            controller.patch(
+              (d) => parsed == null
+                  ? d.copyWith(clearCgpa: true)
+                  : d.copyWith(cgpa: parsed.clamp(0, 5)),
+            );
           },
         ),
       ],
@@ -246,7 +269,8 @@ class StepYear extends ConsumerWidget {
               TackChip(
                 y == draft.yearsTotal ? 'Final year' : 'Year $y',
                 selected: draft.yearOfStudy == y,
-                onTap: () => controller.patch((d) => d.copyWith(yearOfStudy: y)),
+                onTap: () =>
+                    controller.patch((d) => d.copyWith(yearOfStudy: y)),
               ),
           ],
         ),
@@ -266,10 +290,14 @@ class StepYear extends ConsumerWidget {
               searchable: false,
             );
             if (picked == null) return;
-            controller.patch((d) => d.copyWith(
-                  yearsTotal: picked,
-                  yearOfStudy: d.yearOfStudy != null && d.yearOfStudy! > picked ? picked : d.yearOfStudy,
-                ));
+            controller.patch(
+              (d) => d.copyWith(
+                yearsTotal: picked,
+                yearOfStudy: d.yearOfStudy != null && d.yearOfStudy! > picked
+                    ? picked
+                    : d.yearOfStudy,
+              ),
+            );
           },
         ),
         const SizedBox(height: TackSpace.stack),
@@ -291,7 +319,9 @@ class StepYear extends ConsumerWidget {
               selected: draft.expectedGraduation,
               searchable: false,
             );
-            if (picked != null) controller.patch((d) => d.copyWith(expectedGraduation: picked));
+            if (picked != null) {
+              controller.patch((d) => d.copyWith(expectedGraduation: picked));
+            }
           },
         ),
         if (draft.yearOfStudy != null) ...[
@@ -302,7 +332,11 @@ class StepYear extends ConsumerWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const TackIcon(TackIcons.info, size: 20, color: TackColors.maroon),
+                const TackIcon(
+                  TackIcons.info,
+                  size: 20,
+                  color: TackColors.maroon,
+                ),
                 const SizedBox(width: TackSpace.md),
                 Expanded(
                   child: Text(
@@ -320,21 +354,31 @@ class StepYear extends ConsumerWidget {
 
   static String _monthLabel(DateTime d) {
     const names = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December',
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
     ];
     return '${names[d.month - 1]} ${d.year}';
   }
 
   static String _modeExplanation(YearMode mode) => switch (mode) {
-        YearMode.explore =>
-          'Tack will help you explore what careers exist and try things, and will not talk to you '
-              'about applying yet.',
-        YearMode.build =>
-          'Tack will focus on building real skills and your first project this year.',
-        YearMode.prove =>
-          'Tack will focus on internships, your portfolio and the people you know.',
-        YearMode.launch =>
-          'Tack will focus on applications, deadlines and interview practice.',
-      };
+    YearMode.explore =>
+      'Tack will help you explore what careers exist and try things, and will not talk to you '
+          'about applying yet.',
+    YearMode.build =>
+      'Tack will focus on building real skills and your first project this year.',
+    YearMode.prove =>
+      'Tack will focus on internships, your portfolio and the people you know.',
+    YearMode.launch =>
+      'Tack will focus on applications, deadlines and interview practice.',
+  };
 }

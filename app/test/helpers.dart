@@ -51,7 +51,10 @@ Future<void> pumpAt(
       GoRoute(path: '/', builder: (_, _) => child),
       GoRoute(path: '/login', builder: (_, _) => const SizedBox.shrink()),
       GoRoute(path: '/signup', builder: (_, _) => const SizedBox.shrink()),
-      GoRoute(path: '/forgot-password', builder: (_, _) => const SizedBox.shrink()),
+      GoRoute(
+        path: '/forgot-password',
+        builder: (_, _) => const SizedBox.shrink(),
+      ),
       GoRoute(path: '/home', builder: (_, _) => const SizedBox.shrink()),
     ],
   );

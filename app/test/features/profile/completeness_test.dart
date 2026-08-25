@@ -6,21 +6,21 @@ import 'package:tack/features/profile/data/profile_sections.dart';
 Profile emptyProfile() => const Profile(id: 'u1');
 
 Profile fullProfile() => Profile(
-      id: 'u1',
-      fullName: 'Rafiq Hossain',
-      cityId: 'c1',
-      phone: '+8801712345678',
-      yearOfStudy: 4,
-      yearsTotal: 4,
-      targetRole: 'Frontend developer',
-      onboardingCompletedAt: DateTime(2026, 1, 1),
-    );
+  id: 'u1',
+  fullName: 'Rafiq Hossain',
+  cityId: 'c1',
+  phone: '+8801712345678',
+  yearOfStudy: 4,
+  yearsTotal: 4,
+  targetRole: 'Frontend developer',
+  onboardingCompletedAt: DateTime(2026, 1, 1),
+);
 
 ProfileEntry entry(String id) => ProfileEntry(id: id, title: id);
 
 Map<ProfileSection, List<ProfileEntry>> allSections() => {
-      for (final section in ProfileSection.values) section: [entry('a')],
-    };
+  for (final section in ProfileSection.values) section: [entry('a')],
+};
 
 void main() {
   test('an empty profile is zero per cent and lists everything', () {
@@ -94,8 +94,11 @@ void main() {
       skillCount: 0,
     );
     for (final item in result.missing) {
-      expect(item.split(' ').first, anyOf('add', 'say', 'pick'),
-          reason: '"$item" should be an instruction, not a judgement');
+      expect(
+        item.split(' ').first,
+        anyOf('add', 'say', 'pick'),
+        reason: '"$item" should be an instruction, not a judgement',
+      );
     }
   });
 

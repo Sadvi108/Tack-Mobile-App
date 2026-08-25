@@ -22,14 +22,60 @@ class TackButton extends StatefulWidget {
     this.rounded = false,
   });
 
-  const TackButton.secondary(String label, {Key? key, VoidCallback? onPressed, bool loading = false, Widget? icon, bool fullWidth = true, bool rounded = false})
-      : this(label, key: key, onPressed: onPressed, variant: TackButtonVariant.secondary, loading: loading, icon: icon, fullWidth: fullWidth, rounded: rounded);
+  const TackButton.secondary(
+    String label, {
+    Key? key,
+    VoidCallback? onPressed,
+    bool loading = false,
+    Widget? icon,
+    bool fullWidth = true,
+    bool rounded = false,
+  }) : this(
+         label,
+         key: key,
+         onPressed: onPressed,
+         variant: TackButtonVariant.secondary,
+         loading: loading,
+         icon: icon,
+         fullWidth: fullWidth,
+         rounded: rounded,
+       );
 
-  const TackButton.ghost(String label, {Key? key, VoidCallback? onPressed, bool loading = false, Widget? icon, bool fullWidth = true})
-      : this(label, key: key, onPressed: onPressed, variant: TackButtonVariant.ghost, loading: loading, icon: icon, fullWidth: fullWidth);
+  const TackButton.ghost(
+    String label, {
+    Key? key,
+    VoidCallback? onPressed,
+    bool loading = false,
+    Widget? icon,
+    bool fullWidth = true,
+  }) : this(
+         label,
+         key: key,
+         onPressed: onPressed,
+         variant: TackButtonVariant.ghost,
+         loading: loading,
+         icon: icon,
+         fullWidth: fullWidth,
+       );
 
-  const TackButton.amber(String label, {Key? key, VoidCallback? onPressed, bool loading = false, Widget? icon, bool fullWidth = true, bool rounded = true})
-      : this(label, key: key, onPressed: onPressed, variant: TackButtonVariant.amber, loading: loading, icon: icon, fullWidth: fullWidth, rounded: rounded);
+  const TackButton.amber(
+    String label, {
+    Key? key,
+    VoidCallback? onPressed,
+    bool loading = false,
+    Widget? icon,
+    bool fullWidth = true,
+    bool rounded = true,
+  }) : this(
+         label,
+         key: key,
+         onPressed: onPressed,
+         variant: TackButtonVariant.amber,
+         loading: loading,
+         icon: icon,
+         fullWidth: fullWidth,
+         rounded: rounded,
+       );
 
   final String label;
   final VoidCallback? onPressed;
@@ -67,8 +113,8 @@ class _TackButtonState extends State<TackButton> {
         background = !enabled
             ? TackColors.line2
             : _pressed
-                ? TackColors.maroonDeep
-                : TackColors.maroon;
+            ? TackColors.maroonDeep
+            : TackColors.maroon;
         foreground = enabled ? TackColors.white : TackColors.muted;
       case TackButtonVariant.secondary:
         background = TackColors.white;
@@ -77,19 +123,21 @@ class _TackButtonState extends State<TackButton> {
           color: !enabled
               ? TackColors.line2
               : _pressed
-                  ? TackColors.maroon
-                  : TackColors.line2,
+              ? TackColors.maroon
+              : TackColors.line2,
           width: 1.5,
         );
       case TackButtonVariant.ghost:
-        background = _pressed && enabled ? TackColors.maroonTint : Colors.transparent;
+        background = _pressed && enabled
+            ? TackColors.maroonTint
+            : Colors.transparent;
         foreground = enabled ? TackColors.maroon : TackColors.muted;
       case TackButtonVariant.amber:
         background = !enabled
             ? TackColors.line2
             : _pressed
-                ? const Color(0xFFF7BB56)
-                : TackColors.amber;
+            ? const Color(0xFFF7BB56)
+            : TackColors.amber;
         foreground = enabled ? TackColors.ink : TackColors.muted;
     }
 
@@ -157,7 +205,12 @@ class _TackButtonState extends State<TackButton> {
 
 /// The tracker's floating action button: 58px, offset above the bottom nav.
 class TackFab extends StatelessWidget {
-  const TackFab({super.key, required this.onPressed, required this.child, this.semanticLabel});
+  const TackFab({
+    super.key,
+    required this.onPressed,
+    required this.child,
+    this.semanticLabel,
+  });
 
   final VoidCallback onPressed;
   final Widget child;

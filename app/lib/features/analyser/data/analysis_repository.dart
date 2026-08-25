@@ -18,7 +18,9 @@ class AnalysisRepository {
 
   String get _uid {
     final id = _db.auth.currentUser?.id;
-    if (id == null) throw const Failure('You are signed out. Log in and try again.');
+    if (id == null) {
+      throw const Failure('You are signed out. Log in and try again.');
+    }
     return id;
   }
 
@@ -43,7 +45,10 @@ class AnalysisRepository {
 
   Future<AnalysisState> submit(String text) async {
     try {
-      final response = await _db.functions.invoke('analyze-jd', body: {'text': text});
+      final response = await _db.functions.invoke(
+        'analyze-jd',
+        body: {'text': text},
+      );
       final body = (response.data as Map?)?.cast<String, dynamic>() ?? const {};
 
       if (response.status == 429) {
@@ -54,7 +59,9 @@ class AnalysisRepository {
         );
       }
       if (response.status >= 400) {
-        return AnalysisFailed(_errorMessage(body) ?? 'That did not work. Try again in a moment.');
+        return AnalysisFailed(
+          _errorMessage(body) ?? 'That did not work. Try again in a moment.',
+        );
       }
 
       if (body['status'] == 'ready') {
@@ -122,7 +129,9 @@ class AnalysisRepository {
           analysis['id'] as String,
           (analysis['extracted'] as Map).cast<String, dynamic>(),
         ),
-        match == null ? JdMatch.empty : JdMatch.fromJson(match.cast<String, dynamic>()),
+        match == null
+            ? JdMatch.empty
+            : JdMatch.fromJson(match.cast<String, dynamic>()),
       );
     } catch (e) {
       throw Failure.from(e);
@@ -157,7 +166,9 @@ class AnalysisRepository {
           .limit(1)
           .maybeSingle();
       if (milestone == null) {
-        throw const Failure('There is no open milestone to add these to right now.');
+        throw const Failure(
+          'There is no open milestone to add these to right now.',
+        );
       }
 
       await _db.from('roadmap_tasks').insert([
@@ -180,13 +191,16 @@ class AnalysisRepository {
 
   static String? _errorMessage(Map<String, dynamic> body) {
     final error = body['error'];
-    if (error is Map && error['message'] is String) return error['message'] as String;
+    if (error is Map && error['message'] is String) {
+      return error['message'] as String;
+    }
     return null;
   }
 }
 
-final analysisRepositoryProvider =
-    Provider<AnalysisRepository>((ref) => AnalysisRepository(ref.watch(supabaseProvider)));
+final analysisRepositoryProvider = Provider<AnalysisRepository>(
+  (ref) => AnalysisRepository(ref.watch(supabaseProvider)),
+);
 
 final analysisQuotaProvider = FutureProvider<int>((ref) async {
   if (!ref.watch(isSignedInProvider)) return 0;

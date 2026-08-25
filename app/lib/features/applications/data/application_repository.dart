@@ -19,7 +19,9 @@ class ApplicationRepository {
 
   String get _uid {
     final id = _db.auth.currentUser?.id;
-    if (id == null) throw const Failure('You are signed out. Log in and try again.');
+    if (id == null) {
+      throw const Failure('You are signed out. Log in and try again.');
+    }
     return id;
   }
 
@@ -105,7 +107,10 @@ class ApplicationRepository {
     try {
       final companyId = companyName.trim().isEmpty
           ? null
-          : await _db.rpc<String?>('upsert_company', params: {'raw_name': companyName.trim()});
+          : await _db.rpc<String?>(
+              'upsert_company',
+              params: {'raw_name': companyName.trim()},
+            );
 
       final job = await _db
           .from('jobs')
@@ -168,22 +173,29 @@ class ApplicationRepository {
   }
 }
 
-final applicationRepositoryProvider =
-    Provider<ApplicationRepository>((ref) => ApplicationRepository(ref.watch(supabaseProvider)));
+final applicationRepositoryProvider = Provider<ApplicationRepository>(
+  (ref) => ApplicationRepository(ref.watch(supabaseProvider)),
+);
 
-final applicationCountsProvider = FutureProvider<ApplicationCounts>((ref) async {
+final applicationCountsProvider = FutureProvider<ApplicationCounts>((
+  ref,
+) async {
   if (!ref.watch(isSignedInProvider)) return ApplicationCounts.empty;
   return ref.watch(applicationRepositoryProvider).counts();
 });
 
-final applicationsProvider = FutureProvider.family<List<JobApplication>, TackStatus?>(
-  (ref, status) async {
-    if (!ref.watch(isSignedInProvider)) return const [];
-    return ref.watch(applicationRepositoryProvider).list(status: status);
-  },
-);
+final applicationsProvider =
+    FutureProvider.family<List<JobApplication>, TackStatus?>((
+      ref,
+      status,
+    ) async {
+      if (!ref.watch(isSignedInProvider)) return const [];
+      return ref.watch(applicationRepositoryProvider).list(status: status);
+    });
 
-final upcomingApplicationsProvider = FutureProvider<List<JobApplication>>((ref) async {
+final upcomingApplicationsProvider = FutureProvider<List<JobApplication>>((
+  ref,
+) async {
   if (!ref.watch(isSignedInProvider)) return const [];
   return ref.watch(applicationRepositoryProvider).upcoming();
 });

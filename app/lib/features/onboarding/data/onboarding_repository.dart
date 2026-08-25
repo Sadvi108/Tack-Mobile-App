@@ -19,7 +19,9 @@ class OnboardingRepository {
 
   String get _uid {
     final id = _db.auth.currentUser?.id;
-    if (id == null) throw const Failure('You are signed out. Log in and try again.');
+    if (id == null) {
+      throw const Failure('You are signed out. Log in and try again.');
+    }
     return id;
   }
 
@@ -60,7 +62,10 @@ class OnboardingRepository {
       if (existing == null) {
         await _db.from('education').insert(row);
       } else {
-        await _db.from('education').update(row).eq('id', existing['id'] as String);
+        await _db
+            .from('education')
+            .update(row)
+            .eq('id', existing['id'] as String);
       }
     } catch (e) {
       throw Failure.from(e);
@@ -71,14 +76,28 @@ class OnboardingRepository {
   /// Replaces the student's self-declared skills with exactly this set.
   /// Skills that came from a CV or a course are left alone — only the ones the
   /// student picked here are theirs to replace.
-  Future<Profile> saveSkills({required int step, required Set<String> skillIds}) async {
+  Future<Profile> saveSkills({
+    required int step,
+    required Set<String> skillIds,
+  }) async {
     try {
-      await _db.from('user_skills').delete().eq('user_id', _uid).eq('source', 'self');
+      await _db
+          .from('user_skills')
+          .delete()
+          .eq('user_id', _uid)
+          .eq('source', 'self');
       if (skillIds.isNotEmpty) {
-        await _db.from('user_skills').upsert(
+        await _db
+            .from('user_skills')
+            .upsert(
               [
                 for (final id in skillIds)
-                  {'user_id': _uid, 'skill_id': id, 'proficiency': 2, 'source': 'self'},
+                  {
+                    'user_id': _uid,
+                    'skill_id': id,
+                    'proficiency': 2,
+                    'source': 'self',
+                  },
               ],
               onConflict: 'user_id,skill_id',
               ignoreDuplicates: true,
@@ -93,19 +112,21 @@ class OnboardingRepository {
   Future<Profile> complete({
     required String targetRole,
     required List<String> targetIndustry,
-  }) =>
-      _profiles.update({
-        'target_role': targetRole,
-        'target_industry': targetIndustry,
-        'onboarding_step': OnboardingStep.values.length,
-        'onboarding_completed_at': DateTime.now().toUtc().toIso8601String(),
-      });
+  }) => _profiles.update({
+    'target_role': targetRole,
+    'target_industry': targetIndustry,
+    'onboarding_step': OnboardingStep.values.length,
+    'onboarding_completed_at': DateTime.now().toUtc().toIso8601String(),
+  });
 
   /// Which self-declared skills are already saved, so a resumed session shows
   /// the student's earlier picks rather than an empty grid.
   Future<Set<String>> savedSkillIds() async {
     try {
-      final rows = await _db.from('user_skills').select('skill_id').eq('user_id', _uid);
+      final rows = await _db
+          .from('user_skills')
+          .select('skill_id')
+          .eq('user_id', _uid);
       return rows.map((r) => r['skill_id'] as String).toSet();
     } catch (e) {
       throw Failure.from(e);
@@ -116,7 +137,9 @@ class OnboardingRepository {
     try {
       return await _db
           .from('education')
-          .select('university_id, university_name, degree, field_of_study, graduation_year, cgpa, cgpa_scale')
+          .select(
+            'university_id, university_name, degree, field_of_study, graduation_year, cgpa, cgpa_scale',
+          )
           .eq('user_id', _uid)
           .isFilter('deleted_at', null)
           .eq('is_current', true)
@@ -137,21 +160,24 @@ enum OnboardingStep {
   target;
 
   String get title => switch (this) {
-        OnboardingStep.you => 'About you',
-        OnboardingStep.education => 'Where you study',
-        OnboardingStep.year => 'Where you are',
-        OnboardingStep.skills => 'What you can do',
-        OnboardingStep.target => 'What you want',
-      };
+    OnboardingStep.you => 'About you',
+    OnboardingStep.education => 'Where you study',
+    OnboardingStep.year => 'Where you are',
+    OnboardingStep.skills => 'What you can do',
+    OnboardingStep.target => 'What you want',
+  };
 
   String get blurb => switch (this) {
-        OnboardingStep.you => 'So the app can address you properly.',
-        OnboardingStep.education => 'Your CGPA is optional and is never shown to anyone.',
-        OnboardingStep.year =>
-          'This one answer shapes the whole app. You can change it any time from your profile.',
-        OnboardingStep.skills => 'Pick anything you have done, even at a beginner level.',
-        OnboardingStep.target => 'A rough idea is enough. Nothing here is locked in.',
-      };
+    OnboardingStep.you => 'So the app can address you properly.',
+    OnboardingStep.education =>
+      'Your CGPA is optional and is never shown to anyone.',
+    OnboardingStep.year =>
+      'This one answer shapes the whole app. You can change it any time from your profile.',
+    OnboardingStep.skills =>
+      'Pick anything you have done, even at a beginner level.',
+    OnboardingStep.target =>
+      'A rough idea is enough. Nothing here is locked in.',
+  };
 }
 
 final onboardingRepositoryProvider = Provider<OnboardingRepository>(

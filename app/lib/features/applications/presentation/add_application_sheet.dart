@@ -9,7 +9,10 @@ import '../data/application_repository.dart';
 ///
 /// Company names are normalised by the database, so "bKash Ltd." and
 /// "bkash limited" end up on one company row rather than two.
-Future<bool> showAddApplicationSheet(BuildContext context, WidgetRef ref) async {
+Future<bool> showAddApplicationSheet(
+  BuildContext context,
+  WidgetRef ref,
+) async {
   final result = await showTackSheet<bool>(
     context: context,
     title: 'Add an application',
@@ -51,14 +54,18 @@ class _AddApplicationFormState extends State<_AddApplicationForm> {
   Future<void> _submit() async {
     setState(() {
       _titleError = _title.text.trim().isEmpty ? 'Enter the job title.' : null;
-      _companyError = _company.text.trim().isEmpty ? 'Enter the company name.' : null;
+      _companyError = _company.text.trim().isEmpty
+          ? 'Enter the company name.'
+          : null;
       _failure = null;
     });
     if (_titleError != null || _companyError != null) return;
 
     setState(() => _busy = true);
     try {
-      await widget.ref.read(applicationRepositoryProvider).create(
+      await widget.ref
+          .read(applicationRepositoryProvider)
+          .create(
             title: _title.text,
             companyName: _company.text,
             location: _location.text.trim().isEmpty ? null : _location.text,

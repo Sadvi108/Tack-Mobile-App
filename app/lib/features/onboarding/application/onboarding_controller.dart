@@ -69,15 +69,17 @@ class OnboardingDraft {
 
   /// Continue stays disabled until the current step is answerable.
   bool get canContinue => switch (step) {
-        OnboardingStep.you => fullName.trim().length >= 2 &&
-            cityId != null &&
-            phone.replaceAll(RegExp(r'\D'), '').length == 10,
-        OnboardingStep.education =>
-          (universityId != null || universityName.trim().isNotEmpty) && degree.trim().isNotEmpty,
-        OnboardingStep.year => yearOfStudy != null && expectedGraduation != null,
-        OnboardingStep.skills => skillIds.isNotEmpty,
-        OnboardingStep.target => targetRole != null,
-      };
+    OnboardingStep.you =>
+      fullName.trim().length >= 2 &&
+          cityId != null &&
+          phone.replaceAll(RegExp(r'\D'), '').length == 10,
+    OnboardingStep.education =>
+      (universityId != null || universityName.trim().isNotEmpty) &&
+          degree.trim().isNotEmpty,
+    OnboardingStep.year => yearOfStudy != null && expectedGraduation != null,
+    OnboardingStep.skills => skillIds.isNotEmpty,
+    OnboardingStep.target => targetRole != null,
+  };
 
   int get stepNumber => step.index + 1;
   int get stepCount => OnboardingStep.values.length;
@@ -103,27 +105,26 @@ class OnboardingDraft {
     Failure? failure,
     bool clearFailure = false,
     bool clearCgpa = false,
-  }) =>
-      OnboardingDraft(
-        step: step ?? this.step,
-        fullName: fullName ?? this.fullName,
-        cityId: cityId ?? this.cityId,
-        phone: phone ?? this.phone,
-        universityId: universityId ?? this.universityId,
-        universityName: universityName ?? this.universityName,
-        degree: degree ?? this.degree,
-        fieldOfStudy: fieldOfStudy ?? this.fieldOfStudy,
-        graduationYear: graduationYear ?? this.graduationYear,
-        cgpa: clearCgpa ? null : (cgpa ?? this.cgpa),
-        yearOfStudy: yearOfStudy ?? this.yearOfStudy,
-        yearsTotal: yearsTotal ?? this.yearsTotal,
-        expectedGraduation: expectedGraduation ?? this.expectedGraduation,
-        skillIds: skillIds ?? this.skillIds,
-        targetRole: targetRole ?? this.targetRole,
-        targetIndustry: targetIndustry ?? this.targetIndustry,
-        busy: busy ?? this.busy,
-        failure: clearFailure ? null : (failure ?? this.failure),
-      );
+  }) => OnboardingDraft(
+    step: step ?? this.step,
+    fullName: fullName ?? this.fullName,
+    cityId: cityId ?? this.cityId,
+    phone: phone ?? this.phone,
+    universityId: universityId ?? this.universityId,
+    universityName: universityName ?? this.universityName,
+    degree: degree ?? this.degree,
+    fieldOfStudy: fieldOfStudy ?? this.fieldOfStudy,
+    graduationYear: graduationYear ?? this.graduationYear,
+    cgpa: clearCgpa ? null : (cgpa ?? this.cgpa),
+    yearOfStudy: yearOfStudy ?? this.yearOfStudy,
+    yearsTotal: yearsTotal ?? this.yearsTotal,
+    expectedGraduation: expectedGraduation ?? this.expectedGraduation,
+    skillIds: skillIds ?? this.skillIds,
+    targetRole: targetRole ?? this.targetRole,
+    targetIndustry: targetIndustry ?? this.targetIndustry,
+    busy: busy ?? this.busy,
+    failure: clearFailure ? null : (failure ?? this.failure),
+  );
 }
 
 class OnboardingController extends AsyncNotifier<OnboardingDraft> {
@@ -136,7 +137,10 @@ class OnboardingController extends AsyncNotifier<OnboardingDraft> {
     final education = await repo.savedEducation();
     final skills = await repo.savedSkillIds();
 
-    final stepIndex = profile.onboardingStep.clamp(0, OnboardingStep.values.length - 1);
+    final stepIndex = profile.onboardingStep.clamp(
+      0,
+      OnboardingStep.values.length - 1,
+    );
 
     return OnboardingDraft(
       step: OnboardingStep.values[stepIndex],
@@ -167,7 +171,12 @@ class OnboardingController extends AsyncNotifier<OnboardingDraft> {
   void back() {
     final d = _draft;
     if (d.step.index == 0) return;
-    state = AsyncData(d.copyWith(step: OnboardingStep.values[d.step.index - 1], clearFailure: true));
+    state = AsyncData(
+      d.copyWith(
+        step: OnboardingStep.values[d.step.index - 1],
+        clearFailure: true,
+      ),
+    );
   }
 
   /// Saves the current step, then advances. Returns true once the last step is
@@ -192,9 +201,13 @@ class OnboardingController extends AsyncNotifier<OnboardingDraft> {
           await repo.saveEducation(
             step: nextIndex,
             universityId: d.universityId,
-            universityName: d.universityId == null ? d.universityName.trim() : null,
+            universityName: d.universityId == null
+                ? d.universityName.trim()
+                : null,
             degree: d.degree.trim(),
-            fieldOfStudy: d.fieldOfStudy.trim().isEmpty ? null : d.fieldOfStudy.trim(),
+            fieldOfStudy: d.fieldOfStudy.trim().isEmpty
+                ? null
+                : d.fieldOfStudy.trim(),
             graduationYear: d.graduationYear,
             cgpa: d.cgpa,
           );
@@ -202,8 +215,9 @@ class OnboardingController extends AsyncNotifier<OnboardingDraft> {
           await repo.saveStep(nextIndex, {
             'year_of_study': d.yearOfStudy,
             'years_total': d.yearsTotal,
-            'expected_graduation':
-                d.expectedGraduation!.toIso8601String().substring(0, 10),
+            'expected_graduation': d.expectedGraduation!
+                .toIso8601String()
+                .substring(0, 10),
           });
         case OnboardingStep.skills:
           await repo.saveSkills(step: nextIndex, skillIds: d.skillIds);
@@ -222,14 +236,18 @@ class OnboardingController extends AsyncNotifier<OnboardingDraft> {
     }
 
     ref.invalidate(profileProvider);
-    state = AsyncData(d.copyWith(
-      busy: false,
-      step: OnboardingStep.values[nextIndex],
-      clearFailure: true,
-    ));
+    state = AsyncData(
+      d.copyWith(
+        busy: false,
+        step: OnboardingStep.values[nextIndex],
+        clearFailure: true,
+      ),
+    );
     return false;
   }
 }
 
 final onboardingControllerProvider =
-    AsyncNotifierProvider<OnboardingController, OnboardingDraft>(OnboardingController.new);
+    AsyncNotifierProvider<OnboardingController, OnboardingDraft>(
+      OnboardingController.new,
+    );

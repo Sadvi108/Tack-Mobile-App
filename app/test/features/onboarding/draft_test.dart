@@ -24,9 +24,18 @@ void main() {
     });
 
     test('the last year of the programme is launch, whatever its number', () {
-      expect(const OnboardingDraft(yearOfStudy: 4, yearsTotal: 4).previewMode, YearMode.launch);
-      expect(const OnboardingDraft(yearOfStudy: 5, yearsTotal: 5).previewMode, YearMode.launch);
-      expect(const OnboardingDraft(yearOfStudy: 2, yearsTotal: 2).previewMode, YearMode.launch);
+      expect(
+        const OnboardingDraft(yearOfStudy: 4, yearsTotal: 4).previewMode,
+        YearMode.launch,
+      );
+      expect(
+        const OnboardingDraft(yearOfStudy: 5, yearsTotal: 5).previewMode,
+        YearMode.launch,
+      );
+      expect(
+        const OnboardingDraft(yearOfStudy: 2, yearsTotal: 2).previewMode,
+        YearMode.launch,
+      );
     });
 
     test('an unanswered year falls back to the gentlest mode', () {
@@ -45,7 +54,11 @@ void main() {
         cityId: 'city-1',
         phone: '171234',
       );
-      expect(noPhone.canContinue, isFalse, reason: 'a partial phone number is not enough');
+      expect(
+        noPhone.canContinue,
+        isFalse,
+        reason: 'a partial phone number is not enough',
+      );
 
       const complete = OnboardingDraft(
         step: OnboardingStep.you,
@@ -71,12 +84,18 @@ void main() {
       );
       expect(typed.canContinue, isTrue);
 
-      const noDegree = OnboardingDraft(step: OnboardingStep.education, universityId: 'uni-1');
+      const noDegree = OnboardingDraft(
+        step: OnboardingStep.education,
+        universityId: 'uni-1',
+      );
       expect(noDegree.canContinue, isFalse);
     });
 
     test('step three needs both the year and the graduation date', () {
-      final onlyYear = OnboardingDraft(step: OnboardingStep.year, yearOfStudy: 2);
+      final onlyYear = OnboardingDraft(
+        step: OnboardingStep.year,
+        yearOfStudy: 2,
+      );
       expect(onlyYear.canContinue, isFalse);
 
       final both = OnboardingDraft(
@@ -88,17 +107,29 @@ void main() {
     });
 
     test('step four needs at least one skill', () {
-      expect(const OnboardingDraft(step: OnboardingStep.skills).canContinue, isFalse);
       expect(
-        const OnboardingDraft(step: OnboardingStep.skills, skillIds: {'skill-1'}).canContinue,
+        const OnboardingDraft(step: OnboardingStep.skills).canContinue,
+        isFalse,
+      );
+      expect(
+        const OnboardingDraft(
+          step: OnboardingStep.skills,
+          skillIds: {'skill-1'},
+        ).canContinue,
         isTrue,
       );
     });
 
     test('step five needs a target role, and industry stays optional', () {
-      expect(const OnboardingDraft(step: OnboardingStep.target).canContinue, isFalse);
       expect(
-        const OnboardingDraft(step: OnboardingStep.target, targetRole: 'Data analyst').canContinue,
+        const OnboardingDraft(step: OnboardingStep.target).canContinue,
+        isFalse,
+      );
+      expect(
+        const OnboardingDraft(
+          step: OnboardingStep.target,
+          targetRole: 'Data analyst',
+        ).canContinue,
         isTrue,
       );
     });
@@ -113,10 +144,13 @@ void main() {
   });
 
   group('draft edits', () {
-    test('clearing the CGPA actually removes it rather than keeping the old one', () {
-      const withCgpa = OnboardingDraft(cgpa: 3.4);
-      expect(withCgpa.copyWith(clearCgpa: true).cgpa, isNull);
-    });
+    test(
+      'clearing the CGPA actually removes it rather than keeping the old one',
+      () {
+        const withCgpa = OnboardingDraft(cgpa: 3.4);
+        expect(withCgpa.copyWith(clearCgpa: true).cgpa, isNull);
+      },
+    );
 
     test('shortening the programme pulls an out-of-range year back in', () {
       // A student who says "year 5" then corrects the programme to 4 years

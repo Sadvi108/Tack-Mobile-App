@@ -97,7 +97,11 @@ class _RingPainter extends CustomPainter {
     final centre = rect.center;
     final radius = (size.shortestSide - strokeWidth) / 2;
 
-    canvas.drawCircle(centre, size.shortestSide / 2, Paint()..color = background);
+    canvas.drawCircle(
+      centre,
+      size.shortestSide / 2,
+      Paint()..color = background,
+    );
     canvas.drawCircle(
       centre,
       radius,
@@ -150,9 +154,15 @@ class TackProgressBar extends StatelessWidget {
     final color = value <= 0
         ? TackColors.zeroHealth
         : value >= 0.7
-            ? TackColors.teal
-            : TackColors.amber;
-    return TackProgressBar(key: key, value: value, height: height, width: width, color: color);
+        ? TackColors.teal
+        : TackColors.amber;
+    return TackProgressBar(
+      key: key,
+      value: value,
+      height: height,
+      width: width,
+      color: color,
+    );
   }
 
   final double value;
@@ -235,7 +245,12 @@ class SegmentedProgress extends StatelessWidget {
 /// Loading placeholder. A single quiet pulse — no shimmer sweep, which costs a
 /// repaint per frame on the phones this app targets.
 class TackSkeleton extends StatefulWidget {
-  const TackSkeleton({super.key, this.width, this.height = 16, this.radius = 8});
+  const TackSkeleton({
+    super.key,
+    this.width,
+    this.height = 16,
+    this.radius = 8,
+  });
 
   final double? width;
   final double height;
@@ -245,7 +260,8 @@ class TackSkeleton extends StatefulWidget {
   State<TackSkeleton> createState() => _TackSkeletonState();
 }
 
-class _TackSkeletonState extends State<TackSkeleton> with SingleTickerProviderStateMixin {
+class _TackSkeletonState extends State<TackSkeleton>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _c = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 900),

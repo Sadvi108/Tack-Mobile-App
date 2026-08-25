@@ -56,14 +56,17 @@ class _PathDetailScreenState extends ConsumerState<PathDetailScreen> {
     final confirmed = await confirmTackAction(
       context,
       title: 'Stop following $title?',
-      body: 'Your roadmap for it stays saved, so you can pick it up again later.',
+      body:
+          'Your roadmap for it stays saved, so you can pick it up again later.',
       confirmLabel: 'Stop following',
     );
     if (!confirmed || !mounted) return;
 
     await ref.read(pathRepositoryProvider).unfollow(pathId);
     ref.invalidate(chosenPathsProvider);
-    if (mounted) TackToast.show(context, message: 'No longer following $title.');
+    if (mounted) {
+      TackToast.show(context, message: 'No longer following $title.');
+    }
   }
 
   @override
@@ -120,11 +123,17 @@ class _PathDetailScreenState extends ConsumerState<PathDetailScreen> {
                 child: Row(
                   children: [
                     Expanded(
-                      child: _Fact(label: 'Starting pay', value: path.salaryLabel),
+                      child: _Fact(
+                        label: 'Starting pay',
+                        value: path.salaryLabel,
+                      ),
                     ),
                     const SizedBox(width: TackSpace.md),
                     Expanded(
-                      child: _Fact(label: 'Job-ready in', value: path.timeLabel),
+                      child: _Fact(
+                        label: 'Job-ready in',
+                        value: path.timeLabel,
+                      ),
                     ),
                   ],
                 ),
@@ -137,7 +146,12 @@ class _PathDetailScreenState extends ConsumerState<PathDetailScreen> {
                   children: [
                     Row(
                       children: [
-                        Expanded(child: Text('Where you stand', style: TackText.cardTitle)),
+                        Expanded(
+                          child: Text(
+                            'Where you stand',
+                            style: TackText.cardTitle,
+                          ),
+                        ),
                         TackPill.teal('${match.percent}%'),
                       ],
                     ),
@@ -189,8 +203,11 @@ class _PathDetailScreenState extends ConsumerState<PathDetailScreen> {
                             children: [
                               const Padding(
                                 padding: EdgeInsets.only(top: 2),
-                                child: TackIcon(TackIcons.check,
-                                    size: 17, color: TackColors.tealText),
+                                child: TackIcon(
+                                  TackIcons.check,
+                                  size: 17,
+                                  color: TackColors.tealText,
+                                ),
                               ),
                               const SizedBox(width: TackSpace.sm),
                               Expanded(child: Text(item, style: TackText.body)),
@@ -208,7 +225,9 @@ class _PathDetailScreenState extends ConsumerState<PathDetailScreen> {
               for (final importance in SkillImportance.values)
                 _SkillGroup(
                   importance: importance,
-                  skills: path.skills.where((s) => s.importance == importance).toList(),
+                  skills: path.skills
+                      .where((s) => s.importance == importance)
+                      .toList(),
                   have: match.have.map((s) => s.skillId).toSet(),
                 ),
 
@@ -261,7 +280,10 @@ class _SkillGroup extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(importance.label.toUpperCase(), style: TackText.monoLabelSmall),
+            Text(
+              importance.label.toUpperCase(),
+              style: TackText.monoLabelSmall,
+            ),
             const SizedBox(height: TackSpace.md),
             Wrap(
               spacing: TackSpace.sm,

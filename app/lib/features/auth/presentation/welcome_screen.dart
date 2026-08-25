@@ -40,11 +40,15 @@ class WelcomeScreen extends StatelessWidget {
                       onTap: () => context.go(Routes.login),
                       behavior: HitTestBehavior.opaque,
                       child: ConstrainedBox(
-                        constraints: const BoxConstraints(minHeight: TackSpace.tapTarget),
+                        constraints: const BoxConstraints(
+                          minHeight: TackSpace.tapTarget,
+                        ),
                         child: Center(
                           child: Text(
                             'Log in',
-                            style: TackText.rowTitle.copyWith(color: const Color(0xCCFFFFFF)),
+                            style: TackText.rowTitle.copyWith(
+                              color: const Color(0xCCFFFFFF),
+                            ),
                           ),
                         ),
                       ),
@@ -60,15 +64,22 @@ class WelcomeScreen extends StatelessWidget {
                 Text(
                   'Tack looks at where you are today and builds one personalised plan to get you '
                   'hired. Free for every student.',
-                  style: TackText.bodyLarge.copyWith(color: const Color(0xD1FFFFFF)),
+                  style: TackText.bodyLarge.copyWith(
+                    color: const Color(0xD1FFFFFF),
+                  ),
                 ),
                 const SizedBox(height: TackSpace.xl),
-                TackButton.amber('Start free', onPressed: () => context.go(Routes.signup)),
+                TackButton.amber(
+                  'Start free',
+                  onPressed: () => context.go(Routes.signup),
+                ),
                 const SizedBox(height: TackSpace.md),
                 Center(
                   child: Text(
                     'No payment. No CV needed to begin.',
-                    style: TackText.meta.copyWith(color: const Color(0xA6FFFFFF)),
+                    style: TackText.meta.copyWith(
+                      color: const Color(0xA6FFFFFF),
+                    ),
                   ),
                 ),
               ],
@@ -77,7 +88,10 @@ class WelcomeScreen extends StatelessWidget {
           const _HeroPreview(),
           Padding(
             padding: const EdgeInsets.fromLTRB(
-              TackSpace.screenWide, TackSpace.xl, TackSpace.screenWide, TackSpace.xl,
+              TackSpace.screenWide,
+              TackSpace.xl,
+              TackSpace.screenWide,
+              TackSpace.xl,
             ),
             child: Column(
               children: const [
@@ -86,7 +100,8 @@ class WelcomeScreen extends StatelessWidget {
                   tint: TackColors.tealTint,
                   iconColor: TackColors.tealText,
                   title: 'Readiness score',
-                  body: 'One number for how ready you are, and exactly what raises it.',
+                  body:
+                      'One number for how ready you are, and exactly what raises it.',
                 ),
                 SizedBox(height: TackSpace.md),
                 _FeatureRow(
@@ -94,7 +109,8 @@ class WelcomeScreen extends StatelessWidget {
                   tint: TackColors.maroonTint,
                   iconColor: TackColors.maroon,
                   title: 'Career roadmap',
-                  body: 'A route from where you are to a job, broken into small steps.',
+                  body:
+                      'A route from where you are to a job, broken into small steps.',
                 ),
                 SizedBox(height: TackSpace.md),
                 _FeatureRow(
@@ -102,7 +118,8 @@ class WelcomeScreen extends StatelessWidget {
                   tint: TackColors.amberTint,
                   iconColor: TackColors.amberText,
                   title: 'Application tracker',
-                  body: 'Every job you applied to in one place, with what happens next.',
+                  body:
+                      'Every job you applied to in one place, with what happens next.',
                 ),
               ],
             ),
@@ -132,16 +149,27 @@ class _HeroPreview extends StatelessWidget {
           children: [
             Row(
               children: [
-                const ScoreRing(score: 61, size: 54, strokeWidth: 6, caption: null),
+                const ScoreRing(
+                  score: 61,
+                  size: 54,
+                  strokeWidth: 6,
+                  caption: null,
+                ),
                 const SizedBox(width: TackSpace.md),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Readiness 61', style: TackText.cardTitle.copyWith(fontSize: 13)),
+                    Text(
+                      'Readiness 61',
+                      style: TackText.cardTitle.copyWith(fontSize: 13),
+                    ),
                     const SizedBox(height: 2),
                     Text(
                       '+4 this week',
-                      style: TackText.pill.copyWith(color: TackColors.tealText, fontSize: 12),
+                      style: TackText.pill.copyWith(
+                        color: TackColors.tealText,
+                        fontSize: 12,
+                      ),
                     ),
                   ],
                 ),
@@ -158,13 +186,19 @@ class _HeroPreview extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Your next three actions', style: TackText.cardTitle.copyWith(fontSize: 12)),
+                  Text(
+                    'Your next three actions',
+                    style: TackText.cardTitle.copyWith(fontSize: 12),
+                  ),
                   const SizedBox(height: TackSpace.sm),
                   const _PreviewAction(label: 'Upload your CV', points: '+9'),
                   const SizedBox(height: 7),
                   const _PreviewAction(label: 'Add three skills', points: '+6'),
                   const SizedBox(height: 7),
-                  const _PreviewAction(label: 'Practise one interview', points: '+5'),
+                  const _PreviewAction(
+                    label: 'Practise one interview',
+                    points: '+5',
+                  ),
                 ],
               ),
             ),
@@ -194,8 +228,13 @@ class _PreviewAction extends StatelessWidget {
           ),
         ),
         const SizedBox(width: TackSpace.sm),
-        Expanded(child: Text(label, style: TackText.body.copyWith(fontSize: 12))),
-        Text(points, style: TackText.pill.copyWith(color: TackColors.maroon, fontSize: 11)),
+        Expanded(
+          child: Text(label, style: TackText.body.copyWith(fontSize: 12)),
+        ),
+        Text(
+          points,
+          style: TackText.pill.copyWith(color: TackColors.maroon, fontSize: 11),
+        ),
       ],
     );
   }
@@ -226,7 +265,10 @@ class _FeatureRow extends StatelessWidget {
           Container(
             width: 40,
             height: 40,
-            decoration: BoxDecoration(color: tint, borderRadius: BorderRadius.circular(12)),
+            decoration: BoxDecoration(
+              color: tint,
+              borderRadius: BorderRadius.circular(12),
+            ),
             alignment: Alignment.center,
             child: TackIcon(icon, size: 21, color: iconColor),
           ),

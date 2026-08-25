@@ -34,16 +34,19 @@ class JobApplication {
   final DateTime? closesAt;
   final DateTime? updatedAt;
 
-  bool get isOpen => status != TackStatus.rejected && status != TackStatus.offer;
+  bool get isOpen =>
+      status != TackStatus.rejected && status != TackStatus.offer;
 
   /// Days until the next thing has to happen. Negative when it is overdue.
   int? get daysUntilNextAction {
     final date = nextActionDate;
     if (date == null) return null;
     final today = DateTime.now();
-    return DateTime(date.year, date.month, date.day)
-        .difference(DateTime(today.year, today.month, today.day))
-        .inDays;
+    return DateTime(
+      date.year,
+      date.month,
+      date.day,
+    ).difference(DateTime(today.year, today.month, today.day)).inDays;
   }
 
   factory JobApplication.fromRow(Map<String, dynamic> row) {
@@ -54,7 +57,8 @@ class JobApplication {
       jobId: row['job_id'] as String,
       status: TackStatusStyle.fromWire('${row['status']}'),
       title: (job['title'] as String?) ?? 'Untitled role',
-      companyName: (company?['name'] as String?) ?? job['company_name'] as String?,
+      companyName:
+          (company?['name'] as String?) ?? job['company_name'] as String?,
       location: job['location'] as String?,
       sourceUrl: job['source_url'] as String?,
       closesAt: DateTime.tryParse('${job['closes_at']}'),
@@ -83,13 +87,14 @@ class StatusChange {
   final String? note;
 
   factory StatusChange.fromRow(Map<String, dynamic> row) => StatusChange(
-        toStatus: TackStatusStyle.fromWire('${row['to_status']}'),
-        fromStatus: row['from_status'] == null
-            ? null
-            : TackStatusStyle.fromWire('${row['from_status']}'),
-        changedAt: DateTime.tryParse('${row['changed_at']}')?.toLocal() ?? DateTime.now(),
-        note: row['note'] as String?,
-      );
+    toStatus: TackStatusStyle.fromWire('${row['to_status']}'),
+    fromStatus: row['from_status'] == null
+        ? null
+        : TackStatusStyle.fromWire('${row['from_status']}'),
+    changedAt:
+        DateTime.tryParse('${row['changed_at']}')?.toLocal() ?? DateTime.now(),
+    note: row['note'] as String?,
+  );
 }
 
 /// The counts behind the filter strip and the funnel.
@@ -105,6 +110,7 @@ class ApplicationCounts {
   int get total => byStatus.values.fold(0, (a, b) => a + b);
 
   /// Keyed by wire name, for the funnel widget.
-  Map<String, int> get asWireMap =>
-      {for (final e in byStatus.entries) e.key.name: e.value};
+  Map<String, int> get asWireMap => {
+    for (final e in byStatus.entries) e.key.name: e.value,
+  };
 }

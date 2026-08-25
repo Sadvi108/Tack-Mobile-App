@@ -15,10 +15,14 @@ void main() {
     // If these ever disagree the UI offers a move the server will refuse, so
     // the whole 6x6 grid is checked rather than a handful of cases.
     test('every one of the 36 pairs matches', () {
-      final rows = (jsonDecode(
-        File('test/features/applications/sql_transitions.json').readAsStringSync(),
-      ) as List)
-          .cast<Map<String, dynamic>>();
+      final rows =
+          (jsonDecode(
+                    File(
+                      'test/features/applications/sql_transitions.json',
+                    ).readAsStringSync(),
+                  )
+                  as List)
+              .cast<Map<String, dynamic>>();
 
       expect(rows, hasLength(36), reason: 'six statuses squared');
 
@@ -29,24 +33,34 @@ void main() {
         final sqlSays = row['allowed'] as bool;
         final dartSays = StatusMachine.canMove(from, to);
         if (sqlSays != dartSays) {
-          disagreements.add('${from.name} -> ${to.name}: sql=$sqlSays dart=$dartSays');
+          disagreements.add(
+            '${from.name} -> ${to.name}: sql=$sqlSays dart=$dartSays',
+          );
         }
       }
 
-      expect(disagreements, isEmpty,
-          reason: 'the client must never offer a move the database will refuse');
+      expect(
+        disagreements,
+        isEmpty,
+        reason: 'the client must never offer a move the database will refuse',
+      );
     });
   });
 
   group('the moves the tracker offers', () {
     test('a saved job can only be marked applied, or rejected', () {
-      expect(StatusMachine.movesFrom(TackStatus.saved),
-          containsAll([TackStatus.applied, TackStatus.rejected]));
+      expect(
+        StatusMachine.movesFrom(TackStatus.saved),
+        containsAll([TackStatus.applied, TackStatus.rejected]),
+      );
       expect(StatusMachine.movesFrom(TackStatus.saved), hasLength(2));
     });
 
     test('an interview cannot jump straight back to saved', () {
-      expect(StatusMachine.canMove(TackStatus.interview, TackStatus.saved), isFalse);
+      expect(
+        StatusMachine.canMove(TackStatus.interview, TackStatus.saved),
+        isFalse,
+      );
     });
 
     test('anything can be rejected, including an offer', () {
@@ -62,8 +76,11 @@ void main() {
     test('the one-tap move is the likely next step', () {
       expect(StatusMachine.primaryMove(TackStatus.saved), TackStatus.applied);
       expect(StatusMachine.primaryMove(TackStatus.interview), TackStatus.offer);
-      expect(StatusMachine.primaryMove(TackStatus.offer), isNull,
-          reason: 'there is nothing better than an offer to move to');
+      expect(
+        StatusMachine.primaryMove(TackStatus.offer),
+        isNull,
+        reason: 'there is nothing better than an offer to move to',
+      );
     });
 
     test('every offered move is legal', () {

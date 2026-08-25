@@ -55,7 +55,9 @@ class _PickerBodyState<T> extends State<_PickerBody<T>> {
     final q = _query.trim().toLowerCase();
     final visible = q.isEmpty
         ? widget.options
-        : widget.options.where((o) => widget.labelOf(o).toLowerCase().contains(q)).toList();
+        : widget.options
+              .where((o) => widget.labelOf(o).toLowerCase().contains(q))
+              .toList();
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -63,7 +65,10 @@ class _PickerBodyState<T> extends State<_PickerBody<T>> {
         if (widget.searchable)
           Padding(
             padding: const EdgeInsets.fromLTRB(
-              TackSpace.screen, 0, TackSpace.screen, TackSpace.md,
+              TackSpace.screen,
+              0,
+              TackSpace.screen,
+              TackSpace.md,
             ),
             child: TackSearchField(
               hint: widget.searchHint,
@@ -74,7 +79,10 @@ class _PickerBodyState<T> extends State<_PickerBody<T>> {
           child: visible.isEmpty
               ? Padding(
                   padding: const EdgeInsets.fromLTRB(
-                    TackSpace.screen, TackSpace.lg, TackSpace.screen, TackSpace.xl,
+                    TackSpace.screen,
+                    TackSpace.lg,
+                    TackSpace.screen,
+                    TackSpace.xl,
                   ),
                   child: Text(
                     'Nothing matches that. Try a shorter search.',
@@ -85,7 +93,8 @@ class _PickerBodyState<T> extends State<_PickerBody<T>> {
                   shrinkWrap: true,
                   padding: const EdgeInsets.only(bottom: TackSpace.lg),
                   itemCount: visible.length,
-                  separatorBuilder: (_, _) => const TackDivider(indent: TackSpace.screen),
+                  separatorBuilder: (_, _) =>
+                      const TackDivider(indent: TackSpace.screen),
                   itemBuilder: (context, i) {
                     final option = visible[i];
                     final isSelected = option == widget.selected;
@@ -101,13 +110,21 @@ class _PickerBodyState<T> extends State<_PickerBody<T>> {
                             child: Text(
                               widget.labelOf(option),
                               style: TackText.rowTitle.copyWith(
-                                color: isSelected ? TackColors.maroon : TackColors.ink,
-                                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                                color: isSelected
+                                    ? TackColors.maroon
+                                    : TackColors.ink,
+                                fontWeight: isSelected
+                                    ? FontWeight.w600
+                                    : FontWeight.w500,
                               ),
                             ),
                           ),
                           if (isSelected)
-                            const TackIcon(TackIcons.check, size: 20, color: TackColors.maroon),
+                            const TackIcon(
+                              TackIcons.check,
+                              size: 20,
+                              color: TackColors.maroon,
+                            ),
                         ],
                       ),
                     );

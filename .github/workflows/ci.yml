@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  app:
+    name: Flutter
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.44.8
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Generate code
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Check formatting
+        run: dart format --output=none --set-exit-if-changed lib test
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test
+
+      # A real compile catches what the analyzer does not. No secrets are
+      # needed: the placeholder values only have to be non-empty to boot.
+      - name: Build
+        run: |
+          cat > env/ci.json <<'JSON'
+          {
+            "SUPABASE_URL": "https://ci.invalid",
+            "SUPABASE_ANON_KEY": "ci",
+            "POSTHOG_KEY": "",
+            "POSTHOG_HOST": "https://eu.i.posthog.com",
+            "SENTRY_DSN": "",
+            "APP_ENV": "ci"
+          }
+          JSON
+          flutter build apk --debug --dart-define-from-file=env/ci.json
+
+  functions:
+    name: Edge Functions
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: supabase/functions
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Check formatting
+        run: deno fmt --check
+
+      - name: Lint
+        run: deno lint
+
+      - name: Type check
+        run: deno check analyze-jd/index.ts worker/index.ts interview/index.ts
+
+      - name: Test
+        run: deno test _shared/

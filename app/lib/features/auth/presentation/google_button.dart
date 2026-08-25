@@ -6,7 +6,12 @@ import 'google_mark.dart';
 /// The prominent sign-in option. Most students already have a Google account,
 /// and every tap saved here is a student who does not abandon sign-up.
 class GoogleSignInButton extends StatelessWidget {
-  const GoogleSignInButton({super.key, required this.onPressed, this.busy = false, this.label = 'Continue with Google'});
+  const GoogleSignInButton({
+    super.key,
+    required this.onPressed,
+    this.busy = false,
+    this.label = 'Continue with Google',
+  });
 
   final VoidCallback? onPressed;
   final bool busy;

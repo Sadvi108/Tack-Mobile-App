@@ -32,7 +32,10 @@ class VaultScreen extends ConsumerWidget {
       header: TackHeader(title: 'Your documents', onBack: () => context.pop()),
       pinnedCta: upload.busy
           ? null
-          : TackButton('Add a file', onPressed: () => _pickAndUpload(context, ref)),
+          : TackButton(
+              'Add a file',
+              onPressed: () => _pickAndUpload(context, ref),
+            ),
       body: documentsAsync.when(
         loading: () => const Column(
           children: [
@@ -42,12 +45,17 @@ class VaultScreen extends ConsumerWidget {
           ],
         ),
         error: (_, _) => TackErrorState(
-          body: 'Your documents did not load. Check your connection and try again.',
+          body:
+              'Your documents did not load. Check your connection and try again.',
           onRetry: () => ref.invalidate(documentsProvider),
         ),
         data: (documents) {
-          final cvs = documents.where((d) => d.type == DocumentType.cv).toList();
-          final others = documents.where((d) => d.type != DocumentType.cv).toList();
+          final cvs = documents
+              .where((d) => d.type == DocumentType.cv)
+              .toList();
+          final others = documents
+              .where((d) => d.type != DocumentType.cv)
+              .toList();
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -129,13 +137,22 @@ class VaultScreen extends ConsumerWidget {
 
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
-      allowedExtensions: const ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png', 'webp'],
+      allowedExtensions: const [
+        'pdf',
+        'doc',
+        'docx',
+        'jpg',
+        'jpeg',
+        'png',
+        'webp',
+      ],
       withData: true,
     );
     final file = result?.files.firstOrNull;
     if (file == null || !context.mounted) return;
 
-    final bytes = file.bytes ??
+    final bytes =
+        file.bytes ??
         (file.path == null ? null : await File(file.path!).readAsBytes());
     if (bytes == null) {
       if (context.mounted) {
@@ -154,7 +171,8 @@ class VaultScreen extends ConsumerWidget {
       ref,
       bytes: bytes,
       suggestedTitle: file.name,
-      mimeType: lookupMimeType(file.name, headerBytes: bytes.take(64).toList()) ??
+      mimeType:
+          lookupMimeType(file.name, headerBytes: bytes.take(64).toList()) ??
           'application/octet-stream',
     );
   }
@@ -186,7 +204,10 @@ class VaultScreen extends ConsumerWidget {
     required String suggestedTitle,
     required String mimeType,
   }) async {
-    final rejection = UploadRules.reject(mimeType: mimeType, sizeBytes: bytes.length);
+    final rejection = UploadRules.reject(
+      mimeType: mimeType,
+      sizeBytes: bytes.length,
+    );
     if (rejection != null) {
       TackToast.show(context, message: rejection, kind: TackToastKind.error);
       return;
@@ -225,7 +246,10 @@ class VaultScreen extends ConsumerWidget {
               const SizedBox(height: TackSpace.lg),
               TackTextField(label: 'Name it', controller: controller),
               const SizedBox(height: TackSpace.xl),
-              TackButton('Upload', onPressed: () => Navigator.of(sheetContext).pop(true)),
+              TackButton(
+                'Upload',
+                onPressed: () => Navigator.of(sheetContext).pop(true),
+              ),
             ],
           ),
         ),
@@ -236,12 +260,9 @@ class VaultScreen extends ConsumerWidget {
     controller.dispose();
     if (confirmed != true || title.isEmpty) return;
 
-    final ok = await ref.read(uploadControllerProvider.notifier).upload(
-          type: type,
-          title: title,
-          bytes: bytes,
-          mimeType: mimeType,
-        );
+    final ok = await ref
+        .read(uploadControllerProvider.notifier)
+        .upload(type: type, title: title, bytes: bytes, mimeType: mimeType);
 
     if (!context.mounted) return;
     if (ok) {
@@ -254,7 +275,11 @@ class VaultScreen extends ConsumerWidget {
     }
   }
 
-  Future<void> _menu(BuildContext context, WidgetRef ref, TackDocument document) async {
+  Future<void> _menu(
+    BuildContext context,
+    WidgetRef ref,
+    TackDocument document,
+  ) async {
     final action = await showTackSheet<String>(
       context: context,
       title: document.title,
@@ -301,7 +326,10 @@ class VaultScreen extends ConsumerWidget {
           await repository.makeDefault(document.id);
           ref.invalidate(documentsProvider);
           if (context.mounted) {
-            TackToast.show(context, message: '${document.title} is now your default CV.');
+            TackToast.show(
+              context,
+              message: '${document.title} is now your default CV.',
+            );
           }
         case 'open':
           final url = await repository.signedUrl(document.id);
@@ -333,7 +361,11 @@ class VaultScreen extends ConsumerWidget {
     }
   }
 
-  Future<void> _rename(BuildContext context, WidgetRef ref, TackDocument document) async {
+  Future<void> _rename(
+    BuildContext context,
+    WidgetRef ref,
+    TackDocument document,
+  ) async {
     final controller = TextEditingController(text: document.title);
     final saved = await showTackSheet<bool>(
       context: context,
@@ -351,8 +383,10 @@ class VaultScreen extends ConsumerWidget {
             TackTextField(controller: controller, autofocus: true),
             const SizedBox(height: TackSpace.lg),
             Builder(
-              builder: (sheetContext) =>
-                  TackButton('Save', onPressed: () => Navigator.of(sheetContext).pop(true)),
+              builder: (sheetContext) => TackButton(
+                'Save',
+                onPressed: () => Navigator.of(sheetContext).pop(true),
+              ),
             ),
           ],
         ),
@@ -383,7 +417,10 @@ class _EmptyVault extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Three things worth keeping here', style: TackText.sectionHeader),
+              Text(
+                'Three things worth keeping here',
+                style: TackText.sectionHeader,
+              ),
               const SizedBox(height: TackSpace.md),
               const _WorthKeeping(
                 title: 'Your CV',
@@ -401,7 +438,10 @@ class _EmptyVault extends StatelessWidget {
               TackButton('Choose a file', onPressed: onPickFile),
               const SizedBox(height: TackSpace.row),
               // The camera is an equal option, not a fallback.
-              TackButton.secondary('Take a photo instead', onPressed: onUseCamera),
+              TackButton.secondary(
+                'Take a photo instead',
+                onPressed: onUseCamera,
+              ),
             ],
           ),
         ),
@@ -429,7 +469,10 @@ class _WorthKeeping extends StatelessWidget {
             width: 8,
             height: 8,
             margin: const EdgeInsets.only(top: 7, right: 12),
-            decoration: const BoxDecoration(color: TackColors.amber, shape: BoxShape.circle),
+            decoration: const BoxDecoration(
+              color: TackColors.amber,
+              shape: BoxShape.circle,
+            ),
           ),
           Expanded(
             child: Column(
@@ -456,7 +499,11 @@ class _PrivacyNote extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const TackIcon(TackIcons.shield, size: 20, color: TackColors.tealText),
+          const TackIcon(
+            TackIcons.shield,
+            size: 20,
+            color: TackColors.tealText,
+          ),
           const SizedBox(width: TackSpace.md),
           Expanded(
             child: Text(
@@ -491,7 +538,9 @@ class _UploadCard extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            state.parsing ? 'Reading your CV' : 'Uploading ${state.fileName ?? ''}',
+            state.parsing
+                ? 'Reading your CV'
+                : 'Uploading ${state.fileName ?? ''}',
             style: TackText.cardTitle,
           ),
           const SizedBox(height: TackSpace.md),
@@ -507,7 +556,7 @@ class _UploadCard extends ConsumerWidget {
           Text(
             state.parsing
                 ? 'This takes about a minute. You can leave this screen — we will tell you '
-                    'when it is done.'
+                      'when it is done.'
                 : '${(state.progress * 100).round()}% sent',
             style: TackText.bodyMuted,
           ),
@@ -516,7 +565,8 @@ class _UploadCard extends ConsumerWidget {
             TackButton.ghost(
               'Cancel',
               fullWidth: false,
-              onPressed: () => ref.read(uploadControllerProvider.notifier).cancel(),
+              onPressed: () =>
+                  ref.read(uploadControllerProvider.notifier).cancel(),
             ),
           ],
         ],
@@ -545,7 +595,10 @@ class _SheetOption extends StatelessWidget {
     final colour = danger ? TackColors.danger : TackColors.ink;
     return TackTapRow(
       onTap: onTap,
-      padding: const EdgeInsets.symmetric(horizontal: TackSpace.screen, vertical: 14),
+      padding: const EdgeInsets.symmetric(
+        horizontal: TackSpace.screen,
+        vertical: 14,
+      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -591,7 +644,11 @@ class _DocumentRow extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
             ),
             alignment: Alignment.center,
-            child: const TackIcon(TackIcons.file, size: 20, color: TackColors.maroon),
+            child: const TackIcon(
+              TackIcons.file,
+              size: 20,
+              color: TackColors.maroon,
+            ),
           ),
           const SizedBox(width: TackSpace.md),
           Expanded(
@@ -620,7 +677,8 @@ class _DocumentRow extends StatelessWidget {
                     document.type.label,
                     if (document.sizeLabel.isNotEmpty) document.sizeLabel,
                     if (document.isProcessing) 'being read',
-                    if (document.status == DocumentStatus.failed) 'did not upload',
+                    if (document.status == DocumentStatus.failed)
+                      'did not upload',
                   ].join(' · '),
                   style: TackText.meta,
                 ),

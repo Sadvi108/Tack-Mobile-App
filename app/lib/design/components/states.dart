@@ -37,7 +37,11 @@ class TackEmptyState extends StatelessWidget {
         children: [
           graphic ?? const TackZigzagGraphic(),
           const SizedBox(height: TackSpace.lg),
-          Text(title, style: TackText.sectionHeader, textAlign: TextAlign.center),
+          Text(
+            title,
+            style: TackText.sectionHeader,
+            textAlign: TextAlign.center,
+          ),
           const SizedBox(height: TackSpace.sm),
           Text(body, style: TackText.bodyMuted, textAlign: TextAlign.center),
           if (primaryLabel != null) ...[
@@ -61,8 +65,10 @@ class TackZigzagGraphic extends StatelessWidget {
   final double width;
 
   @override
-  Widget build(BuildContext context) =>
-      CustomPaint(size: Size(width, width * 66 / 120), painter: _ZigzagPainter());
+  Widget build(BuildContext context) => CustomPaint(
+    size: Size(width, width * 66 / 120),
+    painter: _ZigzagPainter(),
+  );
 }
 
 class _ZigzagPainter extends CustomPainter {
@@ -83,7 +89,11 @@ class _ZigzagPainter extends CustomPainter {
         ..strokeCap = StrokeCap.round
         ..strokeJoin = StrokeJoin.round,
     );
-    canvas.drawCircle(Offset(112 * s, 16 * s), 6 * s, Paint()..color = TackColors.amber);
+    canvas.drawCircle(
+      Offset(112 * s, 16 * s),
+      6 * s,
+      Paint()..color = TackColors.amber,
+    );
   }
 
   @override
@@ -105,7 +115,11 @@ class TackOfflineState extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const TackIcon(TackIcons.offline, size: 22, color: TackColors.amberText),
+          const TackIcon(
+            TackIcons.offline,
+            size: 22,
+            color: TackColors.amberText,
+          ),
           const SizedBox(width: TackSpace.md),
           Expanded(
             child: Column(
@@ -116,14 +130,18 @@ class TackOfflineState extends StatelessWidget {
                 Text(
                   queuedChanges > 0
                       ? 'Keep working. $queuedChanges ${queuedChanges == 1 ? 'change is' : 'changes are'} saved on '
-                          'this phone and will sync when you are back online.'
+                            'this phone and will sync when you are back online.'
                       : 'Keep working. Tasks and applications save on this phone and sync when you are '
-                          'back online.',
+                            'back online.',
                   style: TackText.bodyMuted,
                 ),
                 if (onRetry != null) ...[
                   const SizedBox(height: TackSpace.md),
-                  TackButton.ghost('Try again', onPressed: onRetry, fullWidth: false),
+                  TackButton.ghost(
+                    'Try again',
+                    onPressed: onRetry,
+                    fullWidth: false,
+                  ),
                 ],
               ],
             ),
@@ -155,7 +173,11 @@ class TackErrorState extends StatelessWidget {
         children: [
           Row(
             children: [
-              const TackIcon(TackIcons.alert, size: 22, color: TackColors.danger),
+              const TackIcon(
+                TackIcons.alert,
+                size: 22,
+                color: TackColors.danger,
+              ),
               const SizedBox(width: TackSpace.sm),
               Expanded(child: Text(title, style: TackText.cardTitle)),
             ],
@@ -187,7 +209,10 @@ class TackQuotaState extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('You have used your 3 analyses for today', style: TackText.cardTitle),
+          Text(
+            'You have used your 3 analyses for today',
+            style: TackText.cardTitle,
+          ),
           const SizedBox(height: TackSpace.sm),
           Text(
             'Every student gets three a day, which is how Tack stays free for everyone. '
@@ -224,8 +249,10 @@ class TackPlaceholderFill extends StatelessWidget {
           tileMode: TileMode.repeated,
           stops: [0, 0.5, 0.5, 1],
           colors: [
-            Color(0xFFFBFAF7), Color(0xFFFBFAF7),
-            Color(0xFFF5F2EC), Color(0xFFF5F2EC),
+            Color(0xFFFBFAF7),
+            Color(0xFFFBFAF7),
+            Color(0xFFF5F2EC),
+            Color(0xFFF5F2EC),
           ],
         ),
       ),

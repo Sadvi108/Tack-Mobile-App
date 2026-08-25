@@ -31,7 +31,9 @@ class _StepSkillsState extends ConsumerState<StepSkills> {
     final draft = widget.draft;
     final controller = ref.read(onboardingControllerProvider.notifier);
     final searching = _query.trim().length >= 2;
-    final results = searching ? ref.watch(skillSearchProvider(_query)) : ref.watch(popularSkillsProvider);
+    final results = searching
+        ? ref.watch(skillSearchProvider(_query))
+        : ref.watch(popularSkillsProvider);
     final count = draft.skillIds.length;
 
     void toggle(String id) {
@@ -59,7 +61,10 @@ class _StepSkillsState extends ConsumerState<StepSkills> {
             ),
             const Spacer(),
             if (!searching)
-              Text('Tap any that apply', style: TackText.meta.copyWith(fontSize: 13)),
+              Text(
+                'Tap any that apply',
+                style: TackText.meta.copyWith(fontSize: 13),
+              ),
           ],
         ),
         const SizedBox(height: TackSpace.md),
@@ -133,7 +138,10 @@ class _StepSkillsState extends ConsumerState<StepSkills> {
       title: 'Add a skill',
       child: Padding(
         padding: const EdgeInsets.fromLTRB(
-          TackSpace.screen, 0, TackSpace.screen, TackSpace.xl,
+          TackSpace.screen,
+          0,
+          TackSpace.screen,
+          TackSpace.xl,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -145,12 +153,17 @@ class _StepSkillsState extends ConsumerState<StepSkills> {
               style: TackText.bodyMuted,
             ),
             const SizedBox(height: TackSpace.lg),
-            TackTextField(hint: 'For example, Bangla copywriting', controller: controller, autofocus: true),
+            TackTextField(
+              hint: 'For example, Bangla copywriting',
+              controller: controller,
+              autofocus: true,
+            ),
             const SizedBox(height: TackSpace.lg),
             Builder(
               builder: (sheetContext) => TackButton(
                 'Add it',
-                onPressed: () => Navigator.of(sheetContext).pop(controller.text.trim()),
+                onPressed: () =>
+                    Navigator.of(sheetContext).pop(controller.text.trim()),
               ),
             ),
           ],
@@ -162,13 +175,16 @@ class _StepSkillsState extends ConsumerState<StepSkills> {
     final text = entered?.trim();
     if (text == null || text.isEmpty || !mounted) return;
 
-    final matches = await ref.read(referenceRepositoryProvider).searchSkills(text);
+    final matches = await ref
+        .read(referenceRepositoryProvider)
+        .searchSkills(text);
     if (!mounted) return;
 
     if (matches.isEmpty) {
       TackToast.show(
         this.context,
-        message: 'We could not match "$text" yet. Pick the nearest one for now.',
+        message:
+            'We could not match "$text" yet. Pick the nearest one for now.',
         kind: TackToastKind.info,
       );
       return;
@@ -176,7 +192,9 @@ class _StepSkillsState extends ConsumerState<StepSkills> {
 
     final match = matches.first;
     final next = {...widget.draft.skillIds, match.id};
-    ref.read(onboardingControllerProvider.notifier).patch((d) => d.copyWith(skillIds: next));
+    ref
+        .read(onboardingControllerProvider.notifier)
+        .patch((d) => d.copyWith(skillIds: next));
     TackToast.show(this.context, message: 'Added ${match.name}.');
   }
 }
@@ -227,13 +245,17 @@ class StepTarget extends ConsumerWidget {
         Text('What kind of job are you aiming at?', style: TackText.fieldLabel),
         const SizedBox(height: TackSpace.sm),
         TackCard(
-          padding: const EdgeInsets.symmetric(horizontal: TackSpace.cardX, vertical: 4),
+          padding: const EdgeInsets.symmetric(
+            horizontal: TackSpace.cardX,
+            vertical: 4,
+          ),
           child: Column(
             children: [
               for (var i = 0; i < roles.length; i++) ...[
                 if (i > 0) const TackDivider(),
                 TackTapRow(
-                  onTap: () => controller.patch((d) => d.copyWith(targetRole: roles[i])),
+                  onTap: () =>
+                      controller.patch((d) => d.copyWith(targetRole: roles[i])),
                   padding: const EdgeInsets.symmetric(vertical: 13),
                   child: Row(
                     children: [
@@ -248,9 +270,15 @@ class StepTarget extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: TackSpace.xl),
-        Text('Any industries you like the look of?', style: TackText.fieldLabel),
+        Text(
+          'Any industries you like the look of?',
+          style: TackText.fieldLabel,
+        ),
         const SizedBox(height: TackSpace.xs),
-        Text('Optional. Pick as many as you want.', style: TackText.meta.copyWith(fontSize: 13.5)),
+        Text(
+          'Optional. Pick as many as you want.',
+          style: TackText.meta.copyWith(fontSize: 13.5),
+        ),
         const SizedBox(height: TackSpace.md),
         Wrap(
           spacing: TackSpace.sm,
@@ -262,7 +290,9 @@ class StepTarget extends ConsumerWidget {
                 selected: draft.targetIndustry.contains(industry),
                 onTap: () {
                   final next = {...draft.targetIndustry};
-                  next.contains(industry) ? next.remove(industry) : next.add(industry);
+                  next.contains(industry)
+                      ? next.remove(industry)
+                      : next.add(industry);
                   controller.patch((d) => d.copyWith(targetIndustry: next));
                 },
               ),

@@ -9,36 +9,38 @@ enum TackStatus { saved, applied, assessment, interview, offer, rejected }
 
 extension TackStatusStyle on TackStatus {
   String get label => switch (this) {
-        TackStatus.saved => 'Saved',
-        TackStatus.applied => 'Applied',
-        TackStatus.assessment => 'Assessment',
-        TackStatus.interview => 'Interview',
-        TackStatus.offer => 'Offer',
-        TackStatus.rejected => 'Rejected',
-      };
+    TackStatus.saved => 'Saved',
+    TackStatus.applied => 'Applied',
+    TackStatus.assessment => 'Assessment',
+    TackStatus.interview => 'Interview',
+    TackStatus.offer => 'Offer',
+    TackStatus.rejected => 'Rejected',
+  };
 
   String get wire => name;
 
   Color get background => switch (this) {
-        TackStatus.saved => TackColors.line,
-        TackStatus.applied => TackColors.maroonTint,
-        TackStatus.assessment => TackColors.blueTint,
-        TackStatus.interview => TackColors.amberTint,
-        TackStatus.offer => TackColors.tealTint,
-        TackStatus.rejected => TackColors.maroonTint,
-      };
+    TackStatus.saved => TackColors.line,
+    TackStatus.applied => TackColors.maroonTint,
+    TackStatus.assessment => TackColors.blueTint,
+    TackStatus.interview => TackColors.amberTint,
+    TackStatus.offer => TackColors.tealTint,
+    TackStatus.rejected => TackColors.maroonTint,
+  };
 
   Color get foreground => switch (this) {
-        TackStatus.saved => TackColors.muted,
-        TackStatus.applied => TackColors.maroon,
-        TackStatus.assessment => TackColors.blueText,
-        TackStatus.interview => TackColors.amberText,
-        TackStatus.offer => TackColors.tealText,
-        TackStatus.rejected => TackColors.danger,
-      };
+    TackStatus.saved => TackColors.muted,
+    TackStatus.applied => TackColors.maroon,
+    TackStatus.assessment => TackColors.blueText,
+    TackStatus.interview => TackColors.amberText,
+    TackStatus.offer => TackColors.tealText,
+    TackStatus.rejected => TackColors.danger,
+  };
 
-  static TackStatus fromWire(String value) =>
-      TackStatus.values.firstWhere((s) => s.name == value, orElse: () => TackStatus.saved);
+  static TackStatus fromWire(String value) => TackStatus.values.firstWhere(
+    (s) => s.name == value,
+    orElse: () => TackStatus.saved,
+  );
 }
 
 class StatusPill extends StatelessWidget {
@@ -54,7 +56,10 @@ class StatusPill extends StatelessWidget {
         color: status.background,
         borderRadius: TackRadius.pillAll,
       ),
-      child: Text(status.label, style: TackText.pill.copyWith(color: status.foreground)),
+      child: Text(
+        status.label,
+        style: TackText.pill.copyWith(color: status.foreground),
+      ),
     );
   }
 }
@@ -70,10 +75,20 @@ class TackPill extends StatelessWidget {
   });
 
   const TackPill.teal(String label, {Key? key})
-      : this(label, key: key, background: TackColors.tealTint, foreground: TackColors.tealText);
+    : this(
+        label,
+        key: key,
+        background: TackColors.tealTint,
+        foreground: TackColors.tealText,
+      );
 
   const TackPill.amber(String label, {Key? key})
-      : this(label, key: key, background: TackColors.amberTint, foreground: TackColors.amberText);
+    : this(
+        label,
+        key: key,
+        background: TackColors.amberTint,
+        foreground: TackColors.amberText,
+      );
 
   final String label;
   final Color background;
@@ -83,8 +98,14 @@ class TackPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: icon == null ? 11 : 9, vertical: 5),
-      decoration: BoxDecoration(color: background, borderRadius: TackRadius.pillAll),
+      padding: EdgeInsets.symmetric(
+        horizontal: icon == null ? 11 : 9,
+        vertical: 5,
+      ),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: TackRadius.pillAll,
+      ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -139,7 +160,12 @@ class TackChip extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               if (selected) ...[
-                const TackIcon(TackIcons.check, size: 15, color: TackColors.maroon, strokeWidth: 2.6),
+                const TackIcon(
+                  TackIcons.check,
+                  size: 15,
+                  color: TackColors.maroon,
+                  strokeWidth: 2.6,
+                ),
                 const SizedBox(width: 7),
               ],
               Text(
@@ -190,7 +216,9 @@ class CountFilterChip extends StatelessWidget {
           decoration: BoxDecoration(
             color: selected ? TackColors.maroon : TackColors.white,
             borderRadius: TackRadius.pillAll,
-            border: selected ? null : Border.all(color: TackColors.line2, width: 1),
+            border: selected
+                ? null
+                : Border.all(color: TackColors.line2, width: 1),
           ),
           child: Text(
             '$label $count',

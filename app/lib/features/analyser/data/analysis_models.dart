@@ -18,12 +18,15 @@ class JdAnalysis {
   final String? seniority;
   final String? experience;
 
-  factory JdAnalysis.fromJson(String id, Map<String, dynamic> json) => JdAnalysis(
+  factory JdAnalysis.fromJson(String id, Map<String, dynamic> json) =>
+      JdAnalysis(
         analysisId: id,
         jobTitle: (json['job_title'] as String?) ?? 'This role',
         skills: (json['skills'] as List?)?.cast<String>() ?? const [],
-        qualifications: (json['qualifications'] as List?)?.cast<String>() ?? const [],
-        responsibilities: (json['responsibilities'] as List?)?.cast<String>() ?? const [],
+        qualifications:
+            (json['qualifications'] as List?)?.cast<String>() ?? const [],
+        responsibilities:
+            (json['responsibilities'] as List?)?.cast<String>() ?? const [],
         seniority: json['seniority'] as String?,
         experience: json['experience'] as String?,
       );
@@ -45,16 +48,19 @@ class JdMatch {
   static const empty = JdMatch(matchPercent: 0, matched: [], missing: []);
 
   factory JdMatch.fromJson(Map<String, dynamic> json) => JdMatch(
-        matchPercent: (json['matchPercent'] as num?)?.toInt() ??
-            (json['match_percent'] as num?)?.toInt() ??
-            0,
-        matched: (json['matched'] as List?)?.cast<String>() ??
-            (json['matched_skills'] as List?)?.cast<String>() ??
-            const [],
-        missing: (json['missing'] as List?)?.cast<String>() ??
-            (json['missing_skills'] as List?)?.cast<String>() ??
-            const [],
-      );
+    matchPercent:
+        (json['matchPercent'] as num?)?.toInt() ??
+        (json['match_percent'] as num?)?.toInt() ??
+        0,
+    matched:
+        (json['matched'] as List?)?.cast<String>() ??
+        (json['matched_skills'] as List?)?.cast<String>() ??
+        const [],
+    missing:
+        (json['missing'] as List?)?.cast<String>() ??
+        (json['missing_skills'] as List?)?.cast<String>() ??
+        const [],
+  );
 }
 
 /// The state of one analysis run.

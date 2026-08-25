@@ -5,13 +5,32 @@ import '../data/roadmap_models.dart';
 
 /// The tint pair for each task type. Colour is never the only signal — the tag
 /// carries its label too.
-({Color background, Color foreground}) taskTypeTint(TaskType type) => switch (type) {
-      TaskType.skill => (background: TackColors.tealTint, foreground: TackColors.tealText),
-      TaskType.project => (background: TackColors.maroonTint, foreground: TackColors.maroon),
-      TaskType.certificate => (background: TackColors.amberTint, foreground: TackColors.amberText),
-      TaskType.networking => (background: TackColors.blueTint, foreground: TackColors.blueText),
-      TaskType.application => (background: TackColors.line, foreground: TackColors.muted),
-      TaskType.cv => (background: TackColors.tealDeepTint, foreground: TackColors.tealText),
+({Color background, Color foreground}) taskTypeTint(TaskType type) =>
+    switch (type) {
+      TaskType.skill => (
+        background: TackColors.tealTint,
+        foreground: TackColors.tealText,
+      ),
+      TaskType.project => (
+        background: TackColors.maroonTint,
+        foreground: TackColors.maroon,
+      ),
+      TaskType.certificate => (
+        background: TackColors.amberTint,
+        foreground: TackColors.amberText,
+      ),
+      TaskType.networking => (
+        background: TackColors.blueTint,
+        foreground: TackColors.blueText,
+      ),
+      TaskType.application => (
+        background: TackColors.line,
+        foreground: TackColors.muted,
+      ),
+      TaskType.cv => (
+        background: TackColors.tealDeepTint,
+        foreground: TackColors.tealText,
+      ),
     };
 
 /// One roadmap task.
@@ -60,13 +79,19 @@ class TaskTile extends StatelessWidget {
                     color: task.isDone ? TackColors.maroon : Colors.transparent,
                     borderRadius: BorderRadius.circular(6),
                     border: Border.all(
-                      color: task.isDone ? TackColors.maroon : TackColors.strokeFaint,
+                      color: task.isDone
+                          ? TackColors.maroon
+                          : TackColors.strokeFaint,
                       width: 1.5,
                     ),
                   ),
                   child: task.isDone
-                      ? const TackIcon(TackIcons.check,
-                          size: 15, color: TackColors.white, strokeWidth: 3)
+                      ? const TackIcon(
+                          TackIcons.check,
+                          size: 15,
+                          color: TackColors.white,
+                          strokeWidth: 3,
+                        )
                       : null,
                 ),
                 const SizedBox(width: TackSpace.md),
@@ -78,7 +103,9 @@ class TaskTile extends StatelessWidget {
                         task.title,
                         style: TackText.rowTitle.copyWith(
                           color: titleColour,
-                          decoration: task.isDone ? TextDecoration.lineThrough : null,
+                          decoration: task.isDone
+                              ? TextDecoration.lineThrough
+                              : null,
                           decorationColor: TackColors.muted,
                         ),
                       ),
@@ -96,8 +123,12 @@ class TaskTile extends StatelessWidget {
                           if (task.dueDate != null)
                             TackPill(
                               _dueLabel(task),
-                              background: task.isOverdue ? TackColors.maroonTint : TackColors.line,
-                              foreground: task.isOverdue ? TackColors.danger : TackColors.muted,
+                              background: task.isOverdue
+                                  ? TackColors.maroonTint
+                                  : TackColors.line,
+                              foreground: task.isOverdue
+                                  ? TackColors.danger
+                                  : TackColors.muted,
                             ),
                           if (task.isShared)
                             const TackPill(
@@ -131,9 +162,11 @@ class TaskTile extends StatelessWidget {
   static String _dueLabel(RoadmapTask task) {
     final due = task.dueDate!;
     final now = DateTime.now();
-    final days = DateTime(due.year, due.month, due.day)
-        .difference(DateTime(now.year, now.month, now.day))
-        .inDays;
+    final days = DateTime(
+      due.year,
+      due.month,
+      due.day,
+    ).difference(DateTime(now.year, now.month, now.day)).inDays;
     return switch (days) {
       < 0 => 'Overdue',
       0 => 'Due today',

@@ -4,49 +4,58 @@ import 'package:tack/features/profile/data/profile.dart';
 import 'package:tack/features/roadmap/data/roadmap_models.dart';
 import 'package:tack/features/score/data/readiness.dart';
 
-ReadinessScore scoreWith(Map<String, (int earned, int max)> components, {YearMode mode = YearMode.launch}) =>
-    ReadinessScore(
-      total: components.values.fold(0, (s, c) => s + c.$1),
-      mode: mode,
-      delta: 0,
-      computedAt: DateTime(2026, 8, 25),
-      components: [
-        for (final e in components.entries)
-          ScoreComponent(
-            key: e.key,
-            earned: e.value.$1,
-            max: e.value.$2,
-            ratio: e.value.$2 == 0 ? 0 : e.value.$1 / e.value.$2,
-          ),
-      ],
-    );
+ReadinessScore scoreWith(
+  Map<String, (int earned, int max)> components, {
+  YearMode mode = YearMode.launch,
+}) => ReadinessScore(
+  total: components.values.fold(0, (s, c) => s + c.$1),
+  mode: mode,
+  delta: 0,
+  computedAt: DateTime(2026, 8, 25),
+  components: [
+    for (final e in components.entries)
+      ScoreComponent(
+        key: e.key,
+        earned: e.value.$1,
+        max: e.value.$2,
+        ratio: e.value.$2 == 0 ? 0 : e.value.$1 / e.value.$2,
+      ),
+  ],
+);
 
-Roadmap roadmapWith(List<RoadmapTask> tasks, {MilestoneState state = MilestoneState.active}) =>
-    Roadmap(
-      id: 'r1',
-      title: 'Frontend developer',
-      milestones: [
-        RoadmapMilestone(
-          id: 'm1',
-          roadmapId: 'r1',
-          orderIndex: 0,
-          title: 'Learn the three basics',
-          state: state,
-          tasks: tasks,
-        ),
-      ],
-    );
+Roadmap roadmapWith(
+  List<RoadmapTask> tasks, {
+  MilestoneState state = MilestoneState.active,
+}) => Roadmap(
+  id: 'r1',
+  title: 'Frontend developer',
+  milestones: [
+    RoadmapMilestone(
+      id: 'm1',
+      roadmapId: 'r1',
+      orderIndex: 0,
+      title: 'Learn the three basics',
+      state: state,
+      tasks: tasks,
+    ),
+  ],
+);
 
-RoadmapTask task(String id, String title, {int points = 4, int? minutes, bool done = false}) =>
-    RoadmapTask(
-      id: id,
-      milestoneId: 'm1',
-      title: title,
-      type: TaskType.skill,
-      points: points,
-      isDone: done,
-      estMinutes: minutes,
-    );
+RoadmapTask task(
+  String id,
+  String title, {
+  int points = 4,
+  int? minutes,
+  bool done = false,
+}) => RoadmapTask(
+  id: id,
+  milestoneId: 'm1',
+  title: title,
+  type: TaskType.skill,
+  points: points,
+  isDone: done,
+  estMinutes: minutes,
+);
 
 void main() {
   test('returns at most three actions', () {
@@ -88,13 +97,16 @@ void main() {
     // In explore mode application activity is weighted zero on purpose. A
     // first-year must never be told to go and apply for jobs.
     final actions = rankNextActions(
-      score: scoreWith(
-        {'application_activity': (0, 0), 'skills': (0, 16)},
-        mode: YearMode.explore,
-      ),
+      score: scoreWith({
+        'application_activity': (0, 0),
+        'skills': (0, 16),
+      }, mode: YearMode.explore),
       roadmaps: const [],
     );
-    expect(actions.map((a) => a.componentKey), isNot(contains('application_activity')));
+    expect(
+      actions.map((a) => a.componentKey),
+      isNot(contains('application_activity')),
+    );
     expect(actions.map((a) => a.componentKey), contains('skills'));
   });
 
@@ -109,7 +121,11 @@ void main() {
   test('open roadmap tasks are ranked alongside score components', () {
     final actions = rankNextActions(
       score: scoreWith({'projects': (0, 10)}),
-      roadmaps: [roadmapWith([task('t1', 'Put your code on GitHub', points: 2, minutes: 60)])],
+      roadmaps: [
+        roadmapWith([
+          task('t1', 'Put your code on GitHub', points: 2, minutes: 60),
+        ]),
+      ],
     );
     expect(actions.any((a) => a.taskId == 't1'), isTrue);
   });
@@ -117,7 +133,9 @@ void main() {
   test('finished tasks and locked milestones contribute nothing', () {
     final done = rankNextActions(
       score: scoreWith({}),
-      roadmaps: [roadmapWith([task('t1', 'Already done', done: true)])],
+      roadmaps: [
+        roadmapWith([task('t1', 'Already done', done: true)]),
+      ],
     );
     expect(done, isEmpty);
 

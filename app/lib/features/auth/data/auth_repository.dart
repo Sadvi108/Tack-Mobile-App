@@ -39,9 +39,15 @@ class AuthRepository {
     }
   }
 
-  Future<void> signInWithEmail({required String email, required String password}) async {
+  Future<void> signInWithEmail({
+    required String email,
+    required String password,
+  }) async {
     try {
-      await _db.auth.signInWithPassword(email: email.trim(), password: password);
+      await _db.auth.signInWithPassword(
+        email: email.trim(),
+        password: password,
+      );
     } catch (e) {
       throw Failure.from(e);
     }
@@ -63,7 +69,10 @@ class AuthRepository {
 
   Future<void> sendPasswordReset(String email) async {
     try {
-      await _db.auth.resetPasswordForEmail(email.trim(), redirectTo: redirectUrl);
+      await _db.auth.resetPasswordForEmail(
+        email.trim(),
+        redirectTo: redirectUrl,
+      );
     } catch (e) {
       throw Failure.from(e);
     }
@@ -79,7 +88,11 @@ class AuthRepository {
 
   Future<void> resendConfirmation(String email) async {
     try {
-      await _db.auth.resend(type: OtpType.signup, email: email.trim(), emailRedirectTo: redirectUrl);
+      await _db.auth.resend(
+        type: OtpType.signup,
+        email: email.trim(),
+        emailRedirectTo: redirectUrl,
+      );
     } catch (e) {
       throw Failure.from(e);
     }
@@ -94,5 +107,6 @@ class AuthRepository {
   }
 }
 
-final authRepositoryProvider =
-    Provider<AuthRepository>((ref) => AuthRepository(ref.watch(supabaseProvider)));
+final authRepositoryProvider = Provider<AuthRepository>(
+  (ref) => AuthRepository(ref.watch(supabaseProvider)),
+);

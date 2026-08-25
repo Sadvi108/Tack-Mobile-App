@@ -10,7 +10,10 @@ import '../data/application_models.dart';
 import '../data/application_repository.dart';
 import '../data/status_machine.dart';
 
-final _detailProvider = FutureProvider.family<JobApplication?, String>((ref, id) async {
+final _detailProvider = FutureProvider.family<JobApplication?, String>((
+  ref,
+  id,
+) async {
   final all = await ref.watch(applicationsProvider(null).future);
   return all.where((a) => a.id == id).firstOrNull;
 });
@@ -31,7 +34,8 @@ class ApplicationDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final applicationAsync = ref.watch(_detailProvider(id));
-    final history = ref.watch(_historyProvider(id)).value ?? const <StatusChange>[];
+    final history =
+        ref.watch(_historyProvider(id)).value ?? const <StatusChange>[];
 
     return applicationAsync.when(
       loading: () => TackScaffold(
@@ -41,14 +45,18 @@ class ApplicationDetailScreen extends ConsumerWidget {
       error: (_, _) => TackScaffold(
         header: TackHeader(title: 'Application', onBack: () => context.pop()),
         body: TackErrorState(
-          body: 'This application did not load. Check your connection and try again.',
+          body:
+              'This application did not load. Check your connection and try again.',
           onRetry: () => ref.invalidate(_detailProvider(id)),
         ),
       ),
       data: (application) {
         if (application == null) {
           return TackScaffold(
-            header: TackHeader(title: 'Application', onBack: () => context.pop()),
+            header: TackHeader(
+              title: 'Application',
+              onBack: () => context.pop(),
+            ),
             body: const TackErrorState(
               title: 'That application is gone',
               body: 'It may have been deleted. Go back to the list.',
@@ -69,7 +77,11 @@ class ApplicationDetailScreen extends ConsumerWidget {
                 width: TackSpace.tapTarget,
                 height: TackSpace.tapTarget,
                 child: Center(
-                  child: TackIcon(TackIcons.more, size: 22, color: TackColors.ink),
+                  child: TackIcon(
+                    TackIcons.more,
+                    size: 22,
+                    color: TackColors.ink,
+                  ),
                 ),
               ),
             ),
@@ -84,7 +96,8 @@ class ApplicationDetailScreen extends ConsumerWidget {
                   children: [
                     TackButton(
                       StatusMachine.moveLabel(primaryMove),
-                      onPressed: () => _move(context, ref, application, primaryMove),
+                      onPressed: () =>
+                          _move(context, ref, application, primaryMove),
                     ),
                     const SizedBox(height: TackSpace.sm),
                     TackButton.ghost(
@@ -127,8 +140,11 @@ class ApplicationDetailScreen extends ConsumerWidget {
                       TackButton.ghost(
                         'Open the listing',
                         fullWidth: false,
-                        icon: const TackIcon(TackIcons.externalLink,
-                            size: 17, color: TackColors.maroon),
+                        icon: const TackIcon(
+                          TackIcons.externalLink,
+                          size: 17,
+                          color: TackColors.maroon,
+                        ),
                         onPressed: () => launchUrl(
                           Uri.parse(application.sourceUrl!),
                           mode: LaunchMode.externalApplication,
@@ -140,7 +156,10 @@ class ApplicationDetailScreen extends ConsumerWidget {
               ),
               const SizedBox(height: TackSpace.stackLoose),
 
-              _NextActionCard(application: application, onEdit: () => _editNext(context, ref, application)),
+              _NextActionCard(
+                application: application,
+                onEdit: () => _editNext(context, ref, application),
+              ),
               const SizedBox(height: TackSpace.stackLoose),
 
               Text('What has happened', style: TackText.sectionHeader),
@@ -162,7 +181,10 @@ class ApplicationDetailScreen extends ConsumerWidget {
               ),
               const SizedBox(height: TackSpace.stackLoose),
 
-              _NotesCard(application: application, onEdit: () => _editNotes(context, ref, application)),
+              _NotesCard(
+                application: application,
+                onEdit: () => _editNotes(context, ref, application),
+              ),
               const SizedBox(height: TackSpace.xl),
             ],
           ),
@@ -187,7 +209,9 @@ class ApplicationDetailScreen extends ConsumerWidget {
     TackStatus to,
   ) async {
     try {
-      await ref.read(applicationRepositoryProvider).setStatus(application.id, to);
+      await ref
+          .read(applicationRepositoryProvider)
+          .setStatus(application.id, to);
       _refresh(ref);
       if (context.mounted) {
         TackToast.show(context, message: 'Moved to ${to.label.toLowerCase()}.');
@@ -226,7 +250,12 @@ class ApplicationDetailScreen extends ConsumerWidget {
               ),
               child: Row(
                 children: [
-                  Expanded(child: Text(StatusMachine.moveLabel(move), style: TackText.rowTitle)),
+                  Expanded(
+                    child: Text(
+                      StatusMachine.moveLabel(move),
+                      style: TackText.rowTitle,
+                    ),
+                  ),
                   StatusPill(move),
                 ],
               ),
@@ -245,7 +274,9 @@ class ApplicationDetailScreen extends ConsumerWidget {
     WidgetRef ref,
     JobApplication application,
   ) async {
-    final controller = TextEditingController(text: application.nextAction ?? '');
+    final controller = TextEditingController(
+      text: application.nextAction ?? '',
+    );
     DateTime? date = application.nextActionDate;
 
     final saved = await showTackSheet<bool>(
@@ -279,14 +310,19 @@ class ApplicationDetailScreen extends ConsumerWidget {
                   final picked = await showDatePicker(
                     context: sheetContext,
                     initialDate: date ?? DateTime.now(),
-                    firstDate: DateTime.now().subtract(const Duration(days: 30)),
+                    firstDate: DateTime.now().subtract(
+                      const Duration(days: 30),
+                    ),
                     lastDate: DateTime.now().add(const Duration(days: 365)),
                   );
                   if (picked != null) setSheetState(() => date = picked);
                 },
               ),
               const SizedBox(height: TackSpace.xl),
-              TackButton('Save', onPressed: () => Navigator.of(sheetContext).pop(true)),
+              TackButton(
+                'Save',
+                onPressed: () => Navigator.of(sheetContext).pop(true),
+              ),
             ],
           ),
         ),
@@ -324,7 +360,8 @@ class ApplicationDetailScreen extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             TackTextField(
-              hint: 'Who you spoke to, what they asked, anything worth remembering',
+              hint:
+                  'Who you spoke to, what they asked, anything worth remembering',
               controller: controller,
               maxLines: 6,
               autofocus: true,
@@ -345,9 +382,9 @@ class ApplicationDetailScreen extends ConsumerWidget {
     controller.dispose();
     if (saved != true) return;
 
-    await ref
-        .read(applicationRepositoryProvider)
-        .update(application.id, {'notes': text.isEmpty ? null : text});
+    await ref.read(applicationRepositoryProvider).update(application.id, {
+      'notes': text.isEmpty ? null : text,
+    });
     _refresh(ref);
   }
 
@@ -370,7 +407,11 @@ class ApplicationDetailScreen extends ConsumerWidget {
             ),
             child: Row(
               children: [
-                const TackIcon(TackIcons.trash, size: 20, color: TackColors.danger),
+                const TackIcon(
+                  TackIcons.trash,
+                  size: 20,
+                  color: TackColors.danger,
+                ),
                 const SizedBox(width: TackSpace.md),
                 Text(
                   'Remove this application',
@@ -404,8 +445,18 @@ class ApplicationDetailScreen extends ConsumerWidget {
 
   static String _date(DateTime d) {
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     return '${d.day} ${months[d.month - 1]} ${d.year}';
   }
@@ -419,7 +470,8 @@ class _NextActionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final has = application.nextAction != null || application.nextActionDate != null;
+    final has =
+        application.nextAction != null || application.nextActionDate != null;
     return TackCard(
       emphasised: has,
       onTap: onEdit,
@@ -487,7 +539,11 @@ class _NotesCard extends StatelessWidget {
 }
 
 class _TimelineRow extends StatelessWidget {
-  const _TimelineRow({required this.change, required this.isFirst, required this.isLast});
+  const _TimelineRow({
+    required this.change,
+    required this.isFirst,
+    required this.isLast,
+  });
 
   final StatusChange change;
   final bool isFirst;

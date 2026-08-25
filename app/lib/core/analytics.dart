@@ -17,10 +17,7 @@ class Analytics {
     if (!_on) return;
     await Posthog().identify(
       userId: userId,
-      userProperties: {
-        'mode': ?mode,
-        'year_of_study': ?yearOfStudy,
-      },
+      userProperties: {'mode': ?mode, 'year_of_study': ?yearOfStudy},
     );
   }
 

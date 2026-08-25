@@ -12,8 +12,10 @@ class Env {
   static const supabaseUrl = String.fromEnvironment('SUPABASE_URL');
   static const supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY');
   static const posthogKey = String.fromEnvironment('POSTHOG_KEY');
-  static const posthogHost =
-      String.fromEnvironment('POSTHOG_HOST', defaultValue: 'https://eu.i.posthog.com');
+  static const posthogHost = String.fromEnvironment(
+    'POSTHOG_HOST',
+    defaultValue: 'https://eu.i.posthog.com',
+  );
   static const sentryDsn = String.fromEnvironment('SENTRY_DSN');
   static const appEnv = String.fromEnvironment('APP_ENV', defaultValue: 'dev');
 

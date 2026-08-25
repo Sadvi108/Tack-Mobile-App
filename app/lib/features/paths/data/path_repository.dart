@@ -28,7 +28,9 @@ class PathRepository {
 
   String get _uid {
     final id = _db.auth.currentUser?.id;
-    if (id == null) throw const Failure('You are signed out. Log in and try again.');
+    if (id == null) {
+      throw const Failure('You are signed out. Log in and try again.');
+    }
     return id;
   }
 
@@ -47,7 +49,11 @@ class PathRepository {
 
   Future<CareerPath?> bySlug(String slug) async {
     try {
-      final row = await _db.from('career_paths').select(_select).eq('slug', slug).maybeSingle();
+      final row = await _db
+          .from('career_paths')
+          .select(_select)
+          .eq('slug', slug)
+          .maybeSingle();
       return row == null ? null : CareerPath.fromRow(row);
     } catch (e) {
       throw Failure.from(e);
@@ -56,7 +62,10 @@ class PathRepository {
 
   Future<Set<String>> userSkillIds() async {
     try {
-      final rows = await _db.from('user_skills').select('skill_id').eq('user_id', _uid);
+      final rows = await _db
+          .from('user_skills')
+          .select('skill_id')
+          .eq('user_id', _uid);
       return rows.map((r) => r['skill_id'] as String).toSet();
     } catch (e) {
       throw Failure.from(e);
@@ -71,10 +80,12 @@ class PathRepository {
           .eq('user_id', _uid)
           .isFilter('deleted_at', null);
       return rows
-          .map((r) => ChosenPath(
-                pathId: r['path_id'] as String,
-                isPrimary: r['is_primary'] as bool? ?? false,
-              ))
+          .map(
+            (r) => ChosenPath(
+              pathId: r['path_id'] as String,
+              isPrimary: r['is_primary'] as bool? ?? false,
+            ),
+          )
           .toList();
     } catch (e) {
       throw Failure.from(e);
@@ -86,10 +97,12 @@ class PathRepository {
   /// a stack trace.
   Future<void> choose(String pathId, {bool primary = false}) async {
     try {
-      await _db.from('user_career_paths').upsert(
-        {'user_id': _uid, 'path_id': pathId, 'is_primary': primary, 'deleted_at': null},
-        onConflict: 'user_id,path_id',
-      );
+      await _db.from('user_career_paths').upsert({
+        'user_id': _uid,
+        'path_id': pathId,
+        'is_primary': primary,
+        'deleted_at': null,
+      }, onConflict: 'user_id,path_id');
     } on PostgrestException catch (e) {
       if (e.message.contains('at most two career paths')) {
         throw const Failure(
@@ -115,11 +128,13 @@ class PathRepository {
   }
 }
 
-final pathRepositoryProvider =
-    Provider<PathRepository>((ref) => PathRepository(ref.watch(supabaseProvider)));
+final pathRepositoryProvider = Provider<PathRepository>(
+  (ref) => PathRepository(ref.watch(supabaseProvider)),
+);
 
-final careerPathsProvider =
-    FutureProvider<List<CareerPath>>((ref) => ref.watch(pathRepositoryProvider).all());
+final careerPathsProvider = FutureProvider<List<CareerPath>>(
+  (ref) => ref.watch(pathRepositoryProvider).all(),
+);
 
 final userSkillIdsProvider = FutureProvider<Set<String>>((ref) async {
   if (!ref.watch(isSignedInProvider)) return <String>{};

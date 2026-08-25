@@ -21,14 +21,18 @@ class ScoreScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final scoreAsync = ref.watch(readinessProvider);
-    final trend = ref.watch(scoreTrendProvider).value ?? const <ReadinessScore>[];
+    final trend =
+        ref.watch(scoreTrendProvider).value ?? const <ReadinessScore>[];
     final cohort = ref.watch(cohortProvider).value;
     final mode = ref.watch(modeProvider);
     final weekChange = ref.watch(weekChangeProvider).value ?? 0;
 
     return scoreAsync.when(
       loading: () => TackScaffold(
-        header: TackHeader(title: 'Readiness score', onBack: () => context.go(Routes.home)),
+        header: TackHeader(
+          title: 'Readiness score',
+          onBack: () => context.go(Routes.home),
+        ),
         body: const Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -39,7 +43,10 @@ class ScoreScreen extends ConsumerWidget {
         ),
       ),
       error: (_, _) => TackScaffold(
-        header: TackHeader(title: 'Readiness score', onBack: () => context.go(Routes.home)),
+        header: TackHeader(
+          title: 'Readiness score',
+          onBack: () => context.go(Routes.home),
+        ),
         body: TackErrorState(
           body: 'Your score did not load. Check your connection and try again.',
           onRetry: () => ref.invalidate(readinessProvider),
@@ -51,7 +58,10 @@ class ScoreScreen extends ConsumerWidget {
         final dormant = score.notCountedThisYear;
 
         return TackScaffold(
-          header: TackHeader(title: 'Readiness score', onBack: () => context.go(Routes.home)),
+          header: TackHeader(
+            title: 'Readiness score',
+            onBack: () => context.go(Routes.home),
+          ),
           pinnedCta: biggestWin == null
               ? null
               : TackButton(
@@ -72,13 +82,20 @@ class ScoreScreen extends ConsumerWidget {
                         children: [
                           if (weekChange != 0)
                             Text(
-                              weekChange > 0 ? '+$weekChange this week' : '$weekChange this week',
+                              weekChange > 0
+                                  ? '+$weekChange this week'
+                                  : '$weekChange this week',
                               style: TackText.pill.copyWith(
-                                color: weekChange > 0 ? TackColors.tealText : TackColors.muted,
+                                color: weekChange > 0
+                                    ? TackColors.tealText
+                                    : TackColors.muted,
                               ),
                             ),
                           const SizedBox(height: TackSpace.xs),
-                          Text(_framing(score.total, cohort, mode), style: TackText.bodyMuted),
+                          Text(
+                            _framing(score.total, cohort, mode),
+                            style: TackText.bodyMuted,
+                          ),
                         ],
                       ),
                     ),
@@ -108,7 +125,10 @@ class ScoreScreen extends ConsumerWidget {
               const SizedBox(height: TackSpace.md),
 
               TackCard(
-                padding: const EdgeInsets.symmetric(horizontal: TackSpace.cardX, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: TackSpace.cardX,
+                  vertical: 4,
+                ),
                 child: Column(
                   children: [
                     for (var i = 0; i < rows.length; i++) ...[
@@ -130,7 +150,10 @@ class ScoreScreen extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Not counted in your year', style: TackText.cardTitle),
+                      Text(
+                        'Not counted in your year',
+                        style: TackText.cardTitle,
+                      ),
                       const SizedBox(height: TackSpace.xs),
                       Text(
                         '${_list(dormant.map((c) => c.label.toLowerCase()))} '
@@ -152,11 +175,11 @@ class ScoreScreen extends ConsumerWidget {
   }
 
   static String _yearPhrase(YearMode mode) => switch (mode) {
-        YearMode.explore => 'a first-year',
-        YearMode.build => 'a second-year',
-        YearMode.prove => 'a third-year',
-        YearMode.launch => 'a final-year',
-      };
+    YearMode.explore => 'a first-year',
+    YearMode.build => 'a second-year',
+    YearMode.prove => 'a third-year',
+    YearMode.launch => 'a final-year',
+  };
 
   static String _framing(int score, CohortBenchmark? cohort, YearMode mode) {
     if (cohort == null) {

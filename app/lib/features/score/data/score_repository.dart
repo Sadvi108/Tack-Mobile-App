@@ -13,7 +13,11 @@ import 'readiness.dart';
 /// database view only exposes cohorts of five or more so one student's score
 /// can never be inferred from it.
 class CohortBenchmark {
-  const CohortBenchmark({required this.average, required this.size, required this.mode});
+  const CohortBenchmark({
+    required this.average,
+    required this.size,
+    required this.mode,
+  });
 
   final int average;
   final int size;
@@ -27,7 +31,9 @@ class ScoreRepository {
 
   String get _uid {
     final id = _db.auth.currentUser?.id;
-    if (id == null) throw const Failure('You are signed out. Log in and try again.');
+    if (id == null) {
+      throw const Failure('You are signed out. Log in and try again.');
+    }
     return id;
   }
 
@@ -113,17 +119,23 @@ class ScoreRepository {
   /// applications are worth nothing in first year rather than looking broken.
   Future<Map<String, int>> weights(YearMode mode) async {
     try {
-      final rows =
-          await _db.from('score_weights').select('component, weight').eq('mode', mode.name);
-      return {for (final r in rows) r['component'] as String: (r['weight'] as num).toInt()};
+      final rows = await _db
+          .from('score_weights')
+          .select('component, weight')
+          .eq('mode', mode.name);
+      return {
+        for (final r in rows)
+          r['component'] as String: (r['weight'] as num).toInt(),
+      };
     } catch (e) {
       throw Failure.from(e);
     }
   }
 }
 
-final scoreRepositoryProvider =
-    Provider<ScoreRepository>((ref) => ScoreRepository(ref.watch(supabaseProvider)));
+final scoreRepositoryProvider = Provider<ScoreRepository>(
+  (ref) => ScoreRepository(ref.watch(supabaseProvider)),
+);
 
 final readinessProvider = FutureProvider<ReadinessScore>((ref) async {
   if (!ref.watch(isSignedInProvider)) return ReadinessScore.empty;
@@ -143,5 +155,7 @@ final scoreTrendProvider = FutureProvider<List<ReadinessScore>>((ref) async {
 final cohortProvider = FutureProvider<CohortBenchmark?>((ref) async {
   final profile = await ref.watch(profileProvider.future);
   if (profile == null) return null;
-  return ref.watch(scoreRepositoryProvider).cohort(profile.mode, profile.yearOfStudy);
+  return ref
+      .watch(scoreRepositoryProvider)
+      .cohort(profile.mode, profile.yearOfStudy);
 });
