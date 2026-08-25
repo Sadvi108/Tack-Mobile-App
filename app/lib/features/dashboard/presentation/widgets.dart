@@ -14,7 +14,10 @@ class ModeChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // The chip warms from amber to maroon as a student gets closer to working.
     final (background, foreground) = switch (mode) {
+      YearMode.school => (TackColors.amberTint, TackColors.amberText),
+      YearMode.graduate => (TackColors.maroonTint, TackColors.maroon),
       YearMode.explore => (TackColors.amberTint, TackColors.amberText),
       YearMode.build => (TackColors.tealTint, TackColors.tealText),
       YearMode.prove => (TackColors.tealDeepTint, TackColors.tealText),

@@ -4,17 +4,21 @@ import 'package:go_router/go_router.dart';
 
 import '../../../design/tack.dart';
 import '../../../routing/router.dart';
+import '../../profile/data/education_stage.dart';
 import '../application/onboarding_controller.dart';
-import '../data/onboarding_repository.dart';
-import 'steps.dart';
-import 'steps_two.dart';
+import '../data/onboarding_steps.dart';
+import 'basics_step.dart';
+import 'direction_step.dart';
+import 'interests_step.dart';
+import 'stage_step.dart';
+import 'study_step.dart';
 
 /// The onboarding wizard.
 ///
-/// Five steps, each asking for one kind of thing so it clears in under 30
-/// seconds. Progress at the top, a back link, and Continue pinned outside the
-/// scroll region. Every step saves as it is answered, so a dropped connection
-/// costs at most the step in progress.
+/// Five steps, and which questions appear in three of them depends on the
+/// answer to the second. Progress at the top, a back link, and Continue pinned
+/// outside the scroll region. Every step saves as it is answered, so a dropped
+/// connection costs at most the step in progress.
 class OnboardingScreen extends ConsumerWidget {
   const OnboardingScreen({super.key});
 
@@ -35,12 +39,15 @@ class OnboardingScreen extends ConsumerWidget {
       ),
       data: (draft) {
         final step = draft.step;
+        final blocked =
+            step == OnboardingStep.stage &&
+            draft.stage == EducationStage.primary;
 
         return TackScaffold(
           header: TackHeader(
-            title: step.title,
-            subtitle: step.blurb,
-            onBack: step.index == 0 ? null : controller.back,
+            title: step.titleFor(draft.stage),
+            subtitle: step.blurbFor(draft.stage),
+            onBack: draft.path.before(step) == null ? null : controller.back,
             progress: SegmentedProgress(
               total: draft.stepCount,
               current: draft.stepNumber,
@@ -57,16 +64,33 @@ class OnboardingScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: TackSpace.sm),
               ],
-              TackButton(
-                step == OnboardingStep.target ? 'Finish' : 'Continue',
-                loading: draft.busy,
-                onPressed: draft.canContinue
-                    ? () async {
-                        final done = await controller.saveAndContinue();
-                        if (done && context.mounted) context.go(Routes.home);
-                      }
-                    : null,
-              ),
+              // A primary student is offered a way out rather than a Continue
+              // that cannot go anywhere.
+              if (blocked)
+                TackButton.secondary(
+                  'Choose something else',
+                  onPressed: () => controller.patch(
+                    (d) => OnboardingDraft(
+                      step: d.step,
+                      fullName: d.fullName,
+                      countryId: d.countryId,
+                      dialCode: d.dialCode,
+                      cityId: d.cityId,
+                      phone: d.phone,
+                    ),
+                  ),
+                )
+              else
+                TackButton(
+                  step == OnboardingStep.direction ? 'Finish' : 'Continue',
+                  loading: draft.busy,
+                  onPressed: draft.canContinue
+                      ? () async {
+                          final done = await controller.saveAndContinue();
+                          if (done && context.mounted) context.go(Routes.home);
+                        }
+                      : null,
+                ),
             ],
           ),
           body: Column(
@@ -74,24 +98,26 @@ class OnboardingScreen extends ConsumerWidget {
             children: [
               const SizedBox(height: TackSpace.sm),
               switch (step) {
-                OnboardingStep.you => StepYou(
-                  key: const ValueKey('you'),
+                OnboardingStep.basics => BasicsStep(
+                  key: const ValueKey('basics'),
                   draft: draft,
                 ),
-                OnboardingStep.education => StepEducation(
-                  key: const ValueKey('education'),
+                OnboardingStep.stage => StageStep(
+                  key: const ValueKey('stage'),
                   draft: draft,
                 ),
-                OnboardingStep.year => StepYear(
-                  key: const ValueKey('year'),
+                OnboardingStep.study => StudyStep(
+                  // Rebuilt when the stage changes, because the form is a
+                  // different form.
+                  key: ValueKey('study-${draft.stage?.wire}'),
                   draft: draft,
                 ),
-                OnboardingStep.skills => StepSkills(
-                  key: const ValueKey('skills'),
+                OnboardingStep.interests => InterestsStep(
+                  key: ValueKey('interests-${draft.stage?.wire}'),
                   draft: draft,
                 ),
-                OnboardingStep.target => StepTarget(
-                  key: const ValueKey('target'),
+                OnboardingStep.direction => DirectionStep(
+                  key: ValueKey('direction-${draft.stage?.wire}'),
                   draft: draft,
                 ),
               },
@@ -109,11 +135,11 @@ class _OnboardingLoading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TackScaffold(
-      header: const TackHeader(title: 'Getting set up'),
+    return const TackScaffold(
+      header: TackHeader(title: 'Getting set up'),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
+        children: [
           SizedBox(height: TackSpace.lg),
           TackSkeleton(height: 52, radius: 12),
           SizedBox(height: TackSpace.stack),

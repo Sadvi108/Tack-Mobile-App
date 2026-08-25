@@ -170,6 +170,9 @@ class _Dashboard extends ConsumerWidget {
   }
 
   static String _greeting(YearMode mode) => switch (mode) {
+    YearMode.school =>
+      'No rush at all. Find out what you are good at and what you enjoy.',
+    YearMode.graduate => 'Let us get you hired.',
     YearMode.explore =>
       'There is no rush this year. Look around and try a few things.',
     YearMode.build => 'This is the year skills start to add up.',
