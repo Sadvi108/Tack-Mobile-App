@@ -19,7 +19,17 @@ class Env {
   static const sentryDsn = String.fromEnvironment('SENTRY_DSN');
   static const appEnv = String.fromEnvironment('APP_ENV', defaultValue: 'dev');
 
+  /// Opens the app straight onto one screen, for QA and design review.
+  ///
+  /// Ignored in production builds and by the auth guard, so it can show a
+  /// screen but never unlock one: a signed-out student pointed at /home is
+  /// still redirected to the welcome screen.
+  static const initialRoute = String.fromEnvironment('INITIAL_ROUTE');
+
   static bool get isProduction => appEnv == 'prod';
+
+  static String? get debugInitialRoute =>
+      isProduction || initialRoute.isEmpty ? null : initialRoute;
   static bool get analyticsEnabled => posthogKey.isNotEmpty;
   static bool get crashReportingEnabled => sentryDsn.isNotEmpty;
 

@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../config/env.dart';
 import '../core/supabase/client.dart';
 import '../design/tack.dart';
 import '../features/auth/presentation/login_screen.dart';
@@ -73,7 +74,7 @@ final routerProvider = Provider<GoRouter>((ref) {
   ref.onDispose(refresh.dispose);
 
   return GoRouter(
-    initialLocation: Routes.splash,
+    initialLocation: Env.debugInitialRoute ?? Routes.splash,
     refreshListenable: refresh,
     redirect: (context, state) {
       final signedIn = ref.read(supabaseProvider).auth.currentSession != null;
@@ -87,7 +88,14 @@ final routerProvider = Provider<GoRouter>((ref) {
         Routes.resetPassword,
       };
 
-      if (!signedIn && !publicRoutes.contains(loc)) return Routes.welcome;
+      if (!signedIn) {
+        // The splash screen exists to decide where a *signed-in* student goes.
+        // A signed-out one has nothing to wait for, so send them straight on
+        // rather than leaving them watching a spinner.
+        if (loc == Routes.splash) return Routes.welcome;
+        if (!publicRoutes.contains(loc)) return Routes.welcome;
+        return null;
+      }
       if (signedIn &&
           (loc == Routes.welcome ||
               loc == Routes.login ||
