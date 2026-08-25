@@ -6,6 +6,7 @@ import '../../../design/tack.dart';
 import '../../../routing/router.dart';
 import '../application/auth_controller.dart';
 import '../data/validators.dart';
+import '../data/oauth_provider.dart';
 import 'google_button.dart';
 
 /// Sign up.
@@ -22,18 +23,15 @@ class SignUpScreen extends ConsumerStatefulWidget {
 }
 
 class _SignUpScreenState extends ConsumerState<SignUpScreen> {
-  final _name = TextEditingController();
   final _email = TextEditingController();
   final _password = TextEditingController();
 
-  String? _nameError;
   String? _emailError;
   String? _passwordError;
   bool _submitted = false;
 
   @override
   void dispose() {
-    _name.dispose();
     _email.dispose();
     _password.dispose();
     super.dispose();
@@ -42,7 +40,6 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   void _revalidate() {
     if (!_submitted) return;
     setState(() {
-      _nameError = AuthValidators.fullName(_name.text);
       _emailError = AuthValidators.email(_email.text);
       _passwordError = AuthValidators.password(_password.text);
     });
@@ -51,21 +48,14 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   Future<void> _submit() async {
     setState(() {
       _submitted = true;
-      _nameError = AuthValidators.fullName(_name.text);
       _emailError = AuthValidators.email(_email.text);
       _passwordError = AuthValidators.password(_password.text);
     });
-    if (_nameError != null || _emailError != null || _passwordError != null) {
-      return;
-    }
+    if (_emailError != null || _passwordError != null) return;
 
     final ok = await ref
         .read(authControllerProvider.notifier)
-        .signUp(
-          email: _email.text,
-          password: _password.text,
-          fullName: _name.text,
-        );
+        .signUp(email: _email.text, password: _password.text);
     if (!mounted) return;
     if (ok) {
       final notice = ref.read(authControllerProvider).notice;
@@ -97,22 +87,21 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
 
             GoogleSignInButton(
               busy: auth.busy,
-              onPressed: () =>
-                  ref.read(authControllerProvider.notifier).signInWithGoogle(),
+              onPressed: () => ref
+                  .read(authControllerProvider.notifier)
+                  .signInWith(TackOAuthProvider.google),
+            ),
+            const SizedBox(height: TackSpace.row),
+            SecondaryProviderRow(
+              busy: auth.busy,
+              onPressed: (provider) => ref
+                  .read(authControllerProvider.notifier)
+                  .signInWith(provider),
             ),
             const SizedBox(height: TackSpace.md),
             const TackOrDivider(),
             const SizedBox(height: TackSpace.md),
 
-            TackTextField(
-              hint: 'Your full name',
-              controller: _name,
-              errorText: _nameError,
-              textInputAction: TextInputAction.next,
-              autofillHints: const [AutofillHints.name],
-              onChanged: (_) => _revalidate(),
-            ),
-            const SizedBox(height: TackSpace.row),
             TackTextField(
               hint: 'Email address',
               controller: _email,

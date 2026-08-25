@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/failure.dart';
 import '../data/auth_repository.dart';
+import '../data/oauth_provider.dart';
 
 /// What an auth screen needs to render: whether a request is in flight, and
 /// the last failure if there was one.
@@ -44,23 +45,17 @@ class AuthController extends Notifier<AuthUiState> {
     }
   }
 
-  Future<bool> signUp({
-    required String email,
-    required String password,
-    required String fullName,
-  }) => _run(
-    () => _repo.signUpWithEmail(
-      email: email,
-      password: password,
-      fullName: fullName,
-    ),
-    notice: 'Check your inbox. We sent a link to confirm your email.',
-  );
+  Future<bool> signUp({required String email, required String password}) =>
+      _run(
+        () => _repo.signUpWithEmail(email: email, password: password),
+        notice: 'Check your inbox. We sent a link to confirm your email.',
+      );
 
   Future<bool> signIn({required String email, required String password}) =>
       _run(() => _repo.signInWithEmail(email: email, password: password));
 
-  Future<bool> signInWithGoogle() => _run(() => _repo.signInWithGoogle());
+  Future<bool> signInWith(TackOAuthProvider provider) =>
+      _run(() => _repo.signInWithProvider(provider));
 
   Future<bool> sendReset(String email) => _run(
     () => _repo.sendPasswordReset(email),

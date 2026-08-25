@@ -28,6 +28,10 @@ void main() {
     expect(find.text('Create your account'), findsOneWidget);
     expect(find.text('Continue with Google'), findsOneWidget);
     expect(find.text('Create account'), findsOneWidget);
+
+    // All three social options are reachable without scrolling.
+    expect(find.text('Facebook'), findsOneWidget);
+    expect(find.text('GitHub'), findsOneWidget);
   });
 
   testWidgets('sign up still fits with the largest supported text scale', (
@@ -58,6 +62,17 @@ void main() {
     }
   });
 
+  testWidgets('sign up asks for the fewest things that will do', (
+    tester,
+  ) async {
+    await pumpAt(tester, const SignUpScreen());
+
+    // Two fields, because onboarding step one already asks for a name and a
+    // social sign-in supplies it. A third field here is a third chance to
+    // abandon sign-up.
+    expect(find.byType(TextField), findsNWidgets(2));
+  });
+
   testWidgets('validation explains what to do rather than what went wrong', (
     tester,
   ) async {
@@ -66,7 +81,6 @@ void main() {
     await tester.tap(find.text('Create account'));
     await tester.pump();
 
-    expect(find.text('Enter your name.'), findsOneWidget);
     expect(find.text('Enter your email address.'), findsOneWidget);
     expect(find.text('Choose a password.'), findsOneWidget);
   });
@@ -76,9 +90,8 @@ void main() {
   ) async {
     await pumpAt(tester, const SignUpScreen());
 
-    await tester.enterText(find.byType(TextField).at(0), 'Rafiq Hossain');
-    await tester.enterText(find.byType(TextField).at(1), 'rafiq@example.com');
-    await tester.enterText(find.byType(TextField).at(2), 'short');
+    await tester.enterText(find.byType(TextField).at(0), 'rafiq@example.com');
+    await tester.enterText(find.byType(TextField).at(1), 'short');
     await tester.tap(find.text('Create account'));
     await tester.pump();
 

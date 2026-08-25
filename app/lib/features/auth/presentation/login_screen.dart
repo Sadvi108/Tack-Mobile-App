@@ -6,6 +6,7 @@ import '../../../design/tack.dart';
 import '../../../routing/router.dart';
 import '../application/auth_controller.dart';
 import '../data/validators.dart';
+import '../data/oauth_provider.dart';
 import 'google_button.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -61,8 +62,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             GoogleSignInButton(
               label: 'Log in with Google',
               busy: auth.busy,
-              onPressed: () =>
-                  ref.read(authControllerProvider.notifier).signInWithGoogle(),
+              onPressed: () => ref
+                  .read(authControllerProvider.notifier)
+                  .signInWith(TackOAuthProvider.google),
+            ),
+            const SizedBox(height: TackSpace.row),
+            SecondaryProviderRow(
+              busy: auth.busy,
+              onPressed: (provider) => ref
+                  .read(authControllerProvider.notifier)
+                  .signInWith(provider),
             ),
             const SizedBox(height: TackSpace.md),
             const TackOrDivider(),

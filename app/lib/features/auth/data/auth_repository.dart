@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/failure.dart';
 import '../../../core/supabase/client.dart';
+import 'oauth_provider.dart';
 
 /// Everything that talks to Supabase Auth.
 ///
@@ -22,17 +23,18 @@ class AuthRepository {
   Session? get session => _db.auth.currentSession;
   User? get user => _db.auth.currentUser;
 
+  /// The name is deliberately not asked for here. Onboarding step one asks it,
+  /// and a social sign-in supplies it, so requiring it at sign-up would be a
+  /// third place the same question is answered.
   Future<void> signUpWithEmail({
     required String email,
     required String password,
-    required String fullName,
   }) async {
     try {
       await _db.auth.signUp(
         email: email.trim(),
         password: password,
         emailRedirectTo: redirectUrl,
-        data: {'full_name': fullName.trim()},
       );
     } catch (e) {
       throw Failure.from(e);
@@ -53,15 +55,25 @@ class AuthRepository {
     }
   }
 
-  /// Opens the system browser for Google. PKCE is configured at boot, so no
-  /// client secret exists anywhere in the app.
-  Future<void> signInWithGoogle() async {
+  /// Opens the system browser for a social provider.
+  ///
+  /// PKCE is configured at boot, so no client secret exists anywhere in the
+  /// app — the secret lives in Supabase and never ships to a device.
+  Future<void> signInWithProvider(TackOAuthProvider provider) async {
     try {
       await _db.auth.signInWithOAuth(
-        OAuthProvider.google,
+        provider.supabase,
         redirectTo: redirectUrl,
         authScreenLaunchMode: LaunchMode.externalApplication,
       );
+    } on AuthException catch (e) {
+      // A provider that is not enabled in the dashboard yet comes back as an
+      // unhelpful server error; say something the student can act on.
+      if (e.message.toLowerCase().contains('provider is not enabled') ||
+          e.message.toLowerCase().contains('unsupported provider')) {
+        throw Failure(provider.notConfiguredMessage, cause: e);
+      }
+      throw Failure.from(e);
     } catch (e) {
       throw Failure.from(e);
     }
