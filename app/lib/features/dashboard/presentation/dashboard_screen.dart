@@ -7,6 +7,7 @@ import '../../../design/tack.dart';
 import '../../../routing/router.dart';
 import '../../applications/data/application_models.dart';
 import '../../applications/data/application_repository.dart';
+import '../../notifications/data/notification_repository.dart';
 import '../../profile/data/profile.dart';
 import '../../profile/data/profile_repository.dart';
 import '../../roadmap/data/roadmap_models.dart';
@@ -80,8 +81,9 @@ class _Dashboard extends ConsumerWidget {
       bottomNav: _Nav(mode: mode),
       header: TackHomeHeader(
         initials: profile.initials,
+        unread: ref.watch(unreadCountProvider),
         onAvatarTap: () => context.go(Routes.profile),
-        onBellTap: () => context.go(Routes.notifications),
+        onBellTap: () => context.push(Routes.notifications),
       ),
       body: RefreshIndicator(
         color: TackColors.maroon,

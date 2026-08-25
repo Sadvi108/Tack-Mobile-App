@@ -14,6 +14,7 @@ import '../features/applications/presentation/application_detail_screen.dart';
 import '../features/applications/presentation/applications_screen.dart';
 import '../features/dashboard/presentation/dashboard_screen.dart';
 import '../features/interview/presentation/interview_screen.dart';
+import '../features/notifications/presentation/notifications_screen.dart';
 import '../features/onboarding/presentation/onboarding_screen.dart';
 import '../features/paths/presentation/path_detail_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
@@ -176,7 +177,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: Routes.notifications,
-        builder: (context, state) => const _Placeholder('Notifications'),
+        builder: (context, state) => const NotificationsScreen(),
       ),
     ],
     errorBuilder: (context, state) => TackScaffold(
@@ -191,24 +192,3 @@ final routerProvider = Provider<GoRouter>((ref) {
     ),
   );
 });
-
-/// Replaced screen by screen as each feature lands.
-class _Placeholder extends StatelessWidget {
-  const _Placeholder(this.name);
-
-  final String name;
-
-  @override
-  Widget build(BuildContext context) => TackScaffold(
-    header: TackHeader(title: name),
-    body: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: TackSpace.lg),
-        TackCard(
-          child: Text('$name is not built yet.', style: TackText.bodyMuted),
-        ),
-      ],
-    ),
-  );
-}

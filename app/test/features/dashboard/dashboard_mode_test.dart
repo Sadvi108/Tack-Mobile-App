@@ -9,6 +9,7 @@ import 'package:tack/features/applications/data/application_repository.dart';
 import 'package:tack/features/dashboard/application/next_actions.dart';
 import 'package:tack/features/dashboard/presentation/dashboard_screen.dart';
 import 'package:tack/features/dashboard/presentation/widgets.dart';
+import 'package:tack/features/notifications/data/notification_repository.dart';
 import 'package:tack/features/profile/data/profile.dart';
 import 'package:tack/features/profile/data/profile_repository.dart';
 import 'package:tack/features/roadmap/data/roadmap_models.dart';
@@ -48,6 +49,7 @@ List<Override> overridesFor(YearMode mode, int year, {int total = 30}) => [
   }),
   connectivityProvider.overrideWith((ref) => Stream.value(true)),
   pendingChangesProvider.overrideWith((ref) => Stream.value(0)),
+  notificationsProvider.overrideWith((ref) async => const <TackNotification>[]),
   profileProvider.overrideWith((ref) async => profileIn(mode, year)),
   readinessProvider.overrideWith((ref) async => scoreFor(mode, total)),
   weekChangeProvider.overrideWith((ref) async => 4),
