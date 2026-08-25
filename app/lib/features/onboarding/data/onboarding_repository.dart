@@ -3,8 +3,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/failure.dart';
 import '../../../core/supabase/client.dart';
+import '../../profile/data/education_stage.dart';
 import '../../profile/data/profile.dart';
 import '../../profile/data/profile_repository.dart';
+import 'onboarding_steps.dart';
 
 /// Writes onboarding answers.
 ///
@@ -28,12 +30,20 @@ class OnboardingRepository {
   Future<Profile> saveStep(int step, Map<String, Object?> patch) =>
       _profiles.update({...patch, 'onboarding_step': step});
 
+  /// Writes the one current education record, whichever kind it is.
+  ///
+  /// A school and a university live in the same table: the columns that do not
+  /// apply are simply left null, which is cheaper to reason about than two
+  /// tables that are ninety per cent the same.
   Future<Profile> saveEducation({
     required int step,
+    required EducationStage stage,
     String? universityId,
-    String? universityName,
+    String? institutionName,
     String? degree,
     String? fieldOfStudy,
+    String? classLevel,
+    String? currentGrade,
     int? graduationYear,
     double? cgpa,
     double cgpaScale = 4.0,
@@ -49,14 +59,19 @@ class OnboardingRepository {
 
       final row = {
         'user_id': _uid,
+        'stage': stage.wire,
         'university_id': universityId,
-        'university_name': universityName,
+        'institution_name': institutionName,
+        'university_name': institutionName,
         'degree': degree,
         'field_of_study': fieldOfStudy,
+        'class_level': classLevel,
+        'current_grade': currentGrade,
         'graduation_year': graduationYear,
         'cgpa': cgpa,
         'cgpa_scale': cgpaScale,
-        'is_current': true,
+        // A graduate is no longer studying, so this record is history.
+        'is_current': stage != EducationStage.graduated,
       };
 
       if (existing == null) {
@@ -71,6 +86,64 @@ class OnboardingRepository {
       throw Failure.from(e);
     }
     return _profiles.update({'onboarding_step': step});
+  }
+
+  /// Replaces every interest of the given kinds with exactly this set.
+  ///
+  /// Scoped by kind so saving favourite subjects does not wipe hobbies.
+  Future<void> saveInterests({
+    required Set<InterestKind> kinds,
+    required List<({InterestKind kind, String label})> entries,
+  }) async {
+    try {
+      await _db.from('student_interests').delete().eq('user_id', _uid).inFilter(
+        'kind',
+        [for (final k in kinds) k.wire],
+      );
+
+      if (entries.isNotEmpty) {
+        await _db
+            .from('student_interests')
+            .upsert(
+              [
+                for (final entry in entries)
+                  {
+                    'user_id': _uid,
+                    'kind': entry.kind.wire,
+                    'label': entry.label.trim(),
+                  },
+              ],
+              onConflict: 'user_id,kind,label',
+              ignoreDuplicates: true,
+            );
+      }
+    } catch (e) {
+      throw Failure.from(e);
+    }
+  }
+
+  Future<List<StudentInterest>> savedInterests() async {
+    try {
+      final rows = await _db
+          .from('student_interests')
+          .select('id, kind, label')
+          .eq('user_id', _uid);
+      return rows.map(StudentInterest.fromRow).toList();
+    } catch (e) {
+      throw Failure.from(e);
+    }
+  }
+
+  Future<List<Country>> countries() async {
+    try {
+      final rows = await _db
+          .from('countries')
+          .select('id, iso2, name, dial_code')
+          .order('sort_order');
+      return rows.map(Country.fromRow).toList();
+    } catch (e) {
+      throw Failure.from(e);
+    }
   }
 
   /// Replaces the student's self-declared skills with exactly this set.
@@ -110,11 +183,15 @@ class OnboardingRepository {
   }
 
   Future<Profile> complete({
-    required String targetRole,
-    required List<String> targetIndustry,
+    String? targetRole,
+    List<String> targetIndustry = const [],
+    String? intendedField,
+    String? passion,
   }) => _profiles.update({
     'target_role': targetRole,
     'target_industry': targetIndustry,
+    'intended_field': intendedField,
+    'passion': passion,
     'onboarding_step': OnboardingStep.values.length,
     'onboarding_completed_at': DateTime.now().toUtc().toIso8601String(),
   });
@@ -148,36 +225,6 @@ class OnboardingRepository {
       throw Failure.from(e);
     }
   }
-}
-
-/// The five steps, in order. Each one asks for a single kind of thing so it
-/// clears in under 30 seconds.
-enum OnboardingStep {
-  you,
-  education,
-  year,
-  skills,
-  target;
-
-  String get title => switch (this) {
-    OnboardingStep.you => 'About you',
-    OnboardingStep.education => 'Where you study',
-    OnboardingStep.year => 'Where you are',
-    OnboardingStep.skills => 'What you can do',
-    OnboardingStep.target => 'What you want',
-  };
-
-  String get blurb => switch (this) {
-    OnboardingStep.you => 'So the app can address you properly.',
-    OnboardingStep.education =>
-      'Your CGPA is optional and is never shown to anyone.',
-    OnboardingStep.year =>
-      'This one answer shapes the whole app. You can change it any time from your profile.',
-    OnboardingStep.skills =>
-      'Pick anything you have done, even at a beginner level.',
-    OnboardingStep.target =>
-      'A rough idea is enough. Nothing here is locked in.',
-  };
 }
 
 final onboardingRepositoryProvider = Provider<OnboardingRepository>(

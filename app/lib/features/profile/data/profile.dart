@@ -1,12 +1,19 @@
+import 'education_stage.dart';
+
 /// The four modes the app runs in, derived server-side from year of study.
 ///
 /// This is the single most important value per user: it decides what every
 /// dashboard leads with and what language the app uses.
 enum YearMode {
+  /// Still at school, choosing what to study rather than where to work.
+  school,
   explore,
   build,
   prove,
-  launch;
+  launch,
+
+  /// Finished studying and looking for the first job now.
+  graduate;
 
   static YearMode fromWire(String? value) => YearMode.values.firstWhere(
     (m) => m.name == value,
@@ -14,6 +21,8 @@ enum YearMode {
   );
 
   String get label => switch (this) {
+    YearMode.school => 'School',
+    YearMode.graduate => 'Launch',
     YearMode.explore => 'Explore',
     YearMode.build => 'Build',
     YearMode.prove => 'Prove',
@@ -22,6 +31,8 @@ enum YearMode {
 
   /// What the mode chip says above the greeting.
   String get chipText => switch (this) {
+    YearMode.school => 'At school · explore',
+    YearMode.graduate => 'Graduated · job hunting',
     YearMode.explore => 'First year · explore',
     YearMode.build => 'Second year · build',
     YearMode.prove => 'Third year · prove',
@@ -31,20 +42,32 @@ enum YearMode {
   /// How the student's own cohort is named in score copy. Never compared
   /// against final-years.
   String get cohortNoun => switch (this) {
+    YearMode.school => 'students your age',
+    YearMode.graduate => 'recent graduates',
     YearMode.explore => 'first-years',
     YearMode.build => 'second-years',
     YearMode.prove => 'third-years',
     YearMode.launch => 'final-years',
   };
 
-  /// Applications only become the point of the app in final year.
-  bool get showsFunnel => this == YearMode.launch;
+  /// Applications are only the point of the app once a student is actually
+  /// applying — final year, or already graduated.
+  bool get showsFunnel => this == YearMode.launch || this == YearMode.graduate;
+
+  /// A school student is choosing a subject, not a job.
+  bool get isAtSchool => this == YearMode.school;
 }
 
 class Profile {
   const Profile({
     required this.id,
     this.fullName,
+    this.countryId,
+    this.countryName,
+    this.dialCode = '+880',
+    this.stage,
+    this.intendedField,
+    this.passion,
     this.cityId,
     this.cityName,
     this.phone,
@@ -61,6 +84,19 @@ class Profile {
 
   final String id;
   final String? fullName;
+  final String? countryId;
+  final String? countryName;
+
+  /// The phone prefix that goes with the country, so the form never assumes
+  /// where a student lives.
+  final String dialCode;
+
+  final EducationStage? stage;
+
+  /// What a school student wants to study, and why they care. Their own words.
+  final String? intendedField;
+  final String? passion;
+
   final String? cityId;
   final String? cityName;
   final String? phone;
@@ -100,9 +136,20 @@ class Profile {
 
   factory Profile.fromRow(Map<String, dynamic> row) {
     final city = row['cities'];
+    final country = row['countries'];
     return Profile(
       id: row['id'] as String,
       fullName: row['full_name'] as String?,
+      countryId: row['country_id'] as String?,
+      countryName: country is Map<String, dynamic>
+          ? country['name'] as String?
+          : null,
+      dialCode: country is Map<String, dynamic>
+          ? (country['dial_code'] as String?) ?? '+880'
+          : '+880',
+      stage: EducationStage.fromWire(row['education_stage'] as String?),
+      intendedField: row['intended_field'] as String?,
+      passion: row['passion'] as String?,
       cityId: row['city_id'] as String?,
       cityName: city is Map<String, dynamic> ? city['name'] as String? : null,
       phone: row['phone'] as String?,
@@ -124,6 +171,12 @@ class Profile {
 
   Profile copyWith({
     String? fullName,
+    String? countryId,
+    String? countryName,
+    String? dialCode,
+    EducationStage? stage,
+    String? intendedField,
+    String? passion,
     String? cityId,
     String? cityName,
     String? phone,

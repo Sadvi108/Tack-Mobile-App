@@ -15,7 +15,7 @@ class ProfileRepository {
 
   final SupabaseClient _db;
 
-  static const _columns = '*, cities(name)';
+  static const _columns = '*, cities(name), countries(name, dial_code)';
 
   String get _uid {
     final id = _db.auth.currentUser?.id;
