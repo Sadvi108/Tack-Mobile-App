@@ -75,6 +75,24 @@ class CrashReporting {
     await appRunner();
   }
 
+  /// Reports one error explicitly, for failures that would otherwise be
+  /// swallowed or arrive with no useful context.
+  static Future<void> report(
+    Object error,
+    StackTrace? stack, {
+    Map<String, String>? context,
+  }) async {
+    debugPrint('Tack startup failure: $error');
+    if (!Env.crashReportingEnabled) return;
+    await Sentry.captureException(
+      error,
+      stackTrace: stack,
+      withScope: (scope) {
+        context?.forEach(scope.setTag);
+      },
+    );
+  }
+
   /// Ties a crash to an account without identifying the person behind it.
   static Future<void> setUser(String? userId) async {
     if (!Env.crashReportingEnabled) return;

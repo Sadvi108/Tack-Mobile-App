@@ -50,9 +50,14 @@ app/env/prod.json
 }
 ```
 
-Leave `SENTRY_DSN` empty in `env/dev.json`. With no DSN the app runs normally
-and reports nothing, so your own crashes while developing never land in the
-production issue list.
+The same DSN is set in `env/dev.json` as well, with `APP_ENV=dev`. Sentry tags
+every event with its environment, so development noise and real student
+crashes land in one project but filter apart cleanly — which beats developing
+blind. Filter to `environment:prod` when you want to know what students are
+actually hitting.
+
+Leave the DSN empty in a build if you want it to report nothing at all; the app
+runs normally either way.
 
 **4. Build with it.**
 
