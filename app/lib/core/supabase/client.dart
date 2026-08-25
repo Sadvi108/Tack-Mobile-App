@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../config/env.dart';
+import '../crash_reporting.dart';
 
 /// Boots Supabase. Called once, before `runApp`.
 Future<void> initSupabase() async {
@@ -32,7 +33,13 @@ final authStateProvider = StreamProvider<AuthState>(
 /// first frame does not flash the login screen at an already-signed-in user.
 final currentUserProvider = Provider<User?>((ref) {
   ref.watch(authStateProvider);
-  return ref.watch(supabaseProvider).auth.currentUser;
+  final user = ref.watch(supabaseProvider).auth.currentUser;
+
+  // So a crash can be traced to one account without naming the person behind
+  // it. Signing out clears it.
+  CrashReporting.setUser(user?.id);
+
+  return user;
 });
 
 final isSignedInProvider = Provider<bool>(

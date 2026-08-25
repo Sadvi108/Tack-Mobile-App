@@ -55,6 +55,9 @@ supabase functions deploy analyze-jd worker interview
 `AI_PROVIDER` should stay `mock` until you deliberately want live model calls.
 Flip it to `gemini` for a single test, then set it back.
 
+Crash reporting is optional and off until a DSN is set — see
+[SENTRY.md](SENTRY.md) for what it sends and how to switch it on.
+
 Google sign-in also needs enabling in the Supabase dashboard under
 Authentication → Providers → Google, with `com.tack.app://auth-callback` added
 to the allowed redirect URLs.
