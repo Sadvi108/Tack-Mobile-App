@@ -112,7 +112,23 @@ const asUser = (tok, p, opt = {}) => fetch(`${URL}${p}`, {
   } catch { crossPromote = true; }
   ok('promoting a CV that does not exist fails loudly', crossPromote);
 
-  for (const u of users) await admin(`/auth/v1/admin/users/${u.id}`, { method: 'DELETE' });
+  // Deleting the auth user cascades the rows but not the bytes, so the
+  // objects have to go explicitly or the bucket accumulates test files.
+  for (const u of users) {
+    const objects = (await pg.query(
+      `select name from storage.objects where bucket_id='documents' and name like 'users/' || $1 || '%'`,
+      [u.id])).rows;
+    for (const o of objects) {
+      await asUser(u.token, `/storage/v1/object/documents/${o.name}`, { method: 'DELETE' });
+    }
+    await admin(`/auth/v1/admin/users/${u.id}`, { method: 'DELETE' });
+  }
+
+  const orphans = (await pg.query(
+    `select count(*)::int n from storage.objects o
+       where o.bucket_id='documents'
+         and not exists (select 1 from public.documents d where d.storage_path = o.name)`)).rows[0].n;
+  ok('no orphaned objects are left in the bucket', orphans === 0, `${orphans}`);
 
   await pg.end();
   console.log(`\n${pass} passed, ${fail} failed`);
