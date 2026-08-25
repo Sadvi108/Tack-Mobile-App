@@ -11,6 +11,9 @@ import '../features/auth/presentation/splash_screen.dart';
 import '../features/auth/presentation/welcome_screen.dart';
 import '../features/dashboard/presentation/dashboard_screen.dart';
 import '../features/onboarding/presentation/onboarding_screen.dart';
+import '../features/paths/presentation/path_detail_screen.dart';
+import '../features/paths/presentation/paths_screen.dart';
+import '../features/roadmap/presentation/roadmap_screen.dart';
 import '../features/score/presentation/score_screen.dart';
 
 /// Every route name in one place, so nothing is typed as a string literal at a
@@ -92,8 +95,18 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: Routes.resetPassword, builder: (context, state) => const ResetPasswordScreen()),
       GoRoute(path: Routes.onboarding, builder: (context, state) => const OnboardingScreen()),
       GoRoute(path: Routes.home, builder: (context, state) => const DashboardScreen()),
-      GoRoute(path: Routes.paths, builder: (context, state) => const _Placeholder('Career paths')),
-      GoRoute(path: Routes.roadmap, builder: (context, state) => const _Placeholder('Roadmap')),
+      GoRoute(
+        path: Routes.paths,
+        builder: (context, state) => const PathsScreen(),
+        routes: [
+          GoRoute(
+            path: ':slug',
+            builder: (context, state) =>
+                PathDetailScreen(slug: state.pathParameters['slug']!),
+          ),
+        ],
+      ),
+      GoRoute(path: Routes.roadmap, builder: (context, state) => const RoadmapScreen()),
       GoRoute(path: Routes.applications, builder: (context, state) => const _Placeholder('Applications')),
       GoRoute(path: Routes.profile, builder: (context, state) => const _Placeholder('Profile')),
       GoRoute(path: Routes.score, builder: (context, state) => const ScoreScreen()),
