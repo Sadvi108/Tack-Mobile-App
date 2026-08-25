@@ -4,6 +4,12 @@ import 'package:go_router/go_router.dart';
 
 import '../core/supabase/client.dart';
 import '../design/tack.dart';
+import '../features/auth/presentation/login_screen.dart';
+import '../features/auth/presentation/password_screens.dart';
+import '../features/auth/presentation/signup_screen.dart';
+import '../features/auth/presentation/splash_screen.dart';
+import '../features/auth/presentation/welcome_screen.dart';
+import '../features/onboarding/presentation/onboarding_screen.dart';
 
 /// Every route name in one place, so nothing is typed as a string literal at a
 /// call site.
@@ -76,13 +82,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       return null;
     },
     routes: [
-      GoRoute(path: Routes.splash, builder: (context, state) => const _Placeholder('Splash')),
-      GoRoute(path: Routes.welcome, builder: (context, state) => const _Placeholder('Welcome')),
-      GoRoute(path: Routes.login, builder: (context, state) => const _Placeholder('Log in')),
-      GoRoute(path: Routes.signup, builder: (context, state) => const _Placeholder('Sign up')),
-      GoRoute(path: Routes.forgotPassword, builder: (context, state) => const _Placeholder('Forgot password')),
-      GoRoute(path: Routes.resetPassword, builder: (context, state) => const _Placeholder('Reset password')),
-      GoRoute(path: Routes.onboarding, builder: (context, state) => const _Placeholder('Onboarding')),
+      GoRoute(path: Routes.splash, builder: (context, state) => const SplashScreen()),
+      GoRoute(path: Routes.welcome, builder: (context, state) => const WelcomeScreen()),
+      GoRoute(path: Routes.login, builder: (context, state) => const LoginScreen()),
+      GoRoute(path: Routes.signup, builder: (context, state) => const SignUpScreen()),
+      GoRoute(path: Routes.forgotPassword, builder: (context, state) => const ForgotPasswordScreen()),
+      GoRoute(path: Routes.resetPassword, builder: (context, state) => const ResetPasswordScreen()),
+      GoRoute(path: Routes.onboarding, builder: (context, state) => const OnboardingScreen()),
       GoRoute(path: Routes.home, builder: (context, state) => const _Placeholder('Home')),
       GoRoute(path: Routes.paths, builder: (context, state) => const _Placeholder('Career paths')),
       GoRoute(path: Routes.roadmap, builder: (context, state) => const _Placeholder('Roadmap')),
