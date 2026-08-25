@@ -36,6 +36,12 @@ class TackScaffold extends StatelessWidget {
   final Widget? bottomNav;
   final Color background;
   final bool padBody;
+
+  /// Whether the shell wraps [body] in its own scroll view.
+  ///
+  /// Set this to false when the body already scrolls — a ListView, a
+  /// CustomScrollView, or anything inside a RefreshIndicator. Nesting two
+  /// vertical viewports throws at layout time.
   final bool scrollable;
   final bool onMaroonHeader;
   final Widget? floatingAction;

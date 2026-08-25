@@ -9,7 +9,9 @@ import '../features/auth/presentation/password_screens.dart';
 import '../features/auth/presentation/signup_screen.dart';
 import '../features/auth/presentation/splash_screen.dart';
 import '../features/auth/presentation/welcome_screen.dart';
+import '../features/dashboard/presentation/dashboard_screen.dart';
 import '../features/onboarding/presentation/onboarding_screen.dart';
+import '../features/score/presentation/score_screen.dart';
 
 /// Every route name in one place, so nothing is typed as a string literal at a
 /// call site.
@@ -89,12 +91,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: Routes.forgotPassword, builder: (context, state) => const ForgotPasswordScreen()),
       GoRoute(path: Routes.resetPassword, builder: (context, state) => const ResetPasswordScreen()),
       GoRoute(path: Routes.onboarding, builder: (context, state) => const OnboardingScreen()),
-      GoRoute(path: Routes.home, builder: (context, state) => const _Placeholder('Home')),
+      GoRoute(path: Routes.home, builder: (context, state) => const DashboardScreen()),
       GoRoute(path: Routes.paths, builder: (context, state) => const _Placeholder('Career paths')),
       GoRoute(path: Routes.roadmap, builder: (context, state) => const _Placeholder('Roadmap')),
       GoRoute(path: Routes.applications, builder: (context, state) => const _Placeholder('Applications')),
       GoRoute(path: Routes.profile, builder: (context, state) => const _Placeholder('Profile')),
-      GoRoute(path: Routes.score, builder: (context, state) => const _Placeholder('Readiness score')),
+      GoRoute(path: Routes.score, builder: (context, state) => const ScoreScreen()),
       GoRoute(path: Routes.vault, builder: (context, state) => const _Placeholder('Document vault')),
       GoRoute(path: Routes.analyser, builder: (context, state) => const _Placeholder('Job analyser')),
       GoRoute(path: Routes.interview, builder: (context, state) => const _Placeholder('Interview practice')),
