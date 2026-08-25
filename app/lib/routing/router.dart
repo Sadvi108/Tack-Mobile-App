@@ -9,9 +9,11 @@ import '../features/auth/presentation/password_screens.dart';
 import '../features/auth/presentation/signup_screen.dart';
 import '../features/auth/presentation/splash_screen.dart';
 import '../features/auth/presentation/welcome_screen.dart';
+import '../features/analyser/presentation/analyser_screen.dart';
 import '../features/applications/presentation/application_detail_screen.dart';
 import '../features/applications/presentation/applications_screen.dart';
 import '../features/dashboard/presentation/dashboard_screen.dart';
+import '../features/interview/presentation/interview_screen.dart';
 import '../features/onboarding/presentation/onboarding_screen.dart';
 import '../features/paths/presentation/path_detail_screen.dart';
 import '../features/paths/presentation/paths_screen.dart';
@@ -124,8 +126,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: Routes.profile, builder: (context, state) => const _Placeholder('Profile')),
       GoRoute(path: Routes.score, builder: (context, state) => const ScoreScreen()),
       GoRoute(path: Routes.vault, builder: (context, state) => const VaultScreen()),
-      GoRoute(path: Routes.analyser, builder: (context, state) => const _Placeholder('Job analyser')),
-      GoRoute(path: Routes.interview, builder: (context, state) => const _Placeholder('Interview practice')),
+      GoRoute(path: Routes.analyser, builder: (context, state) => const AnalyserScreen()),
+      GoRoute(path: Routes.interview, builder: (context, state) => const InterviewScreen()),
       GoRoute(path: Routes.notifications, builder: (context, state) => const _Placeholder('Notifications')),
     ],
     errorBuilder: (context, state) => TackScaffold(

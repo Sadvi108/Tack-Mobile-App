@@ -1,0 +1,14 @@
+{
+  "lock": false,
+  "compilerOptions": {
+    "strict": true,
+    "lib": ["deno.window", "deno.ns", "dom", "dom.iterable", "esnext"]
+  },
+  "imports": {
+    "jsr:@supabase/supabase-js@2": "jsr:@supabase/supabase-js@^2.58.0"
+  },
+  "tasks": {
+    "check": "deno check analyze-jd/index.ts worker/index.ts interview/index.ts",
+    "test": "deno test --allow-none _shared/"
+  }
+}
