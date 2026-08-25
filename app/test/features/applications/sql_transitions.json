@@ -1,0 +1,182 @@
+[
+ {
+  "from_status": "applied",
+  "to_status": "applied",
+  "allowed": true
+ },
+ {
+  "from_status": "applied",
+  "to_status": "assessment",
+  "allowed": true
+ },
+ {
+  "from_status": "applied",
+  "to_status": "interview",
+  "allowed": true
+ },
+ {
+  "from_status": "applied",
+  "to_status": "offer",
+  "allowed": true
+ },
+ {
+  "from_status": "applied",
+  "to_status": "rejected",
+  "allowed": true
+ },
+ {
+  "from_status": "applied",
+  "to_status": "saved",
+  "allowed": true
+ },
+ {
+  "from_status": "assessment",
+  "to_status": "applied",
+  "allowed": true
+ },
+ {
+  "from_status": "assessment",
+  "to_status": "assessment",
+  "allowed": true
+ },
+ {
+  "from_status": "assessment",
+  "to_status": "interview",
+  "allowed": true
+ },
+ {
+  "from_status": "assessment",
+  "to_status": "offer",
+  "allowed": true
+ },
+ {
+  "from_status": "assessment",
+  "to_status": "rejected",
+  "allowed": true
+ },
+ {
+  "from_status": "assessment",
+  "to_status": "saved",
+  "allowed": false
+ },
+ {
+  "from_status": "interview",
+  "to_status": "applied",
+  "allowed": false
+ },
+ {
+  "from_status": "interview",
+  "to_status": "assessment",
+  "allowed": true
+ },
+ {
+  "from_status": "interview",
+  "to_status": "interview",
+  "allowed": true
+ },
+ {
+  "from_status": "interview",
+  "to_status": "offer",
+  "allowed": true
+ },
+ {
+  "from_status": "interview",
+  "to_status": "rejected",
+  "allowed": true
+ },
+ {
+  "from_status": "interview",
+  "to_status": "saved",
+  "allowed": false
+ },
+ {
+  "from_status": "offer",
+  "to_status": "applied",
+  "allowed": false
+ },
+ {
+  "from_status": "offer",
+  "to_status": "assessment",
+  "allowed": false
+ },
+ {
+  "from_status": "offer",
+  "to_status": "interview",
+  "allowed": true
+ },
+ {
+  "from_status": "offer",
+  "to_status": "offer",
+  "allowed": true
+ },
+ {
+  "from_status": "offer",
+  "to_status": "rejected",
+  "allowed": true
+ },
+ {
+  "from_status": "offer",
+  "to_status": "saved",
+  "allowed": false
+ },
+ {
+  "from_status": "rejected",
+  "to_status": "applied",
+  "allowed": true
+ },
+ {
+  "from_status": "rejected",
+  "to_status": "assessment",
+  "allowed": true
+ },
+ {
+  "from_status": "rejected",
+  "to_status": "interview",
+  "allowed": true
+ },
+ {
+  "from_status": "rejected",
+  "to_status": "offer",
+  "allowed": true
+ },
+ {
+  "from_status": "rejected",
+  "to_status": "rejected",
+  "allowed": true
+ },
+ {
+  "from_status": "rejected",
+  "to_status": "saved",
+  "allowed": true
+ },
+ {
+  "from_status": "saved",
+  "to_status": "applied",
+  "allowed": true
+ },
+ {
+  "from_status": "saved",
+  "to_status": "assessment",
+  "allowed": false
+ },
+ {
+  "from_status": "saved",
+  "to_status": "interview",
+  "allowed": false
+ },
+ {
+  "from_status": "saved",
+  "to_status": "offer",
+  "allowed": false
+ },
+ {
+  "from_status": "saved",
+  "to_status": "rejected",
+  "allowed": true
+ },
+ {
+  "from_status": "saved",
+  "to_status": "saved",
+  "allowed": true
+ }
+]

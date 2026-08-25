@@ -9,12 +9,15 @@ import '../features/auth/presentation/password_screens.dart';
 import '../features/auth/presentation/signup_screen.dart';
 import '../features/auth/presentation/splash_screen.dart';
 import '../features/auth/presentation/welcome_screen.dart';
+import '../features/applications/presentation/application_detail_screen.dart';
+import '../features/applications/presentation/applications_screen.dart';
 import '../features/dashboard/presentation/dashboard_screen.dart';
 import '../features/onboarding/presentation/onboarding_screen.dart';
 import '../features/paths/presentation/path_detail_screen.dart';
 import '../features/paths/presentation/paths_screen.dart';
 import '../features/roadmap/presentation/roadmap_screen.dart';
 import '../features/score/presentation/score_screen.dart';
+import '../features/vault/presentation/vault_screen.dart';
 
 /// Every route name in one place, so nothing is typed as a string literal at a
 /// call site.
@@ -107,10 +110,20 @@ final routerProvider = Provider<GoRouter>((ref) {
         ],
       ),
       GoRoute(path: Routes.roadmap, builder: (context, state) => const RoadmapScreen()),
-      GoRoute(path: Routes.applications, builder: (context, state) => const _Placeholder('Applications')),
+      GoRoute(
+        path: Routes.applications,
+        builder: (context, state) => const ApplicationsScreen(),
+        routes: [
+          GoRoute(
+            path: ':id',
+            builder: (context, state) =>
+                ApplicationDetailScreen(id: state.pathParameters['id']!),
+          ),
+        ],
+      ),
       GoRoute(path: Routes.profile, builder: (context, state) => const _Placeholder('Profile')),
       GoRoute(path: Routes.score, builder: (context, state) => const ScoreScreen()),
-      GoRoute(path: Routes.vault, builder: (context, state) => const _Placeholder('Document vault')),
+      GoRoute(path: Routes.vault, builder: (context, state) => const VaultScreen()),
       GoRoute(path: Routes.analyser, builder: (context, state) => const _Placeholder('Job analyser')),
       GoRoute(path: Routes.interview, builder: (context, state) => const _Placeholder('Interview practice')),
       GoRoute(path: Routes.notifications, builder: (context, state) => const _Placeholder('Notifications')),
