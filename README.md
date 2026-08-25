@@ -1,5 +1,8 @@
 # Tack
 
+For university graduates and soon-to-be graduates who want to know their
+career map and build toward it.
+
 A career workspace for Bangladeshi university students, from first year to
 first job. Not a job board: a readiness score, a personalised roadmap, an
 application tracker, a document vault, a job-description analyser and
