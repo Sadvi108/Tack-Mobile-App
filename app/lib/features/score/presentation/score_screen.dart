@@ -175,7 +175,7 @@ class ScoreScreen extends ConsumerWidget {
   }
 
   static String _yearPhrase(YearMode mode) => switch (mode) {
-    YearMode.school => 'someone still at school',
+    YearMode.discover => 'someone still at school',
     YearMode.graduate => 'a recent graduate',
     YearMode.explore => 'a first-year',
     YearMode.build => 'a second-year',

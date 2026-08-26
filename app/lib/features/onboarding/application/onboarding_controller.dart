@@ -101,9 +101,9 @@ class OnboardingDraft {
   /// consequence of the choice is visible before it is made.
   YearMode get previewMode {
     final s = stage;
-    if (s == null) return YearMode.school;
+    if (s == null) return YearMode.discover;
     if (s == EducationStage.primary || s == EducationStage.highSchool) {
-      return YearMode.school;
+      return YearMode.discover;
     }
     if (s == EducationStage.graduated) return YearMode.graduate;
 

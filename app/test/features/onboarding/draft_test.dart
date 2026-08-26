@@ -14,7 +14,7 @@ void main() {
         stage: EducationStage.highSchool,
         yearOfStudy: 3,
       );
-      expect(d.previewMode, YearMode.school);
+      expect(d.previewMode, YearMode.discover);
     });
 
     test('a graduate is in graduate mode', () {

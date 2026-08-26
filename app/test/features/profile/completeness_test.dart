@@ -34,7 +34,7 @@ Profile schoolStudent() => Profile(
   cityId: 'dhaka',
   phone: '+8801712345678',
   stage: EducationStage.highSchool,
-  mode: YearMode.school,
+  mode: YearMode.discover,
   intendedField: 'Computer science',
   onboardingCompletedAt: DateTime(2026, 1, 1),
 );

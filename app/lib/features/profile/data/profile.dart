@@ -6,7 +6,7 @@ import 'education_stage.dart';
 /// dashboard leads with and what language the app uses.
 enum YearMode {
   /// Still at school, choosing what to study rather than where to work.
-  school,
+  discover,
   explore,
   build,
   prove,
@@ -21,7 +21,7 @@ enum YearMode {
   );
 
   String get label => switch (this) {
-    YearMode.school => 'School',
+    YearMode.discover => 'School',
     YearMode.graduate => 'Launch',
     YearMode.explore => 'Explore',
     YearMode.build => 'Build',
@@ -31,7 +31,7 @@ enum YearMode {
 
   /// What the mode chip says above the greeting.
   String get chipText => switch (this) {
-    YearMode.school => 'At school · explore',
+    YearMode.discover => 'At school · explore',
     YearMode.graduate => 'Graduated · job hunting',
     YearMode.explore => 'First year · explore',
     YearMode.build => 'Second year · build',
@@ -42,7 +42,7 @@ enum YearMode {
   /// How the student's own cohort is named in score copy. Never compared
   /// against final-years.
   String get cohortNoun => switch (this) {
-    YearMode.school => 'students your age',
+    YearMode.discover => 'students your age',
     YearMode.graduate => 'recent graduates',
     YearMode.explore => 'first-years',
     YearMode.build => 'second-years',
@@ -55,7 +55,7 @@ enum YearMode {
   bool get showsFunnel => this == YearMode.launch || this == YearMode.graduate;
 
   /// A school student is choosing a subject, not a job.
-  bool get isAtSchool => this == YearMode.school;
+  bool get isAtSchool => this == YearMode.discover;
 }
 
 class Profile {
