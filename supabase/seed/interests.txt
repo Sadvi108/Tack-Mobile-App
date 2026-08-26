@@ -1,0 +1,7 @@
+creative|Drawing, Painting, Photography, Videography, Video editing, Graphic design, Creative writing, Poetry, Blogging, Music production, Playing an instrument, Singing, Dancing, Acting, Filmmaking, Animation, Crafts, Calligraphy
+sport|Football, Cricket, Badminton, Table tennis, Basketball, Volleyball, Swimming, Running, Cycling, Gym and fitness, Martial arts, Chess, Carrom, Athletics
+technical|Programming, Web development, App development, Robotics, Electronics, Gaming, Game development, 3D modelling, Cybersecurity, Artificial intelligence, Data analysis, Building computers
+academic|Science olympiad, Maths olympiad, Physics olympiad, Debating, Public speaking, Model United Nations, Quiz competitions, Research, Reading, Language learning, Astronomy
+social|Volunteering, Community service, Teaching others, Mentoring, Event organising, Club leadership, Fundraising, Social media management, Blood donation drives, Environmental campaigns
+business|Entrepreneurship, Small business, Freelancing, Trading, Investing, Marketing, Sales, Startups
+lifestyle|Cooking, Baking, Gardening, Travelling, Hiking, Fishing, Pets and animals, Fashion, Podcasts, Journalling, Board games, Collecting

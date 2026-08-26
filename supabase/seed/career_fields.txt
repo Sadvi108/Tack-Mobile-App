@@ -1,0 +1,40 @@
+engineering|Engineering|Physics, Higher mathematics, Mathematics, Chemistry
+computer-science|Computer science and software|Information and communication technology, Higher mathematics, Physics
+medicine|Medicine and health|Biology, Chemistry, Physics
+pharmacy|Pharmacy|Chemistry, Biology
+nursing|Nursing and allied health|Biology, Health science
+business|Business and management|Business studies, Accounting, Economics
+accounting|Accounting and finance|Accounting, Business mathematics, Economics
+economics|Economics|Economics, Mathematics, Statistics
+banking|Banking and insurance|Finance and banking, Accounting
+marketing|Marketing and advertising|Marketing, Business studies
+law|Law|Civics and good governance, History, Logic
+architecture|Architecture and planning|Physics, Higher mathematics, Fine art
+design|Design and creative arts|Fine art, Drawing and painting, Graphic design
+media|Media and journalism|English first paper, Media studies, Film studies
+education|Teaching and education|Bangla first paper, English first paper, Psychology
+psychology|Psychology and counselling|Psychology, Biology
+social-science|Social sciences|Sociology, Political science, Anthropology
+public-admin|Public administration and civil service|Civics and good governance, Political science
+international-relations|International relations|Political science, History, English first paper
+agriculture|Agriculture and food science|Agricultural science, Biology, Chemistry
+environment|Environment and sustainability|Environmental science, Geography, Biology
+biotech|Biotechnology and genetics|Biology, Chemistry
+statistics|Statistics and data science|Statistics, Higher mathematics
+mathematics|Mathematics|Higher mathematics, Mathematics
+physics|Physics|Physics, Higher mathematics
+chemistry|Chemistry|Chemistry, Mathematics
+textile|Textile and apparel engineering|Physics, Chemistry, Textile
+civil-engineering|Civil engineering|Physics, Higher mathematics
+electrical-engineering|Electrical and electronic engineering|Physics, Higher mathematics, Electronics
+mechanical-engineering|Mechanical engineering|Physics, Higher mathematics, Mechanical drawing
+marine|Marine and naval studies|Physics, Mathematics
+aviation|Aviation and aeronautics|Physics, Higher mathematics
+hospitality|Hospitality and tourism|Geography, English first paper
+sports-science|Sports and physical education|Physical education, Biology
+languages|Languages and literature|English first paper, Bangla first paper, Arabic
+islamic-studies|Islamic studies|Islamic studies, Arabic, Quran majeed
+fine-arts|Fine arts and performance|Fine art, Music, Drama
+library|Library and information science|Library science, English first paper
+development|Development studies and NGO work|Sociology, Economics, Social work
+undecided|Not sure yet|
