@@ -61,6 +61,8 @@ class UserSkill {
 /// Which sections exist, and what each one is called on screen.
 enum ProfileSection {
   education,
+  favourites,
+  hobbies,
   courses,
   skills,
   projects,
@@ -69,8 +71,37 @@ enum ProfileSection {
   certifications,
   portfolio;
 
+  /// What a student at this stage should actually be shown.
+  ///
+  /// A school student has no courses to list and no CV to attach; an
+  /// undergraduate does not need a hobbies section competing with their
+  /// skills. Showing every section to everyone would make most of the profile
+  /// empty for most people, which reads as failure rather than as not asked.
+  static List<ProfileSection> forSchool() => const [
+    education,
+    favourites,
+    hobbies,
+    projects,
+    activities,
+    certifications,
+    portfolio,
+  ];
+
+  static List<ProfileSection> forUniversity() => const [
+    education,
+    courses,
+    favourites,
+    projects,
+    experience,
+    activities,
+    certifications,
+    portfolio,
+  ];
+
   String get title => switch (this) {
     ProfileSection.education => 'Education',
+    ProfileSection.favourites => 'Favourite subjects',
+    ProfileSection.hobbies => 'Outside class',
     ProfileSection.courses => 'Courses',
     ProfileSection.skills => 'Skills',
     ProfileSection.projects => 'Projects',
@@ -82,6 +113,8 @@ enum ProfileSection {
 
   String get emptyHint => switch (this) {
     ProfileSection.education => 'Add where you study',
+    ProfileSection.favourites => 'Add the subjects you like most',
+    ProfileSection.hobbies => 'Add a club, a sport, anything you do',
     ProfileSection.courses => 'Add this semester\'s courses',
     ProfileSection.skills => 'Add what you can do',
     ProfileSection.projects => 'Add something you built',
@@ -93,6 +126,8 @@ enum ProfileSection {
 
   String get table => switch (this) {
     ProfileSection.education => 'education',
+    ProfileSection.favourites => 'student_interests',
+    ProfileSection.hobbies => 'student_interests',
     ProfileSection.courses => 'courses',
     ProfileSection.skills => 'user_skills',
     ProfileSection.projects => 'projects',
@@ -111,6 +146,8 @@ SectionHealth healthFor(ProfileSection section, int count) {
   if (count == 0) return SectionHealth.empty;
   final target = switch (section) {
     ProfileSection.education => 1,
+    ProfileSection.favourites => 3,
+    ProfileSection.hobbies => 2,
     ProfileSection.courses => 4,
     ProfileSection.skills => 8,
     ProfileSection.projects => 2,

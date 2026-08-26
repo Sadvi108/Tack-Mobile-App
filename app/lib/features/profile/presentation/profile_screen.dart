@@ -27,6 +27,7 @@ class ProfileScreen extends ConsumerWidget {
     final skills = ref.watch(userSkillsProvider).value ?? const <UserSkill>[];
     final completeness = ref.watch(completenessProvider).value;
     final mode = ref.watch(modeProvider);
+    final atSchool = mode.isAtSchool;
     final tabs = TackTabs.forMode(mode.name);
 
     return TackScaffold(
@@ -101,19 +102,25 @@ class ProfileScreen extends ConsumerWidget {
               _PersonalCard(profile: profile),
               const SizedBox(height: TackSpace.stackLoose),
 
-              _SkillsCard(skills: skills),
+              if (!atSchool) ...[
+                _SkillsCard(skills: skills),
+                const SizedBox(height: TackSpace.stackLoose),
+              ],
+              _DirectionCard(profile: profile),
               const SizedBox(height: TackSpace.stackLoose),
 
-              for (final section in ProfileSection.values)
-                if (section != ProfileSection.skills) ...[
-                  _SectionCard(
-                    section: section,
-                    entries: sections[section] ?? const [],
-                    onAdd: () => _add(context, ref, section),
-                    onRemove: (id) => _remove(context, ref, section, id),
-                  ),
-                  const SizedBox(height: TackSpace.stack),
-                ],
+              for (final section
+                  in atSchool
+                      ? ProfileSection.forSchool()
+                      : ProfileSection.forUniversity()) ...[
+                _SectionCard(
+                  section: section,
+                  entries: sections[section] ?? const [],
+                  onAdd: () => _add(context, ref, section),
+                  onRemove: (id) => _remove(context, ref, section, id),
+                ),
+                const SizedBox(height: TackSpace.stack),
+              ],
 
               const SizedBox(height: TackSpace.xl),
             ],
@@ -280,6 +287,17 @@ class ProfileScreen extends ConsumerWidget {
   }
 
   static List<_Field> _fieldsFor(ProfileSection section) => switch (section) {
+    // Subjects and hobbies are one word each; the add sheet is a single field.
+    ProfileSection.favourites => const [
+      _Field(
+        'label',
+        'Subject or course',
+        'Physics, Marketing, Data structures',
+      ),
+    ],
+    ProfileSection.hobbies => const [
+      _Field('label', 'What you do', 'Debating, football, editing videos'),
+    ],
     ProfileSection.education => const [
       _Field('degree', 'Degree', 'BSc, BBA, BA'),
       _Field('university_name', 'University', 'Where you study'),
@@ -370,12 +388,30 @@ class _PersonalCard extends StatelessWidget {
                 Text(
                   [
                     if (profile.cityName != null) profile.cityName!,
-                    if (profile.targetRole != null) profile.targetRole!,
-                  ].join(' · '),
+                    if (profile.countryName != null) profile.countryName!,
+                  ].join(', '),
                   style: TackText.meta,
                 ),
+                if (profile.phone != null) ...[
+                  const SizedBox(height: 2),
+                  Text(profile.phone!, style: TackText.meta),
+                ],
                 const SizedBox(height: TackSpace.sm),
-                TackPill(profile.mode.chipText),
+                // The mode, and the stage it came from — the second explains
+                // the first, which otherwise reads as jargon.
+                Wrap(
+                  spacing: TackSpace.sm,
+                  runSpacing: 6,
+                  children: [
+                    TackPill(profile.mode.chipText),
+                    if (profile.stage != null)
+                      TackPill(
+                        profile.stage!.label,
+                        background: TackColors.line,
+                        foreground: TackColors.muted,
+                      ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -547,6 +583,59 @@ class _HealthDot extends StatelessWidget {
         width: 9,
         height: 9,
         decoration: BoxDecoration(color: colour, shape: BoxShape.circle),
+      ),
+    );
+  }
+}
+
+/// Where the student is heading, in their own words.
+///
+/// A school student sees what they want to study and what they enjoy; anyone
+/// past school sees the job they are aiming at. Both were collected during
+/// onboarding and neither had anywhere to live on this screen before.
+class _DirectionCard extends StatelessWidget {
+  const _DirectionCard({required this.profile});
+
+  final Profile profile;
+
+  @override
+  Widget build(BuildContext context) {
+    final atSchool = profile.stage?.isAtSchool ?? false;
+    final headline = atSchool ? profile.intendedField : profile.targetRole;
+
+    return TackCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            atSchool ? 'What you want to study' : 'What you are aiming at',
+            style: TackText.monoLabel,
+          ),
+          const SizedBox(height: TackSpace.sm),
+          Text(
+            headline ?? (atSchool ? 'Not decided yet' : 'No target role yet'),
+            style: headline == null ? TackText.bodyMuted : TackText.cardTitle,
+          ),
+          if (atSchool && (profile.passion?.isNotEmpty ?? false)) ...[
+            const SizedBox(height: TackSpace.lg),
+            Text('WHAT YOU ENJOY', style: TackText.monoLabel),
+            const SizedBox(height: TackSpace.sm),
+            Text(profile.passion!, style: TackText.body),
+          ],
+          if (!atSchool && profile.targetIndustry.isNotEmpty) ...[
+            const SizedBox(height: TackSpace.lg),
+            Text('INDUSTRIES', style: TackText.monoLabel),
+            const SizedBox(height: TackSpace.sm),
+            Wrap(
+              spacing: TackSpace.sm,
+              runSpacing: TackSpace.sm,
+              children: [
+                for (final industry in profile.targetIndustry)
+                  TackPill(industry),
+              ],
+            ),
+          ],
+        ],
       ),
     );
   }
