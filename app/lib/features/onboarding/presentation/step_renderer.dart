@@ -61,7 +61,12 @@ class _Field extends ConsumerWidget {
         field: field,
         state: state,
         load: load,
-        onPick: (value) => controller.answer(field.key, value),
+        onPick: (option) {
+          controller.answer(field.key, option.value);
+          // Kept alongside the value so the field, and later the review
+          // screen, can show a name rather than an id.
+          controller.answer('${field.key}__label', option.label);
+        },
       ),
 
       FieldType.multiChip => _ChipField(field: field, state: state, load: load),
@@ -154,7 +159,7 @@ class _SelectField extends StatelessWidget {
   final FieldSpec field;
   final IntakeState state;
   final Future<List<PickerOption<String>>> Function() load;
-  final ValueChanged<String> onPick;
+  final ValueChanged<PickerOption<String>> onPick;
 
   @override
   Widget build(BuildContext context) {
@@ -175,13 +180,21 @@ class _SelectField extends StatelessWidget {
           valueLabel: (_) => label ?? value ?? '',
           enabled: !blocked,
           onTap: () async {
+            final options = await load();
+            if (!context.mounted) return;
             final picked = await showSearchPicker<String>(
               context: context,
               title: field.label,
-              load: load,
+              load: () async => options,
               selected: value,
             );
-            if (picked != null) onPick(picked);
+            if (picked == null) return;
+            onPick(
+              options.firstWhere(
+                (o) => o.value == picked,
+                orElse: () => PickerOption(value: picked, label: picked),
+              ),
+            );
           },
         ),
         if (field.help != null) ...[
@@ -471,8 +484,13 @@ class _DateField extends ConsumerWidget {
           ? [for (var y = thisYear + 1; y >= thisYear - 20; y--) y]
           : [for (var y = thisYear; y <= thisYear + 10; y++) y],
       onChanged: (picked) {
-        controller.answer('graduation_year', picked.year);
-        controller.answer('graduation_month', picked.month);
+        // Every key a date implies, written together — see answersForDate.
+        answersForDate(
+          fieldKey: field.key,
+          year: picked.year,
+          month: picked.month,
+          monthName: TackDateParts.monthName(picked.month),
+        ).forEach(controller.answer);
       },
     );
   }

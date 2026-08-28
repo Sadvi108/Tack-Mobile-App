@@ -631,3 +631,22 @@ class OnboardingFlow {
     return stepsFor(branch).length;
   }
 }
+
+/// The answers one date pick produces.
+///
+/// The required-field check reads [FieldSpec.key], while the submit path reads
+/// the year and month separately. Both were written by hand in the widget and
+/// the key was missed, which left Continue permanently disabled on any step
+/// asking for a date. Returning them together makes that impossible to get
+/// half right.
+Map<String, Object> answersForDate({
+  required String fieldKey,
+  required int year,
+  required int month,
+  required String monthName,
+}) => {
+  fieldKey: '$year-$month',
+  '${fieldKey}__label': '$monthName $year',
+  'graduation_year': year,
+  'graduation_month': month,
+};

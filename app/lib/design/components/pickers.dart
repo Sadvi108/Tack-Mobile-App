@@ -555,6 +555,9 @@ class TackDateParts extends StatelessWidget {
     'December',
   ];
 
+  /// The month's name, so a stored date can be shown back as words.
+  static String monthName(int month) => _months[month - 1];
+
   @override
   Widget build(BuildContext context) {
     return Column(
