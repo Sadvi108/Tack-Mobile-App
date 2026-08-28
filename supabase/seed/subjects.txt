@@ -1,0 +1,12 @@
+sciences|Physics, Chemistry, Biology, Higher mathematics, Mathematics, General science, Environmental science, Geology, Astronomy, Biotechnology, Zoology, Botany, Agricultural science, Health science, Psychology, Statistics
+commerce|Accounting, Business studies, Business organisation and management, Finance and banking, Economics, Marketing, Entrepreneurship, Cost accounting, Commercial geography, Business mathematics, Production management
+humanities|History, Geography, Civics and good governance, Sociology, Social work, Logic, Philosophy, Political science, Islamic history and culture, Anthropology, Home science, Child development
+languages|Bangla first paper, Bangla second paper, English first paper, English second paper, Arabic, Urdu, Hindi, French, German, Japanese, Chinese, Sanskrit, Pali
+technology|Information and communication technology, Computer science, Computer fundamentals, Programming, Web design, Graphic design, Electronics, Electrical engineering basics, Mechanical drawing, Robotics
+religion|Islamic studies, Hindu religion, Christian religion, Buddhist religion, Quran majeed, Hadith, Fiqh, Islamic history
+arts|Fine art, Drawing and painting, Music, Drama, Dance, Photography, Film studies, Design and technology, Craft
+other|Physical education, Health and physical education, Career education, Agriculture, Textile, Food and nutrition, Library science, General knowledge, Life skills, Media studies
+sciences|Applied physics, Applied chemistry, Organic chemistry, Inorganic chemistry, Physical chemistry, Microbiology, Genetics, Human anatomy, Physiology, Biochemistry, Soil science, Fisheries, Veterinary science, Nutrition
+commerce|Auditing, Taxation, Business law, Insurance, Banking operations, International business, Human resource management, Supply chain management, Investment analysis
+humanities|Archaeology, Peace and conflict studies, Gender studies, Development studies, Public administration, International relations, Criminology, Journalism, Mass communication
+technology|Data structures, Database systems, Networking, Operating systems, Software engineering, Artificial intelligence, Machine learning, Cyber security, Mechatronics, Civil drafting

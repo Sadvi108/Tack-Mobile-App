@@ -36,39 +36,37 @@ ProfileCompleteness computeCompleteness({
   required Map<ProfileSection, List<ProfileEntry>> sections,
   required int skillCount,
 }) {
+  bool has(ProfileSection section) =>
+      (sections[section] ?? const []).isNotEmpty;
+
+  final atSchool = profile.stage?.isAtSchool ?? false;
+
   // Each item is worth the same. Weighting these would duplicate the readiness
   // score, which already exists and is the number students are meant to watch.
+  //
+  // What is asked differs by stage: a school student has no internship to add
+  // and no target role to pick, and counting either against them would make
+  // their profile permanently incomplete for questions nobody asked.
   final checks = <(bool done, String label)>[
     (profile.fullName?.isNotEmpty ?? false, 'add your name'),
+    (profile.countryId != null, 'add your country'),
     (profile.cityId != null, 'add your city'),
     (profile.phone?.isNotEmpty ?? false, 'add your phone number'),
-    (profile.yearOfStudy != null, 'say which year you are in'),
-    (profile.targetRole != null, 'pick a target role'),
-    (
-      (sections[ProfileSection.education] ?? const []).isNotEmpty,
-      'add your education',
-    ),
-    (skillCount >= 5, 'add a few more skills'),
-    (
-      (sections[ProfileSection.projects] ?? const []).isNotEmpty,
-      'add a project',
-    ),
-    (
-      (sections[ProfileSection.experience] ?? const []).isNotEmpty,
-      'add an internship or job',
-    ),
-    (
-      (sections[ProfileSection.activities] ?? const []).isNotEmpty,
-      'add a club or competition',
-    ),
-    (
-      (sections[ProfileSection.certifications] ?? const []).isNotEmpty,
-      'add a certificate',
-    ),
-    (
-      (sections[ProfileSection.portfolio] ?? const []).isNotEmpty,
-      'add your GitHub or LinkedIn',
-    ),
+    (profile.stage != null, 'say where you are in your education'),
+    (has(ProfileSection.education), 'add where you study'),
+    if (atSchool) ...[
+      (profile.intendedField != null, 'say what you want to study'),
+      (has(ProfileSection.favourites), 'add your favourite subjects'),
+      (has(ProfileSection.hobbies), 'add what you do outside class'),
+    ] else ...[
+      (profile.targetRole != null, 'pick a target role'),
+      (skillCount >= 5, 'add a few more skills'),
+      (has(ProfileSection.experience), 'add an internship or job'),
+    ],
+    (has(ProfileSection.projects), 'add a project'),
+    (has(ProfileSection.activities), 'add a club or competition'),
+    (has(ProfileSection.certifications), 'add a certificate'),
+    (has(ProfileSection.portfolio), 'add your GitHub or LinkedIn'),
   ];
 
   final done = checks.where((c) => c.$1).length;

@@ -50,6 +50,18 @@ class Failure implements Exception {
           cause: error,
         );
       }
+      // The project's mail sender has an hourly cap. Nothing the student did,
+      // and nothing they can fix by trying again immediately.
+      if (error.statusCode == '429' ||
+          m.contains('rate limit') ||
+          m.contains('too many requests')) {
+        return Failure(
+          'Too many emails have been sent from Tack in the last hour. '
+          'Wait a little and try again.',
+          cause: error,
+          code: 'rate_limited',
+        );
+      }
       return Failure(
         'That did not work. Try again in a moment.',
         cause: error,

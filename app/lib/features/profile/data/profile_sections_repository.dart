@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/failure.dart';
 import '../../../core/supabase/client.dart';
+import 'education_stage.dart';
 import 'profile_sections.dart';
 
 /// Everything on the profile beyond the core fields.
@@ -61,7 +62,10 @@ class ProfileSectionsRepository {
             .select()
             .eq('user_id', _uid)
             .isFilter('deleted_at', null),
+        _db.from('student_interests').select().eq('user_id', _uid),
       ]);
+
+      final interests = results[7];
 
       return {
         ProfileSection.education: results[0]
@@ -134,6 +138,30 @@ class ProfileSectionsRepository {
               ),
             )
             .toList(),
+        // Favourite subjects and favourite courses are the same question
+        // asked of different students, so they share a section.
+        ProfileSection.favourites: interests
+            .where(
+              (r) =>
+                  r['kind'] == 'favourite_subject' ||
+                  r['kind'] == 'favourite_course',
+            )
+            .map(
+              (r) => ProfileEntry(
+                id: r['id'] as String,
+                title: r['label'] as String,
+              ),
+            )
+            .toList(),
+        ProfileSection.hobbies: interests
+            .where((r) => r['kind'] == 'hobby' || r['kind'] == 'interest')
+            .map(
+              (r) => ProfileEntry(
+                id: r['id'] as String,
+                title: r['label'] as String,
+              ),
+            )
+            .toList(),
       };
     } catch (e) {
       throw Failure.from(e);
@@ -184,6 +212,31 @@ class ProfileSectionsRepository {
     }
   }
 
+  /// Adds one subject, course or hobby. The section decides the kind, and the
+  /// stage decides whether a favourite is a subject or a course.
+  Future<void> addInterest({
+    required ProfileSection section,
+    required String label,
+    required bool atSchool,
+  }) async {
+    final kind = switch (section) {
+      ProfileSection.hobbies => InterestKind.hobby,
+      _ =>
+        atSchool ? InterestKind.favouriteSubject : InterestKind.favouriteCourse,
+    };
+    try {
+      await _db
+          .from('student_interests')
+          .upsert(
+            {'user_id': _uid, 'kind': kind.wire, 'label': label.trim()},
+            onConflict: 'user_id,kind,label',
+            ignoreDuplicates: true,
+          );
+    } catch (e) {
+      throw Failure.from(e);
+    }
+  }
+
   Future<void> insert(
     ProfileSection section,
     Map<String, Object?> values,
@@ -200,7 +253,9 @@ class ProfileSectionsRepository {
   Future<void> remove(ProfileSection section, String id) async {
     try {
       if (section == ProfileSection.skills ||
-          section == ProfileSection.portfolio) {
+          section == ProfileSection.portfolio ||
+          section == ProfileSection.favourites ||
+          section == ProfileSection.hobbies) {
         await _db.from(section.table).delete().eq('id', id).eq('user_id', _uid);
       } else {
         await _db

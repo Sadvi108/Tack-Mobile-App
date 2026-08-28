@@ -16,7 +16,7 @@ import '../features/applications/presentation/applications_screen.dart';
 import '../features/dashboard/presentation/dashboard_screen.dart';
 import '../features/interview/presentation/interview_screen.dart';
 import '../features/notifications/presentation/notifications_screen.dart';
-import '../features/onboarding/presentation/onboarding_screen.dart';
+import '../features/onboarding/presentation/intake_screen.dart';
 import '../features/paths/presentation/path_detail_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
 import '../features/paths/presentation/paths_screen.dart';
@@ -131,7 +131,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: Routes.onboarding,
-        builder: (context, state) => const OnboardingScreen(),
+        builder: (context, state) => const IntakeScreen(),
       ),
       GoRoute(
         path: Routes.home,

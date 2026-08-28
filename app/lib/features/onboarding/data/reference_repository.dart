@@ -3,11 +3,13 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/failure.dart';
 import '../../../core/supabase/client.dart';
+import '../../profile/data/education_stage.dart';
 
 class City {
-  const City({required this.id, required this.name});
+  const City({required this.id, required this.name, this.countryId});
   final String id;
   final String name;
+  final String? countryId;
 }
 
 class University {
@@ -40,15 +42,34 @@ class ReferenceRepository {
 
   final SupabaseClient _db;
 
-  Future<List<City>> cities() async {
+  /// Cities for one country. Bangladesh has a seeded list; elsewhere the
+  /// student types their own rather than being shown an empty picker.
+  Future<List<City>> cities({String? countryId}) async {
+    try {
+      var query = _db.from('cities').select('id, name, country_id');
+      if (countryId != null) query = query.eq('country_id', countryId);
+      final rows = await query.order('sort_order');
+      return rows
+          .map(
+            (r) => City(
+              id: r['id'] as String,
+              name: r['name'] as String,
+              countryId: r['country_id'] as String?,
+            ),
+          )
+          .toList();
+    } catch (e) {
+      throw Failure.from(e);
+    }
+  }
+
+  Future<List<Country>> countries() async {
     try {
       final rows = await _db
-          .from('cities')
-          .select('id, name')
+          .from('countries')
+          .select('id, iso2, name, dial_code')
           .order('sort_order');
-      return rows
-          .map((r) => City(id: r['id'] as String, name: r['name'] as String))
-          .toList();
+      return rows.map(Country.fromRow).toList();
     } catch (e) {
       throw Failure.from(e);
     }
@@ -128,8 +149,15 @@ final referenceRepositoryProvider = Provider<ReferenceRepository>(
   (ref) => ReferenceRepository(ref.watch(supabaseProvider)),
 );
 
-final citiesProvider = FutureProvider<List<City>>(
-  (ref) => ref.watch(referenceRepositoryProvider).cities(),
+final countriesProvider = FutureProvider<List<Country>>(
+  (ref) => ref.watch(referenceRepositoryProvider).countries(),
+);
+
+/// Cities in one country. Keyed by country so switching country reloads the
+/// list rather than showing the previous country's cities.
+final citiesProvider = FutureProvider.family<List<City>, String?>(
+  (ref, countryId) =>
+      ref.watch(referenceRepositoryProvider).cities(countryId: countryId),
 );
 
 final universitiesProvider = FutureProvider<List<University>>(

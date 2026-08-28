@@ -45,11 +45,36 @@ class AuthController extends Notifier<AuthUiState> {
     }
   }
 
-  Future<bool> signUp({required String email, required String password}) =>
-      _run(
-        () => _repo.signUpWithEmail(email: email, password: password),
-        notice: 'Check your inbox. We sent a link to confirm your email.',
+  /// Signs up, and reports what actually happened rather than always claiming
+  /// an email is on its way.
+  Future<SignUpOutcome?> signUp({
+    required String email,
+    required String password,
+  }) async {
+    state = const AuthUiState(busy: true);
+    try {
+      final outcome = await _repo.signUpWithEmail(
+        email: email,
+        password: password,
       );
+      state = switch (outcome) {
+        SignUpOutcome.confirmationSent => const AuthUiState(
+          notice: 'Check your inbox. We sent a link to confirm your email.',
+        ),
+        SignUpOutcome.signedIn => const AuthUiState(),
+        SignUpOutcome.alreadyRegistered => const AuthUiState(
+          failure: Failure(
+            'There is already an account with that email. Log in instead, or '
+            'reset your password if you have forgotten it.',
+          ),
+        ),
+      };
+      return outcome;
+    } catch (e) {
+      state = AuthUiState(failure: Failure.from(e));
+      return null;
+    }
+  }
 
   Future<bool> signIn({required String email, required String password}) =>
       _run(() => _repo.signInWithEmail(email: email, password: password));

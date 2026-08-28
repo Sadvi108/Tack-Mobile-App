@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:tack/core/failure.dart';
 import 'package:tack/features/auth/data/validators.dart';
 
 void main() {
@@ -51,6 +53,40 @@ void main() {
     test('needs at least two characters', () {
       expect(AuthValidators.fullName('R'), isNotNull);
       expect(AuthValidators.fullName('Rafiq Hossain'), isNull);
+    });
+  });
+
+  group('auth failures a student will actually hit', () {
+    test('an email rate limit is explained, not blamed on them', () {
+      // Supabase caps how many emails a project may send in an hour. The
+      // student did nothing wrong and cannot fix it by retrying at once.
+      final failure = Failure.from(
+        AuthException('email rate limit exceeded', statusCode: '429'),
+      );
+      expect(failure.code, 'rate_limited');
+      expect(failure.message, contains('Wait a little'));
+      expect(failure.message.toLowerCase(), isNot(contains('error')));
+    });
+
+    test('a wrong password says what to check', () {
+      final failure = Failure.from(AuthException('Invalid login credentials'));
+      expect(failure.message, contains('do not match'));
+    });
+
+    test('an unconfirmed email points at the inbox', () {
+      final failure = Failure.from(AuthException('Email not confirmed'));
+      expect(failure.message, contains('Confirm your email'));
+    });
+
+    test('no auth message leaks a raw server string', () {
+      for (final raw in [
+        'Invalid login credentials',
+        'email rate limit exceeded',
+        'User already registered',
+      ]) {
+        final failure = Failure.from(AuthException(raw));
+        expect(failure.message, isNot(contains(raw)));
+      }
     });
   });
 }

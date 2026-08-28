@@ -6,6 +6,7 @@ import '../../../design/tack.dart';
 import '../../../routing/router.dart';
 import '../application/auth_controller.dart';
 import '../data/validators.dart';
+import '../data/auth_repository.dart';
 import '../data/oauth_provider.dart';
 import 'google_button.dart';
 
@@ -53,14 +54,33 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     });
     if (_emailError != null || _passwordError != null) return;
 
-    final ok = await ref
+    final outcome = await ref
         .read(authControllerProvider.notifier)
         .signUp(email: _email.text, password: _password.text);
     if (!mounted) return;
-    if (ok) {
-      final notice = ref.read(authControllerProvider).notice;
-      if (notice != null) TackToast.show(context, message: notice);
-      context.go(Routes.login);
+
+    switch (outcome) {
+      case SignUpOutcome.confirmationSent:
+        TackToast.show(
+          context,
+          message: 'Check your inbox. We sent a link to confirm your email.',
+        );
+        context.go(Routes.login);
+      case SignUpOutcome.signedIn:
+        // Confirmation is off for this project; the router takes it from here.
+        break;
+      case SignUpOutcome.alreadyRegistered:
+        // Not an error the student caused, so it is offered as a next step
+        // rather than left as a red line under the field.
+        TackToast.show(
+          context,
+          message: 'That email already has an account.',
+          kind: TackToastKind.info,
+          actionLabel: 'Log in',
+          onAction: () => context.go(Routes.login),
+        );
+      case null:
+        break;
     }
   }
 
