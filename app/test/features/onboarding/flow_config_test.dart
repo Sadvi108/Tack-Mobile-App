@@ -12,6 +12,14 @@ void main() {
       expect(OnboardingFlow.lengthOf(OnboardingBranch.graduated), 5);
     });
 
+    test('before a branch is chosen the bar assumes the longest one', () {
+      // Otherwise a student is half way along the bar on question one, and it
+      // then jumps backwards when they pick — which reads as the goalposts
+      // moving rather than as progress.
+      expect(OnboardingFlow.lengthOf(null), 6);
+      expect(OnboardingFlow.stepsFor(null), hasLength(2));
+    });
+
     test('everyone starts with the same two steps', () {
       for (final branch in OnboardingBranch.values) {
         final steps = OnboardingFlow.stepsFor(branch);

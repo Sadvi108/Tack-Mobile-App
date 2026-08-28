@@ -611,5 +611,23 @@ class OnboardingFlow {
     return index < 0 ? 1 : index + 1;
   }
 
-  static int lengthOf(OnboardingBranch? branch) => stepsFor(branch).length;
+  /// How many steps the bar should show.
+  ///
+  /// Before a branch is chosen the real answer is unknown, and showing the two
+  /// shared steps would put a student half way along the bar on question one.
+  /// The longest branch is used until they pick, so the bar only ever shortens
+  /// — which reads as progress rather than as the goalposts moving.
+  static int lengthOf(OnboardingBranch? branch) {
+    if (branch == null || branch == OnboardingBranch.primary) {
+      return [
+        for (final b in [
+          OnboardingBranch.highSchool,
+          OnboardingBranch.bachelors,
+          OnboardingBranch.graduated,
+        ])
+          stepsFor(b).length,
+      ].reduce((a, b) => a > b ? a : b);
+    }
+    return stepsFor(branch).length;
+  }
 }
