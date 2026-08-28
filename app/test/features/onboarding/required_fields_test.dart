@@ -149,6 +149,43 @@ void main() {
     });
   });
 
+  group('every dropdown has something in it', () {
+    // A required select with no option source opens an empty sheet: the
+    // student cannot answer, cannot leave the step, and never reaches the
+    // review screen where Finish lives. Two of these shipped.
+    test('no select field is left without options', () {
+      final broken = <String>[];
+
+      for (final step in [
+        OnboardingFlow.basics,
+        ...OnboardingFlow.highSchoolSteps,
+        ...OnboardingFlow.bachelorsSteps,
+        ...OnboardingFlow.graduatedSteps,
+      ]) {
+        for (final field in step.fields) {
+          final isSelect =
+              field.type == FieldType.select ||
+              field.type == FieldType.searchableSelect ||
+              field.type == FieldType.multiChip ||
+              field.type == FieldType.rankPicker;
+          if (isSelect && field.options == OptionSource.none) {
+            broken.add('${step.id}.${field.key}');
+          }
+        }
+      }
+
+      expect(broken, isEmpty);
+    });
+
+    test('the programme length is asked, so final year means something', () {
+      // Year 4 of 4 is launch and year 4 of 5 is not; without the length the
+      // app would tell a medical student to start applying a year early.
+      final keys = OnboardingFlow.uniUniversity.fields.map((f) => f.key);
+      expect(keys, contains('year_of_study'));
+      expect(keys, contains('years_total'));
+    });
+  });
+
   group('selects keep a readable label beside the id', () {
     test('every select field has somewhere to put one', () {
       // Without it the student is shown a UUID, and so is the review screen.

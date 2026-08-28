@@ -36,6 +36,9 @@ class OptionRepository {
         OptionSource.targetIndustries => _static(_targetIndustries),
         OptionSource.currentStatus => _static(_currentStatus),
         OptionSource.ageBands => _static(_ageBands),
+        OptionSource.studyYears => _studyYears(),
+        OptionSource.programmeLengths => _programmeLengths(),
+        OptionSource.finishYears => _finishYears(),
         OptionSource.none => const <PickerOption<String>>[],
       };
     } catch (e) {
@@ -145,6 +148,25 @@ class OptionRepository {
           // sits at the top and is styled as a real choice.
           highlighted: r['slug'] == 'undecided',
         ),
+    ];
+  }
+
+  /// Years of a degree. The last year of the programme is what decides
+  /// whether a student is in launch mode, so the labels say which is which
+  /// rather than leaving them to count.
+  static List<PickerOption<String>> _studyYears() => [
+    for (var y = 1; y <= 8; y++) PickerOption(value: '$y', label: 'Year $y'),
+  ];
+
+  static List<PickerOption<String>> _programmeLengths() => [
+    for (var y = 2; y <= 8; y++) PickerOption(value: '$y', label: '$y years'),
+  ];
+
+  static List<PickerOption<String>> _finishYears() {
+    final thisYear = DateTime.now().year;
+    return [
+      for (var y = thisYear; y <= thisYear + 8; y++)
+        PickerOption(value: '$y', label: '$y'),
     ];
   }
 

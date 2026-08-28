@@ -44,6 +44,15 @@ enum OptionSource {
   targetIndustries,
   currentStatus,
   ageBands,
+
+  /// Year 1 to 8 of a degree.
+  studyYears,
+
+  /// How many years the whole programme runs.
+  programmeLengths,
+
+  /// The next several years, for when a course finishes.
+  finishYears,
 }
 
 class FieldSpec {
@@ -240,6 +249,7 @@ class OnboardingFlow {
         label: 'When do you finish?',
         hint: 'Choose a year',
         required: true,
+        options: OptionSource.finishYears,
       ),
       FieldSpec(
         key: 'gpa',
@@ -350,7 +360,20 @@ class OnboardingFlow {
         label: 'Which year are you in?',
         hint: 'Choose your year',
         required: true,
+        options: OptionSource.studyYears,
         help: 'This is what decides everything the app shows you.',
+      ),
+      FieldSpec(
+        key: 'years_total',
+        type: FieldType.select,
+        label: 'How long is your programme?',
+        hint: 'Choose a length',
+        required: true,
+        options: OptionSource.programmeLengths,
+        // Final year is relative: year 4 of 4 is launch, year 4 of 5 is not.
+        // Without this the app would tell a medical student to start applying
+        // a year early.
+        help: 'Year 4 of a 5-year course is not the same as year 4 of 4.',
       ),
       FieldSpec(
         key: 'graduation',

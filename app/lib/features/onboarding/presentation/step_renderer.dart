@@ -66,6 +66,17 @@ class _Field extends ConsumerWidget {
           // Kept alongside the value so the field, and later the review
           // screen, can show a name rather than an id.
           controller.answer('${field.key}__label', option.label);
+
+          // The dial code rides along with the country, which is the only
+          // place it is known. The phone field reads it back.
+          if (field.key == 'country_id' && option.trailing != null) {
+            controller.answer('dial_code', option.trailing);
+          }
+          // Submit stores the institution by name as well as by id, so a
+          // university that is later renamed still reads correctly.
+          if (field.key == 'institution_id') {
+            controller.answer('institution_name', option.label);
+          }
         },
       ),
 
@@ -288,6 +299,11 @@ class _ChipFieldState extends ConsumerState<_ChipField> {
               },
               onAddOwn: (label) {
                 controller.answer('${field.key}__custom', [...custom, label]);
+                // Submit reads this key. Without it anything a student typed
+                // themselves was written to the draft and then dropped.
+                if (field.key == 'interests') {
+                  controller.answer('custom_interests', [...custom, label]);
+                }
               },
             );
           },
