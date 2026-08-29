@@ -40,3 +40,6 @@ tool/node_modules/
 
 # Tesseract downloads its trained data beside the process at runtime.
 *.traineddata
+
+# Supabase CLI scratch
+supabase/.temp/
