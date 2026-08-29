@@ -93,11 +93,20 @@ not only ones you have registered.
 swift tool/make_qr.swift "https://testflight.apple.com/join/XXXXXXXX" tack-testflight.png
 ```
 
-Uses only macOS system frameworks, so it adds nothing to the project. It draws
-the code with CoreImage and then **reads it back with Vision before writing the
-file** — a QR that encodes the wrong thing looks exactly like one that encodes
-the right thing, and decoding it is the only way to know. If the read-back does
-not match, it fails and writes nothing.
+Uses only macOS system frameworks, so it adds nothing to the project. Two
+things are checked before the file is written, because a bad QR is
+indistinguishable from a good one by eye:
+
+- **It decodes back to the text given.** A code that encodes the wrong thing
+  looks exactly like one that does not.
+- **The join link resolves.** A code pointing at a beta that does not exist
+  opens TestFlight and gets *"beta not found"*, which reads as a broken code
+  when the link is what is missing. Apple answers 404 for a link that was never
+  switched on, so the tool refuses rather than handing you a code that will
+  embarrass you in front of testers.
+
+Either check failing means it writes nothing and exits non-zero. To make a code
+for a link that is not live yet, pass `--skip-link-check`.
 
 Error correction is set to H, which is what survives being printed,
 photographed at an angle, or half covered by a thumb. A four-module quiet zone
