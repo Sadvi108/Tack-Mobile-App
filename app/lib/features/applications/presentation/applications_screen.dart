@@ -4,10 +4,10 @@ import 'package:go_router/go_router.dart';
 
 import '../../../design/tack.dart';
 import '../../../routing/router.dart';
-import '../../profile/data/profile_repository.dart';
 import '../data/application_models.dart';
 import '../data/application_repository.dart';
 import 'add_application_sheet.dart';
+import '../../../routing/tab_bar.dart';
 
 /// The application tracker.
 ///
@@ -28,16 +28,8 @@ class _ApplicationsScreenState extends ConsumerState<ApplicationsScreen> {
     final counts =
         ref.watch(applicationCountsProvider).value ?? ApplicationCounts.empty;
     final listAsync = ref.watch(applicationsProvider(_filter));
-    final mode = ref.watch(modeProvider);
-    final tabs = TackTabs.forMode(mode.name);
-    final tabIndex = tabs.indexWhere((t) => t.route == Routes.applications);
-
     return TackScaffold(
-      bottomNav: TackBottomNav(
-        tabs: tabs,
-        currentIndex: tabIndex < 0 ? 0 : tabIndex,
-        onTap: (i) => context.go(tabs[i].route),
-      ),
+      bottomNav: const TackTabBar(current: Routes.applications),
       header: const TackHeader(title: 'Applications'),
       floatingAction: TackFab(
         semanticLabel: 'Add an application',

@@ -296,8 +296,18 @@ class TackTab {
   final String route;
 }
 
-/// Junior years get four tabs. Final year gains a fifth, Apply — applications
-/// only become the point of the app once a student is actually applying.
+/// The five destinations, and the same five in every mode.
+///
+/// The tab bar used to change with the student's year: juniors got four tabs,
+/// final-years got a fifth. It no longer does. Year-awareness belongs in what
+/// each screen leads with — a first-year still never sees a deadline — but
+/// having the furniture move as well meant the app changed shape underneath a
+/// student between one September and the next.
+///
+/// Career paths lost its tab to make room for the vault. Five is the ceiling
+/// at 360px with 44px targets and labels that stay readable, so something had
+/// to go. Paths is reached from the dashboard and from the roadmap, both of
+/// which lead with it in the modes where it is the point.
 class TackTabs {
   const TackTabs._();
 
@@ -306,20 +316,20 @@ class TackTabs {
     icon: TackIcons.home,
     route: '/home',
   );
-  static const paths = TackTab(
-    label: 'Paths',
-    icon: TackIcons.paths,
-    route: '/paths',
-  );
   static const roadmap = TackTab(
     label: 'Roadmap',
     icon: TackIcons.roadmap,
     route: '/roadmap',
   );
-  static const apply = TackTab(
-    label: 'Apply',
+  static const applications = TackTab(
+    label: 'Application',
     icon: TackIcons.apply,
     route: '/applications',
+  );
+  static const vault = TackTab(
+    label: 'Vault',
+    icon: TackIcons.vault,
+    route: '/vault',
   );
   static const profile = TackTab(
     label: 'Profile',
@@ -327,11 +337,7 @@ class TackTabs {
     route: '/profile',
   );
 
-  static const junior = <TackTab>[home, paths, roadmap, profile];
-  static const finalYear = <TackTab>[home, paths, roadmap, apply, profile];
-
-  static List<TackTab> forMode(String mode) =>
-      mode == 'launch' ? finalYear : junior;
+  static const all = <TackTab>[home, roadmap, applications, vault, profile];
 }
 
 class TackBottomNav extends StatelessWidget {

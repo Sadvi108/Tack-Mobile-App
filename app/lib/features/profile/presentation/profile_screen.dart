@@ -11,6 +11,7 @@ import '../data/profile.dart';
 import '../data/profile_repository.dart';
 import '../data/profile_sections.dart';
 import '../data/profile_sections_repository.dart';
+import '../../../routing/tab_bar.dart';
 
 /// The profile.
 ///
@@ -28,14 +29,8 @@ class ProfileScreen extends ConsumerWidget {
     final completeness = ref.watch(completenessProvider).value;
     final mode = ref.watch(modeProvider);
     final atSchool = mode.isAtSchool;
-    final tabs = TackTabs.forMode(mode.name);
-
     return TackScaffold(
-      bottomNav: TackBottomNav(
-        tabs: tabs,
-        currentIndex: tabs.indexWhere((t) => t.route == Routes.profile),
-        onTap: (i) => context.go(tabs[i].route),
-      ),
+      bottomNav: const TackTabBar(current: Routes.profile),
       header: TackHeader(
         title: 'Your profile',
         trailing: GestureDetector(
@@ -280,7 +275,7 @@ class ProfileScreen extends ConsumerWidget {
     );
 
     if (!context.mounted) return;
-    if (action == 'documents') context.push(Routes.vault);
+    if (action == 'documents') context.go(Routes.vault);
     if (action == 'signout') {
       await ref.read(authControllerProvider.notifier).signOut();
     }

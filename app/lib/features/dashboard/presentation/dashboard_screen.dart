@@ -16,6 +16,7 @@ import '../../score/data/readiness.dart';
 import '../../score/data/score_repository.dart';
 import '../application/next_actions.dart';
 import 'widgets.dart';
+import '../../../routing/tab_bar.dart';
 
 /// The home screen, in four flavours.
 ///
@@ -32,7 +33,7 @@ class DashboardScreen extends ConsumerWidget {
     return profileAsync.when(
       loading: () => const _DashboardLoading(),
       error: (_, _) => TackScaffold(
-        bottomNav: const _Nav(mode: YearMode.explore),
+        bottomNav: const _Nav(),
         header: const TackHomeHeader(initials: '–'),
         body: TackErrorState(
           body:
@@ -78,7 +79,7 @@ class _Dashboard extends ConsumerWidget {
       // The body brings its own ListView so it can pull to refresh; the shell
       // must not wrap it in a second scroll view.
       scrollable: false,
-      bottomNav: _Nav(mode: mode),
+      bottomNav: const _Nav(),
       header: TackHomeHeader(
         initials: profile.initials,
         unread: ref.watch(unreadCountProvider),
@@ -106,7 +107,7 @@ class _Dashboard extends ConsumerWidget {
             // Explore mode leads with a path CTA rather than a score, because a
             // first-year's problem is not knowing what to aim at.
             if (mode == YearMode.explore) ...[
-              _ExploreCta(onTap: () => context.go(Routes.paths)),
+              _ExploreCta(onTap: () => context.push(Routes.paths)),
               const SizedBox(height: TackSpace.stackLoose),
             ],
 
@@ -331,19 +332,10 @@ class _RoadmapProgressCard extends StatelessWidget {
 }
 
 class _Nav extends StatelessWidget {
-  const _Nav({required this.mode});
-
-  final YearMode mode;
+  const _Nav();
 
   @override
-  Widget build(BuildContext context) {
-    final tabs = TackTabs.forMode(mode.name);
-    return TackBottomNav(
-      tabs: tabs,
-      currentIndex: 0,
-      onTap: (i) => context.go(tabs[i].route),
-    );
-  }
+  Widget build(BuildContext context) => const TackTabBar(current: Routes.home);
 }
 
 class _DashboardLoading extends StatelessWidget {
@@ -353,7 +345,7 @@ class _DashboardLoading extends StatelessWidget {
   Widget build(BuildContext context) {
     return const TackScaffold(
       header: TackHomeHeader(initials: '–'),
-      bottomNav: _Nav(mode: YearMode.explore),
+      bottomNav: _Nav(),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

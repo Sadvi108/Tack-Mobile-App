@@ -31,16 +31,11 @@ class _PathsScreenState extends ConsumerState<PathsScreen> {
     final matchesAsync = ref.watch(pathMatchesProvider);
     final chosen = ref.watch(chosenPathsProvider).value ?? const <ChosenPath>[];
     final mode = ref.watch(modeProvider);
-    final tabs = TackTabs.forMode(mode.name);
 
     return TackScaffold(
-      bottomNav: TackBottomNav(
-        tabs: tabs,
-        currentIndex: tabs.indexWhere((t) => t.route == Routes.paths),
-        onTap: (i) => context.go(tabs[i].route),
-      ),
       header: TackHeader(
         title: 'Career paths',
+        onBack: () => context.pop(),
         subtitle: mode == YearMode.explore
             ? 'Ten real jobs, what they pay here, and what it takes. Nothing to commit to.'
             : 'Pick up to two. Tack builds a roadmap from whichever you choose.',
