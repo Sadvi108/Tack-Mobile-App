@@ -143,3 +143,11 @@ export async function hashText(text: string): Promise<string> {
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
 }
+
+/** Content hash of raw bytes, so the same file is never parsed twice. */
+export async function hashBytes(bytes: ArrayBuffer): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
