@@ -180,6 +180,28 @@ class DocumentRepository {
     }
   }
 
+  /// Asks the server to read a CV and score it.
+  ///
+  /// The endpoint answers 202 straight away and the reading happens on the
+  /// queue, so this starts the work rather than waiting for it. A CV whose
+  /// bytes have been read before comes back 200 with the score already
+  /// attached and costs none of the day's AI actions.
+  ///
+  /// No text is sent: the document id is the whole request and the file is
+  /// read server-side out of private storage. Sending the text from here would
+  /// be handing the server a payload it can produce itself, and would put a
+  /// route around redaction on the wrong side of the network.
+  Future<void> requestScore(String documentId) async {
+    try {
+      await _db.functions.invoke(
+        'score-cv',
+        body: {'documentId': documentId},
+      );
+    } catch (e) {
+      throw Failure.from(e);
+    }
+  }
+
   /// A short-lived link to read one file.
   ///
   /// Five minutes, and only after the row has been fetched under the caller's

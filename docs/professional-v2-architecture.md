@@ -223,6 +223,7 @@ alter table public.career_paths
 
 -- 0041
 -- The worker's own measurements, kept apart from the model's extraction.
+-- 0041
 alter table public.cv_parse_results
   add column metrics jsonb not null default '{}'::jsonb;
 
@@ -354,6 +355,54 @@ one: when `jobs_queue` moves a `parse_cv` job to `dead`, set the document to
 `failed` with a readable reason, so a stuck document is impossible by
 construction rather than by luck.
 
+### 3.6 What slice 2 changed about all of this
+
+**One dependency, not two.** `unpdf@1.8.1` reads PDFs. DOCX needed a zip
+reader, and rather than take a second dependency for unzipping one known entry,
+the central directory is walked by hand and the entry inflated with the
+platform's own `DecompressionStream("deflate-raw")`. About eighty lines, no
+supply chain.
+
+**The handlers moved out of the worker.** `supabase/functions/_shared/jobs/handlers.ts`
+holds the work; `worker/index.ts` is now 83 lines of transport. That split is
+what lets `tool/verify_cv_pipeline.ts` drive `parse_cv` against the real
+database and the real storage bucket without deploying anything — which matters
+more than usual here, because the Edge Functions have never been deployed and
+that step needs a human token.
+
+**Measure before you redact.** Redaction replaces an email with `[email]`, so
+running it first would destroy the `has_contact` signal that the structure and
+hygiene components depend on. The order in the handler — measure the raw text,
+then redact, then call the model — is load-bearing and says so in the code.
+
+**Three bugs the verification found**, in ascending order of how badly they
+would have hurt:
+
+- The stored page count was being capped at six. Hygiene asks whether a
+  junior's CV runs past one page, and reporting 6 for a forty-page upload hides
+  exactly what it is looking for. The cap belongs on the text sent to the
+  model, not on the number written down.
+- `reap_stuck_jobs` never reaped. `case when … then 'dead' else 'pending' end`
+  resolves to `text`, and `text` does not assign to a `queue_status` column.
+  Fixed in 0043. It applied cleanly and failed only when called — the same
+  class of mistake 0039 already caught once, and the reason 0043 carries a
+  self-test that exercises both branches at migration time.
+- **`fail_job` and `reap_stuck_jobs` could not hand back a coalesced job.**
+  Migration 0021 added a partial unique index keeping one pending
+  `recompute_readiness` per student, and 0041 added the same for `score_cv`.
+  Both functions move a job back to `pending`, and neither knew. With another
+  pending job of that type present, the move raised `23505`. For `fail_job`
+  that meant the retry silently did nothing and the job stayed `running`
+  forever; for `reap_stuck_jobs` it aborted the statement, so **one poisoned
+  row stopped the reaper for every student on the platform**. This predates
+  slice 2 — 0021 created it, 0041 widened it — and it stayed invisible because
+  the worker never read the error `fail_job` returned.
+
+  0044 fixes it the way coalescing implies: a stuck job with a newer one
+  already waiting is not resurrected, it is retired as superseded. The reaper
+  also became row-by-row with a `unique_violation` handler, so no single row
+  can take the whole sweep down with it again.
+
 ---
 
 ## 4. Deep dive — the dashboard
@@ -464,7 +513,7 @@ enqueued by `pg_cron`, writing into the existing `notifications` table. Email vi
 Resend (`docs/EMAIL.md`) is the obvious next step and is deliberately out of
 scope here.
 
-### 6.2 Vault (migration 0042)
+### 6.2 Vault (migration 0045)
 
 **Three CV documents in total** — not three slots with history behind them. Older
 versions count against the same three. How the student spends them is their
@@ -475,6 +524,7 @@ drafts, or any mix.
 the cap itself, and a cheap way to group a chain.
 
 ```sql
+-- 0045
 alter table public.documents
   add column root_document_id uuid references public.documents(id) on delete set null,
   add column is_archived      boolean not null default false;
@@ -517,7 +567,7 @@ old score has quietly become unreachable.
 
 ## 7. Deep dive — Profile, settings, and dark mode
 
-### 7.1 Settings (migration 0044)
+### 7.1 Settings (migration 0047)
 
 ```sql
 create table public.user_settings (
@@ -656,16 +706,24 @@ Each slice is independently shippable and independently verifiable.
 | # | Slice | Ships |
 |---|---|---|
 | 1 | Migration 0040 + 0041 | `career_paths.field_id` and backfill; `cv_scores`, `cv_score_weights`, `field_expected_skills`, `score_cv_fit`, recompute triggers |
-| 2 | `score-cv` endpoint + `parse_cv` worker handler + extraction + dead-letter sweep | The stuck-`processing` bug dies here |
+| 2 | Endpoint + worker handlers, migrations 0042–0044 | `score-cv`, `parse_cv`, `score_cv`, `unpdf` extraction, dead-letter trigger, job reaper, stuck-document sweep. The stuck-`processing` bug dies here. **Needs an Edge Function deploy, which is a human step.** |
 | 3 | Score UI — reveal, breakdown, fix list, rescore | The visible feature |
 | 4 | `StatefulShellRoute` five-tab shell + `dashboardProvider` | Nav and the honest loading state |
-| 5 | Migration 0042 + Vault slots, versions, version history screen | |
-| 6 | Migration 0043 + Applications kind, about, deadline, prep checklist, digest | |
-| 7 | Migration 0044 + `user_settings`, `TackPalette`, dark mode sweep, contrast audit | Largest and last, because it touches everything |
+| 5 | Migration 0045 + Vault, three documents in total, version history screen | |
+| 6 | Migration 0046 + Applications kind, about, deadline, prep checklist, digest | |
+| 7 | Migration 0047 + `user_settings`, `TackPalette`, dark mode sweep, contrast audit | Largest and last, because it touches everything |
 
 Gates on every slice, per `AGENTS.md`: `flutter analyze && flutter test`,
-`deno check` and `deno test _shared/`, and `node tool/verify_db.js` plus
-`tool/verify_storage.js` after any policy or migration change.
+`deno check` and `deno test _shared/`, and the live suites after any policy or
+migration change. Two are new:
+
+```bash
+node tool/verify_cv_score.js
+```
+
+```bash
+deno run --allow-all --config supabase/functions/deno.json tool/verify_cv_pipeline.ts
+```
 
 ---
 

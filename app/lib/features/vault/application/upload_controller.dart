@@ -81,9 +81,31 @@ class UploadController extends Notifier<UploadState> {
           );
 
       // A CV keeps going in the background; everything else is done.
-      state = document.isProcessing
-          ? UploadState(fileName: title, progress: 1, parsing: true)
-          : UploadState.idle;
+      if (!document.isProcessing) {
+        state = UploadState.idle;
+        ref.invalidate(documentsProvider);
+        return true;
+      }
+
+      state = UploadState(fileName: title, progress: 1, parsing: true);
+
+      // Uploading a CV used to end here, which is why every CV ever uploaded
+      // is still sitting at 'processing': nothing asked for it to be read.
+      try {
+        await ref.read(documentRepositoryProvider).requestScore(document.id);
+      } catch (_) {
+        // The file is saved either way. Only the reading did not start, and
+        // saying so is more use than a generic failure.
+        state = UploadState(
+          fileName: title,
+          failure: const Failure(
+            'Your CV is saved, but Tack could not start reading it. '
+            'Open it from your vault and try again.',
+          ),
+        );
+        ref.invalidate(documentsProvider);
+        return false;
+      }
 
       ref.invalidate(documentsProvider);
       return true;

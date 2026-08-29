@@ -9,9 +9,9 @@ edited to contain one.
 ## What is already live
 
 The database is fully migrated against the project in `supabase/.env`:
-19 migrations, Row Level Security on all 40 tables, reference data seeded, and
-two cron jobs scheduled (`tack-worker` every two minutes, `tack-nightly` at
-18:20 UTC — just after midnight in Dhaka).
+44 migrations, Row Level Security forced on every table, reference data
+seeded, and two cron jobs scheduled (`tack-worker` every two minutes,
+`tack-nightly` at 18:20 UTC — just after midnight in Dhaka).
 
 The cron bearer secret and the functions base URL are in Supabase Vault under
 `tack_cron_secret` and `tack_functions_url`. They are read at call time, so
@@ -49,8 +49,16 @@ supabase secrets set GEMINI_API_KEY AI_PROVIDER CRON_SECRET
 Then deploy:
 
 ```bash
-supabase functions deploy analyze-jd worker interview
+supabase functions deploy analyze-jd worker interview score-cv
 ```
+
+`score-cv` is new and the CV score does not work without it. Until it is
+deployed, uploading a CV saves the file and then tells the student Tack could
+not start reading it — which is honest, but it is not the feature.
+
+The `worker` function must be redeployed at the same time: the CV parsing and
+rescoring handlers live in it, and it now sweeps jobs abandoned by a killed
+worker before each drain.
 
 `AI_PROVIDER` should stay `mock` until you deliberately want live model calls.
 Flip it to `gemini` for a single test, then set it back.
