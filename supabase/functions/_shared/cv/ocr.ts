@@ -22,6 +22,20 @@ export interface OcrResult {
 }
 
 /**
+ * The engine itself could not start.
+ *
+ * Deliberately not an UnreadableDocument: nothing is wrong with the student's
+ * photo, and telling them to take a better one would be a lie. The job fails,
+ * the worker records it, and somebody looks at the logs.
+ */
+export class OcrUnavailable extends Error {
+  constructor(message: string, options?: { cause?: unknown }) {
+    super(message, options);
+    this.name = "OcrUnavailable";
+  }
+}
+
+/**
  * Does this actually start like an image?
  *
  * Checked before Tesseract sees it, and not as belt and braces. Handed data it
@@ -60,7 +74,23 @@ export async function recogniseImage(bytes: Uint8Array): Promise<OcrResult> {
   // the process. An Edge Function's filesystem is read-only apart from /tmp,
   // so left alone this writes eng.traineddata into the working directory —
   // which fails there, and which littered the repository here.
-  const worker = await createWorker("eng", undefined, { cachePath: "/tmp" });
+  //
+  // Starting the engine is caught apart from reading the image, because the
+  // two failures mean completely different things. A bad photo is one
+  // student's problem. An engine that will not start is OCR not working at
+  // all — most likely because Supabase's Edge Runtime does not give
+  // tesseract.js the worker threads it wants, which could not be tested here
+  // without Docker. That distinction is what makes it findable in the logs
+  // rather than a mystery.
+  let worker;
+  try {
+    worker = await createWorker("eng", undefined, { cachePath: "/tmp" });
+  } catch (error) {
+    throw new OcrUnavailable(
+      `the OCR engine did not start: ${(error as Error).message}`,
+      { cause: error },
+    );
+  }
   try {
     // The bytes go in as they are. tesseract.js types its input as a Node
     // Buffer, which Deno has no business constructing, and wrapping them in a

@@ -49,12 +49,37 @@ supabase secrets set GEMINI_API_KEY AI_PROVIDER CRON_SECRET
 Then deploy:
 
 ```bash
-supabase functions deploy analyze-jd worker interview score-cv
+supabase functions deploy analyze-jd interview score-cv
 ```
+
+```bash
+supabase functions deploy worker --no-verify-jwt
+```
+
+**The worker is deployed separately and without JWT verification, on purpose.**
+`dispatch_worker()` calls it from `pg_cron` with `Authorization: Bearer
+<CRON_SECRET>`, which is a shared secret and not a JWT. With verification on,
+Supabase's gateway answers 401 before the function runs, the queue silently
+never drains, and every CV sits in `processing` until the nightly sweep fails
+it. The function is not unprotected — `isWorkerAuthorised` does a
+constant-time compare of that same secret as its first act.
 
 `score-cv` is new and the CV score does not work without it. Until it is
 deployed, uploading a CV saves the file and then tells the student Tack could
 not start reading it — which is honest, but it is not the feature.
+
+Then check it actually works, rather than assuming:
+
+```bash
+deno run --allow-all --config supabase/functions/deno.json tool/verify_deployed.ts
+```
+
+That creates a throwaway student, uploads a photograph of a CV through the real
+endpoint, waits for the cron worker, and asserts a score came back — then
+deletes the account. It is the only check that exercises Supabase's Edge
+Runtime rather than plain Deno, which matters because the OCR engine wants Node
+worker threads and whether it gets them there has never been tested. If it
+cannot start, the run says so specifically instead of leaving you to guess.
 
 The `worker` function must be redeployed at the same time: the CV parsing and
 rescoring handlers live in it, and it now sweeps jobs abandoned by a killed

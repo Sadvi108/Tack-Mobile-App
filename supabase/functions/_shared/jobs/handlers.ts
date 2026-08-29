@@ -171,6 +171,20 @@ export const handlers: Record<string, Handler> = {
       // A scan, a photo or a protected PDF is an expected outcome, not a
       // fault. Retrying it three times would change nothing, so the job
       // finishes and the document carries the sentence the student can act on.
+      // The OCR engine failing to start is not this student's problem and not
+      // something a better photo fixes, so it is recorded where it can be
+      // found and the job is left to retry rather than swallowed.
+      if ((error as Error)?.name === "OcrUnavailable") {
+        await service.from("audit_log").insert({
+          user_id: userId,
+          action: "ocr_unavailable",
+          entity: "documents",
+          entity_id: documentId,
+          meta: { message: (error as Error).message.slice(0, 300) },
+        });
+        throw error;
+      }
+
       if (error instanceof UnreadableDocument) {
         await service
           .from("documents")
