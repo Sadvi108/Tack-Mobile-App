@@ -10,6 +10,9 @@ import 'package:tack/features/applications/data/application_repository.dart';
 import 'package:tack/features/dashboard/application/next_actions.dart';
 import 'package:tack/features/dashboard/presentation/dashboard_screen.dart';
 import 'package:tack/features/dashboard/presentation/widgets.dart';
+import 'package:tack/features/paths/data/path_repository.dart';
+import 'package:tack/features/vault/data/document_models.dart';
+import 'package:tack/features/vault/data/document_repository.dart';
 import 'package:tack/features/notifications/data/notification_repository.dart';
 import 'package:tack/features/profile/data/profile.dart';
 import 'package:tack/features/profile/data/profile_repository.dart';
@@ -36,11 +39,24 @@ ReadinessScore scoreFor(YearMode mode, int total) => ReadinessScore(
   computedAt: DateTime(2026, 8, 25),
   components: const [
     ScoreComponent(key: 'skills', earned: 4, max: 16, ratio: 0.25),
+    ScoreComponent(key: 'projects', earned: 0, max: 10, ratio: 0),
+    ScoreComponent(key: 'cv_quality', earned: 0, max: 13, ratio: 0),
+    // Weighted zero in this mode, so it is not one of the areas being counted.
     ScoreComponent(key: 'application_activity', earned: 0, max: 0, ratio: 0),
   ],
 );
 
-List<Override> overridesFor(YearMode mode, int year, {int total = 30}) => [
+List<Override> overridesFor(
+  YearMode mode,
+  int year, {
+  int total = 30,
+  // The set-up state is a parameter rather than a second override of the same
+  // providers: overriding one provider twice in the same list is ambiguous,
+  // and the composed dashboard provider silently failed to resolve when it was.
+  List<TackDocument> documents = const [],
+  List<ChosenPath> paths = const [],
+  ApplicationCounts counts = ApplicationCounts.empty,
+}) => [
   // A widget test must not open the on-device database, and the outbox
   // has its own tests — this one is about what each mode renders.
   localDbProvider.overrideWith((ref) {
@@ -58,12 +74,14 @@ List<Override> overridesFor(YearMode mode, int year, {int total = 30}) => [
   scoreTrendProvider.overrideWith((ref) async => const <ReadinessScore>[]),
   roadmapsProvider.overrideWith((ref) async => const <Roadmap>[]),
   nextActionsProvider.overrideWith((ref) async => const <NextAction>[]),
-  applicationCountsProvider.overrideWith(
-    (ref) async => ApplicationCounts.empty,
-  ),
+  applicationCountsProvider.overrideWith((ref) async => counts),
   upcomingApplicationsProvider.overrideWith(
     (ref) async => const <JobApplication>[],
   ),
+  // The dashboard composes these two as well, and a widget test must not let
+  // either reach the network to find that out.
+  documentsProvider.overrideWith((ref) async => documents),
+  chosenPathsProvider.overrideWith((ref) async => paths),
 ];
 
 String allText(WidgetTester tester) => tester
@@ -255,6 +273,90 @@ void main() {
         size.width,
         lessThanOrEqualTo(360 / 5),
         reason: '$label is too wide',
+      );
+    }
+  });
+
+  testWidgets('a student who has just signed up is told what to do first', (
+    tester,
+  ) async {
+    await pumpAt(
+      tester,
+      const DashboardScreen(),
+      size: const Size(360, 800),
+      overrides: overridesFor(YearMode.launch, 4),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('DO THIS FIRST'), findsOneWidget);
+    expect(find.text('Upload your CV'), findsOneWidget);
+    expect(find.text('Pick a target job'), findsOneWidget);
+
+    // One to-do list at a time: the ranked suggestions would compete with the
+    // three things that actually have to happen first.
+    expect(find.text('Your next three actions'), findsNothing);
+  });
+
+  testWidgets('once set up, the ranked actions take over', (tester) async {
+    await pumpAt(
+      tester,
+      const DashboardScreen(),
+      size: const Size(360, 2400),
+      overrides: overridesFor(
+        YearMode.launch,
+        4,
+        documents: [
+          TackDocument(
+            id: 'd1',
+            type: DocumentType.cv,
+            title: 'CV',
+            storagePath: 'users/u/cv/d1',
+            status: DocumentStatus.ready,
+            createdAt: DateTime(2026),
+          ),
+        ],
+        paths: const [ChosenPath(pathId: 'p1', isPrimary: true)],
+        counts: const ApplicationCounts({TackStatus.applied: 2}),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('DO THIS FIRST'), findsNothing);
+    expect(find.text('Your next three actions'), findsOneWidget);
+  });
+
+  testWidgets('the score is explained, not just stated', (tester) async {
+    await pumpAt(
+      tester,
+      const DashboardScreen(),
+      // Tall on purpose: a lazy ListView never builds what is below the fold,
+      // so a presence assertion at 800px would be testing the scroll position.
+      size: const Size(360, 2400),
+      overrides: overridesFor(YearMode.launch, 4),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('READINESS / 100'), findsOneWidget);
+    // A number on its own is a verdict; the fraction is a to-do list. Three
+    // components carry weight in this fixture and one of them is scored.
+    expect(find.text('One of 3 areas have any score.'), findsOneWidget);
+    expect(find.text('See the three  →'), findsOneWidget);
+  });
+
+  testWidgets('every mode says the score is private', (tester) async {
+    for (final (mode, year) in [(YearMode.explore, 1), (YearMode.launch, 4)]) {
+      await pumpAt(
+        tester,
+        const DashboardScreen(),
+        size: const Size(360, 2400),
+        overrides: overridesFor(mode, year),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Nothing here is public. Your score is only for you.'),
+        findsOneWidget,
+        reason: '$mode does not reassure the student',
       );
     }
   });

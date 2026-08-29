@@ -193,10 +193,7 @@ class DocumentRepository {
   /// route around redaction on the wrong side of the network.
   Future<void> requestScore(String documentId) async {
     try {
-      await _db.functions.invoke(
-        'score-cv',
-        body: {'documentId': documentId},
-      );
+      await _db.functions.invoke('score-cv', body: {'documentId': documentId});
     } catch (e) {
       throw Failure.from(e);
     }

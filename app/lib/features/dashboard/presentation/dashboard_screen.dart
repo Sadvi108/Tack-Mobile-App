@@ -8,13 +8,14 @@ import '../../../routing/router.dart';
 import '../../applications/data/application_models.dart';
 import '../../applications/data/application_repository.dart';
 import '../../notifications/data/notification_repository.dart';
+import '../../paths/data/path_repository.dart';
 import '../../profile/data/profile.dart';
 import '../../profile/data/profile_repository.dart';
 import '../../roadmap/data/roadmap_models.dart';
 import '../../roadmap/data/roadmap_repository.dart';
-import '../../score/data/readiness.dart';
 import '../../score/data/score_repository.dart';
-import '../application/next_actions.dart';
+import '../../vault/data/document_repository.dart';
+import '../application/dashboard_data.dart';
 import 'widgets.dart';
 import '../../../routing/tab_bar.dart';
 
@@ -28,9 +29,9 @@ class DashboardScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final profileAsync = ref.watch(profileProvider);
+    final dashboard = ref.watch(dashboardProvider);
 
-    return profileAsync.when(
+    return dashboard.when(
       loading: () => const _DashboardLoading(),
       error: (_, _) => TackScaffold(
         bottomNav: const _Nav(),
@@ -38,41 +39,38 @@ class DashboardScreen extends ConsumerWidget {
         body: TackErrorState(
           body:
               'Your dashboard did not load. Check your connection and try again.',
-          onRetry: () => ref.invalidate(profileProvider),
+          onRetry: () => ref.invalidate(dashboardProvider),
         ),
       ),
-      data: (profile) {
-        if (profile == null) return const _DashboardLoading();
-        return _Dashboard(profile: profile);
-      },
+      data: (data) =>
+          data == null ? const _DashboardLoading() : _Dashboard(data: data),
     );
   }
 }
 
 class _Dashboard extends ConsumerWidget {
-  const _Dashboard({required this.profile});
+  const _Dashboard({required this.data});
 
-  final Profile profile;
+  final DashboardData data;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final mode = profile.mode;
-    final score = ref.watch(readinessProvider).value ?? ReadinessScore.empty;
-    final weekChange = ref.watch(weekChangeProvider).value ?? 0;
-    final cohort = ref.watch(cohortProvider).value;
-    final actions =
-        ref.watch(nextActionsProvider).value ?? const <NextAction>[];
-    final roadmaps = ref.watch(roadmapsProvider).value ?? const <Roadmap>[];
+    final profile = data.profile;
+    final mode = data.mode;
     final online = ref.watch(isOnlineProvider);
     final queued = ref.watch(pendingChangesProvider).value ?? 0;
 
     Future<void> refresh() async {
-      ref.invalidate(profileProvider);
-      ref.invalidate(readinessProvider);
-      ref.invalidate(weekChangeProvider);
-      ref.invalidate(roadmapsProvider);
-      ref.invalidate(applicationCountsProvider);
-      ref.invalidate(upcomingApplicationsProvider);
+      ref
+        ..invalidate(profileProvider)
+        ..invalidate(readinessProvider)
+        ..invalidate(weekChangeProvider)
+        ..invalidate(roadmapsProvider)
+        ..invalidate(documentsProvider)
+        ..invalidate(chosenPathsProvider)
+        ..invalidate(applicationCountsProvider)
+        ..invalidate(upcomingApplicationsProvider)
+        ..invalidate(dashboardProvider);
     }
 
     return TackScaffold(
@@ -118,40 +116,52 @@ class _Dashboard extends ConsumerWidget {
               const SizedBox(height: TackSpace.stackLoose),
             ],
 
-            ScoreSummaryCard(
-              score: score.total,
-              weekChange: weekChange,
-              mode: mode,
-              cohort: cohort,
-              onTap: () => context.go(Routes.score),
+            ReadinessBlock(
+              score: data.score.total,
+              areasScored: data.areasScored,
+              areasCounted: data.areasCounted,
+              onSeeBreakdown: () => context.push(Routes.score),
             ),
             const SizedBox(height: TackSpace.stackLoose),
 
-            NextThreeActions(
-              actions: actions,
-              heading: mode == YearMode.explore
-                  ? 'Try these this month'
-                  : 'Your next three actions',
-              onOpen: (action) => context.go(action.route),
-              onTickTask: (action) async {
-                await ref
-                    .read(roadmapRepositoryProvider)
-                    .setTaskDone(action.taskId!, done: true);
-                ref.invalidate(roadmapsProvider);
-                ref.invalidate(readinessProvider);
-                if (context.mounted) {
-                  TackToast.show(
-                    context,
-                    message: 'Done. +${action.points} points.',
-                  );
-                }
-              },
-            ),
-            const SizedBox(height: TackSpace.stackLoose),
+            // One to-do list at a time. While a student is still setting up,
+            // the ranked suggestions would compete with the three things that
+            // actually have to happen first, so they wait their turn.
+            if (!data.isSetUp) ...[
+              StartHereCard(
+                steps: data.setupSteps,
+                onOpen: (step) => context.go(step.route),
+              ),
+              const SizedBox(height: TackSpace.stackLoose),
+            ] else ...[
+              NextThreeActions(
+                actions: data.actions,
+                heading: mode == YearMode.explore
+                    ? 'Try these this month'
+                    : 'Your next three actions',
+                onOpen: (action) => context.go(action.route),
+                onTickTask: (action) async {
+                  await ref
+                      .read(roadmapRepositoryProvider)
+                      .setTaskDone(action.taskId!, done: true);
+                  ref
+                    ..invalidate(roadmapsProvider)
+                    ..invalidate(readinessProvider)
+                    ..invalidate(dashboardProvider);
+                  if (context.mounted) {
+                    TackToast.show(
+                      context,
+                      message: 'Done. +${action.points} points.',
+                    );
+                  }
+                },
+              ),
+              const SizedBox(height: TackSpace.stackLoose),
+            ],
 
-            if (roadmaps.isNotEmpty) ...[
+            if (data.roadmaps.isNotEmpty) ...[
               _RoadmapProgressCard(
-                roadmaps: roadmaps,
+                roadmaps: data.roadmaps,
                 onTap: () => context.go(Routes.roadmap),
               ),
               const SizedBox(height: TackSpace.stackLoose),
@@ -163,6 +173,7 @@ class _Dashboard extends ConsumerWidget {
               const SizedBox(height: TackSpace.stackLoose),
             ],
 
+            const PrivacyNote(),
             const SizedBox(height: TackSpace.xl),
           ],
         ),

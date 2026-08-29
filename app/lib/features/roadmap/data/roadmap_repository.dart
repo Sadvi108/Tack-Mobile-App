@@ -37,7 +37,14 @@ class RoadmapRepository {
           .select(_select)
           .eq('user_id', _uid)
           .isFilter('deleted_at', null)
-          .isFilter('roadmap_tasks.deleted_at', null)
+          // The full path, because roadmap_tasks is nested inside
+          // roadmap_milestones. Filtering it as a top-level embed made
+          // PostgREST answer 400 on every call — "'roadmap_tasks' is not an
+          // embedded resource in this request" — so the roadmap list has
+          // never loaded for anyone. The dashboard read it as
+          // `.value ?? const []`, which turned a hard failure into an empty
+          // screen nobody could see was broken.
+          .isFilter('roadmap_milestones.roadmap_tasks.deleted_at', null)
           .order('created_at');
       return rows.map(Roadmap.fromRow).toList();
     } catch (e) {
