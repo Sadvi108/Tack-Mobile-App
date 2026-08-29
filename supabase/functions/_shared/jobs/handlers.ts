@@ -192,6 +192,7 @@ export const handlers: Record<string, Handler> = {
       pages: extraction.pages,
       truncated: extraction.truncated,
       extractor: extraction.extractor,
+      confidence: extraction.confidence,
     });
 
     const { text: clean } = redact(extraction.text);

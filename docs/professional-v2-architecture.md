@@ -129,19 +129,25 @@ formula is a hypothesis until it is calibrated against real CVs (§10).
 | Option | Verdict |
 |---|---|
 | Extract in Dart on device | **No.** Needs a large PDF dependency, cannot re-extract for a rescoring, and makes the text client-supplied — the server would be trusting a payload it can produce itself. |
-| Send the file straight to a multimodal model | **No.** Redaction is mandatory *before* any model call, and redaction operates on text. Sending the raw file skips it. |
+| Send the file straight to a multimodal model | **No.** Redaction is mandatory *before* any model call, and redaction operates on text. Sending the raw file skips it — which is also why OCR is Tesseract and not Gemini. A photograph handed to a model carries the student's phone number and email to a provider, in the one step that exists to stop that. |
 | Extract in the worker | **Yes.** The service role already has the bytes, redaction stays server-side and unavoidable, and re-extraction is possible without asking the student for anything. |
 
 Extraction rules, all enforced before the model sees anything:
 
 - PDF: `unpdf` — a pure-JavaScript pdf.js build that runs in Deno without a
   native binary, so it works inside an Edge Function isolate. First **6 pages**
-  only, text layer only, no OCR in v1. This is a new worker dependency and is
-  approved.
+  only, text layer only.
 - DOCX: it is a zip; read `word/document.xml`, strip tags.
-- DOC (legacy binary) and images: **not extractable in v1.** The document is
-  marked `failed` with `failure_reason` = a sentence the student can act on
-  ("Tack could not read that file. Export your CV as a PDF and upload it again.").
+- Photographs: **Tesseract via `tesseract.js`**, as WebAssembly in the worker.
+  Measured on a phone-camera page: **1.06s cold, 632ms warm**, confidence 94.
+  Cold includes fetching ~5MB of trained data, which is cached to `/tmp` — an
+  Edge Function's filesystem is read-only everywhere else, and left at its
+  default the library writes that file beside the process. Below a confidence
+  of 55 the read is refused rather than scored: text that looks like text and
+  is not would produce a number the student acts on.
+- DOC (legacy binary): **not extractable.** Nor is a scanned PDF: rasterising
+  its pages needs a native canvas the isolate does not have. Both are marked
+  `failed` with a sentence naming the fix.
 - Hard cap **40,000 characters** after extraction. A CV longer than that is
   truncated and a warning is recorded.
 - Fewer than 200 characters extracted ⇒ treat as unreadable (a scanned PDF has a
@@ -374,6 +380,17 @@ that step needs a human token.
 running it first would destroy the `has_contact` signal that the structure and
 hygiene components depend on. The order in the handler — measure the raw text,
 then redact, then call the model — is load-bearing and says so in the code.
+
+**And repair before you measure, once OCR is in the picture.** Tesseract reads
+`rifat.hasan@example.com` as `rifat. hasan @example.com`, which the redaction
+regexes do not match. Before the repair existed that address survived
+`redact()`, survived `assertClean()`, and would have gone to the model —
+verified, not theorised. So the OCR path closes the spacing inside things that
+already look like an address, and `assertClean` gained a spaced-address pattern
+as a backstop, because a heuristic that fails quietly is not a safeguard. Both
+are pinned by tests, including that "Reduced cost @ scale. Shipped 4 features"
+is *not* an address, which an earlier and looser version of the check thought
+it was.
 
 **Three bugs the verification found**, in ascending order of how badly they
 would have hurt:
@@ -687,7 +704,8 @@ funnel counts — event names and counts only, never CV text.
 | Decision | Chosen | Given up |
 |---|---|---|
 | Model extracts, Postgres scores | Reproducible, explainable, free rescoring, injection-proof | Only sees what the parser found; formula needs calibration |
-| Extraction in the worker | Redaction unavoidable, re-extraction possible | A new Deno dependency; no OCR in v1 |
+| Extraction in the worker | Redaction unavoidable, re-extraction possible | Two Deno dependencies, and OCR costs about a second per photo |
+| OCR by Tesseract, not by a model | Redaction still happens before the model sees anything | Worse on handwriting and on Bangla than a multimodal model would be |
 | `cv_scores` separate from `cv_parse_results` | Rescoring is free and never stale | One more table and one more join |
 | Mode-aware CV weights | A first-year is not punished for having no job | Cross-mode scores are not directly comparable; the copy must say so |
 | Score shown to one decimal | Real improvement is visible | Invites false precision; the breakdown has to carry the meaning |
@@ -753,8 +771,11 @@ Still open, and it gates slice 4:
 - **Calibration.** The weights in §3.3 are a considered hypothesis, not a
   measured one. After a few hundred real CVs, fit them against outcomes and bump
   `algo_version`.
-- **OCR** for photographed CVs — likely the single most common upload failure in
-  this market, and the one v1 does not handle.
+- **Bangla OCR.** Tesseract reads an English CV well; a Bangla one needs its
+  own trained data and its own accuracy measurement before it is offered.
+- **Scanned PDFs.** A photograph is read, but a photograph inside a PDF
+  wrapper is not, because rasterising pages needs a native canvas the isolate
+  does not have. Common enough to be worth solving another way.
 - **A hand-curated field skill map**, once the derived union from paths starts
   producing odd expectations for fields with thin path coverage.
 - **Bangla CVs.** Extraction, the verb list and the quantification heuristic are

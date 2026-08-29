@@ -29,6 +29,11 @@ export interface CvMetrics {
   placeholder_hits: number;
   extractor: string;
   truncated: boolean;
+  /**
+   * Tesseract's confidence when the CV was a photograph, 0-100. Null for a PDF
+   * or a Word file, where the text was read rather than guessed at.
+   */
+  ocr_confidence: number | null;
 }
 
 const SECTIONS: Array<[string, RegExp]> = [
@@ -237,6 +242,7 @@ export interface MeasureOptions {
   pages: number;
   truncated: boolean;
   extractor: string;
+  confidence?: number;
   /** Injectable so "how recent is this" is testable without waiting a month. */
   today?: Date;
 }
@@ -336,6 +342,7 @@ export function measure(text: string, opts: MeasureOptions): CvMetrics {
     placeholder_hits: PLACEHOLDERS.filter((p) => p.test(text)).length,
     extractor: opts.extractor,
     truncated: opts.truncated,
+    ocr_confidence: opts.confidence ?? null,
   };
 }
 

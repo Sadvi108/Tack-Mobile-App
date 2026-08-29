@@ -124,9 +124,13 @@ swift tool/make_qr.swift "https://testflight.apple.com/join/XXXXXXXX" poster.png
 
 `file_picker` and `image_picker` are already dependencies, so on a real phone
 the vault offers Files, iCloud Drive and the camera. Photographing a paper CV
-is the common case here and it uploads fine — but Tack cannot *read* a photo,
-because there is no text layer in it and no OCR yet. It will say so and ask for
-a PDF. Export from Word or Google Docs and the score works.
+is the common case here, and it now reads: the worker runs OCR on the image and
+the score follows exactly as it would from a PDF.
+
+A blurry or badly lit photo is refused rather than scored, with a sentence
+saying to try again in better light or upload a PDF instead. That is
+deliberate — a number built from misread text is worse than no number, because
+the student acts on it.
 
 ## The shorter route, if you only want it on your own phone
 

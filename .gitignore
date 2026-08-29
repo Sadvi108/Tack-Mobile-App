@@ -37,3 +37,6 @@ tool/node_modules/
 .idea/
 .vscode/
 *.iml
+
+# Tesseract downloads its trained data beside the process at runtime.
+*.traineddata
