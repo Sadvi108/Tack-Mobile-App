@@ -70,6 +70,12 @@ Google sign-in also needs enabling in the Supabase dashboard under
 Authentication → Providers → Google, with `com.tack.app://auth-callback` added
 to the allowed redirect URLs.
 
+## Putting a build on a phone
+
+TestFlight, signing, and the QR for the install link are in
+[TESTFLIGHT.md](TESTFLIGHT.md). The Edge Functions above have to be deployed
+first, or a CV uploads and then cannot be read.
+
 ## The app
 
 Build configuration comes from `--dart-define-from-file`, so no key is ever
