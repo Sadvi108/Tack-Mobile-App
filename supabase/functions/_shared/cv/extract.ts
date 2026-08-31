@@ -8,8 +8,9 @@
  * server could produce itself — and would make re-extraction impossible
  * without asking the student to upload the file again.
  *
- * No OCR. A photograph of a CV has no text layer, and saying so plainly is
- * better than returning a confident score computed from nothing.
+ * A photograph goes through OCR. Most students here have a paper CV and a
+ * phone camera rather than a scanner, so a photo is the first thing many will
+ * upload, and refusing it was refusing the common case.
  */
 
 /** Beyond this the extractor stops. A CV is not a book. */
@@ -25,7 +26,9 @@ export interface Extraction {
   text: string;
   pages: number;
   truncated: boolean;
-  extractor: "unpdf" | "docx";
+  extractor: "unpdf" | "docx" | "ocr";
+  /** Tesseract's own confidence, 0-100. Absent when no OCR was involved. */
+  confidence?: number;
 }
 
 /**
@@ -33,8 +36,11 @@ export interface Extraction {
  * failure reason is written once, here, rather than guessed at each call site.
  */
 export class UnreadableDocument extends Error {
-  constructor(public readonly studentMessage: string) {
-    super(studentMessage);
+  constructor(
+    public readonly studentMessage: string,
+    options?: { cause?: unknown },
+  ) {
+    super(studentMessage, options);
     this.name = "UnreadableDocument";
   }
 }
@@ -43,8 +49,18 @@ const PDF = "application/pdf";
 const DOCX =
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
+/** What OCR can read. The vault already refuses anything not on this list. */
+const IMAGES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/heic",
+  "image/heif",
+]);
+
 export function isExtractable(mimeType: string | null): boolean {
-  return mimeType === PDF || mimeType === DOCX;
+  return mimeType === PDF || mimeType === DOCX ||
+    (mimeType !== null && IMAGES.has(mimeType));
 }
 
 export async function extractDocument(
@@ -54,23 +70,45 @@ export async function extractDocument(
   if (mimeType === PDF) return finish(await fromPdf(bytes), "unpdf");
   if (mimeType === DOCX) return finish(await fromDocx(bytes), "docx");
 
-  // Everything else — a photo, a scan, a legacy .doc — is a dead end, and the
-  // student needs to know what to do rather than that something went wrong.
+  if (mimeType !== null && IMAGES.has(mimeType)) {
+    // Imported here rather than at the top so a PDF upload does not pay for
+    // loading an OCR engine it will never use.
+    const { recogniseImage, MIN_CONFIDENCE } = await import("./ocr.ts");
+    const read = await recogniseImage(bytes);
+
+    // A blurry or badly lit photo produces text that looks like text and is
+    // not. Scoring it would be worse than refusing it, because the student
+    // would act on a number built from noise.
+    if (read.confidence < MIN_CONFIDENCE) {
+      throw new UnreadableDocument(
+        "That photo is too hard to read. Try again in better light with the " +
+          "page flat and the whole CV in frame, or upload a PDF instead.",
+      );
+    }
+
+    return finish({ text: read.text, pages: 1 }, "ocr", read.confidence);
+  }
+
+  // A legacy .doc is a binary format nothing here can open.
   throw new UnreadableDocument(
-    "Tack can read PDFs and Word documents. Export your CV as a PDF and upload it again.",
+    "Tack can read PDFs, Word documents and photos. Export your CV as a PDF and upload it again.",
   );
 }
 
 function finish(
   raw: { text: string; pages: number },
-  extractor: "unpdf" | "docx",
+  extractor: "unpdf" | "docx" | "ocr",
+  confidence?: number,
 ): Extraction {
   const cleaned = normalise(raw.text);
 
   if (cleaned.length < MIN_CHARS) {
     throw new UnreadableDocument(
-      "That file has no text Tack can read — it looks like a scan or a photo. " +
-        "Export your CV as a PDF from the app you wrote it in and upload that.",
+      extractor === "ocr"
+        ? "Tack could not find enough writing in that photo. Make sure the " +
+          "whole CV is in frame and in focus, or upload a PDF instead."
+        : "That file has no text Tack can read — it is probably a scan. " +
+          "Export your CV as a PDF from the app you wrote it in and upload that.",
     );
   }
 
@@ -80,6 +118,7 @@ function finish(
     pages: raw.pages,
     truncated,
     extractor,
+    confidence,
   };
 }
 

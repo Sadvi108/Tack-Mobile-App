@@ -4,16 +4,17 @@ import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mime/mime.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/failure.dart';
 import '../../../design/tack.dart';
+import '../../../routing/router.dart';
 import '../application/upload_controller.dart';
 import '../data/document_models.dart';
 import '../data/document_repository.dart';
+import '../../../routing/tab_bar.dart';
 
 /// The document vault.
 ///
@@ -29,7 +30,8 @@ class VaultScreen extends ConsumerWidget {
     final upload = ref.watch(uploadControllerProvider);
 
     return TackScaffold(
-      header: TackHeader(title: 'Your documents', onBack: () => context.pop()),
+      bottomNav: const TackTabBar(current: Routes.vault),
+      header: const TackHeader(title: 'Your documents'),
       pinnedCta: upload.busy
           ? null
           : TackButton(

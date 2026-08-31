@@ -1,7 +1,14 @@
 import { assert, assertEquals } from "@std/assert";
 
 import { latestDate, measure } from "./metrics.ts";
-import { extractDocument, normalise, UnreadableDocument } from "./extract.ts";
+import {
+  extractDocument,
+  isExtractable,
+  normalise,
+  UnreadableDocument,
+} from "./extract.ts";
+import { looksLikeImage, repairOcrText } from "./ocr.ts";
+import { assertClean, redact } from "../ai/redact.ts";
 import { SAMPLE_CV_PDF_BASE64 } from "./fixture_pdf.ts";
 
 const TODAY = new Date("2026-08-29T00:00:00Z");
@@ -212,13 +219,36 @@ Deno.test("a real PDF is read down to its text", async () => {
 });
 
 Deno.test("a file Tack cannot read says what to do instead", async () => {
-  const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47]);
+  // A legacy binary .doc: nothing here can open it, and OCR cannot help.
+  const doc = new Uint8Array([0xd0, 0xcf, 0x11, 0xe0]);
   try {
-    await extractDocument(png, "image/png");
+    await extractDocument(doc, "application/msword");
     throw new Error("should have thrown");
   } catch (e) {
     assert(e instanceof UnreadableDocument);
     assert(e.studentMessage.includes("PDF"), e.studentMessage);
+  }
+});
+
+Deno.test("a photograph is something Tack will now try to read", () => {
+  for (const type of ["image/jpeg", "image/png", "image/heic"]) {
+    assert(isExtractable(type), type);
+  }
+  assert(!isExtractable("application/msword"));
+  assert(!isExtractable(null));
+});
+
+Deno.test("an image it cannot decode fails in words a student can act on", async () => {
+  const broken = new Uint8Array([0x89, 0x50, 0x4e, 0x47]);
+  try {
+    await extractDocument(broken, "image/png");
+    throw new Error("should have thrown");
+  } catch (e) {
+    assert(e instanceof UnreadableDocument, String(e));
+    assert(
+      e.studentMessage.includes("photo") || e.studentMessage.includes("image"),
+      e.studentMessage,
+    );
   }
 });
 
@@ -236,4 +266,100 @@ Deno.test("a PDF with no text layer is refused rather than scored on nothing", a
   } catch (e) {
     assert(e instanceof UnreadableDocument, String(e));
   }
+});
+
+// ---------------------------------------------------------------- OCR repair
+//
+// These guard a privacy hole, not a formatting nicety. Tesseract reads
+// "rifat.hasan@example.com" as "rifat. hasan @example.com", which the redaction
+// regexes do not match — so before the repair existed the address survived
+// redact(), survived assertClean(), and would have gone to the model.
+
+Deno.test("OCR spacing inside an address is closed up", () => {
+  assertEquals(
+    repairOcrText("rifat. hasan @example.com"),
+    "rifat.hasan@example.com",
+  );
+  assertEquals(repairOcrText("rifat @ example . com"), "rifat@example.com");
+});
+
+Deno.test("and the repaired address is then actually redacted", () => {
+  const raw = "rifat. hasan @example.com +8801712345678";
+
+  // What used to happen: nothing found, and the address went out as written.
+  assertEquals(redact(raw).found.emails.length, 0);
+
+  const repaired = repairOcrText(raw);
+  const cleaned = redact(repaired);
+  assertEquals(cleaned.found.emails, ["rifat.hasan@example.com"]);
+  assert(!cleaned.text.includes("example.com"), cleaned.text);
+  assertClean(cleaned.text);
+});
+
+Deno.test("a spaced address the repair missed still refuses to be sent", () => {
+  // The backstop. A heuristic that fails quietly is not a safeguard.
+  let threw = false;
+  try {
+    assertClean("contact me at rifat @ example . com any time");
+  } catch {
+    threw = true;
+  }
+  assert(threw, "assertClean let a spaced address through");
+});
+
+Deno.test("but an at-sign in ordinary prose is not an address", () => {
+  // Each of these was a false positive at some point while writing the check,
+  // and each would have refused a perfectly good CV.
+  assertClean("Handled 50 @ 3.5 hours per week and 12 @ 2.5 on weekends");
+  assertClean("Reduced cost @ scale. Shipped 4 features.");
+  assertClean("Worked @ bKash. Built the payments screen.");
+  assertClean("Rated 5 @ 2.0 average. Improved it.");
+});
+
+Deno.test("and prose containing an at-sign survives the repair unchanged", () => {
+  const prose = "Reduced cost @ scale. Shipped 4 features.";
+  assertEquals(repairOcrText(prose), prose);
+});
+
+Deno.test("a link is put back together too", () => {
+  assertEquals(
+    repairOcrText("github . com / rifat"),
+    "github.com/rifat",
+  );
+});
+
+Deno.test("ordinary sentences are left alone", () => {
+  const prose =
+    "Built React screens. Shipped responsive breakpoints. Cut load time by 40 percent.";
+  assertEquals(repairOcrText(prose), prose);
+});
+
+Deno.test("metrics record whether the text was read or guessed at", () => {
+  const fromPdf = measure(GOOD_CV, opts);
+  assertEquals(fromPdf.ocr_confidence, null);
+
+  const fromPhoto = measure(GOOD_CV, {
+    ...opts,
+    extractor: "ocr",
+    confidence: 92,
+  });
+  assertEquals(fromPhoto.ocr_confidence, 92);
+  assertEquals(fromPhoto.extractor, "ocr");
+});
+
+Deno.test("what does and does not look like a photograph", () => {
+  const pad = (head: number[]) =>
+    Uint8Array.from([...head, ...new Array(2048).fill(0)]);
+
+  assert(looksLikeImage(pad([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])));
+  assert(looksLikeImage(pad([0xff, 0xd8, 0xff])));
+
+  // Four bytes that begin like a PNG and then stop. Tesseract throws from
+  // inside its own worker on this, which is not catchable at the call site.
+  assert(!looksLikeImage(Uint8Array.from([0x89, 0x50, 0x4e, 0x47])));
+  assert(
+    !looksLikeImage(pad([0x25, 0x50, 0x44, 0x46])),
+    "a PDF is not an image",
+  );
+  assert(!looksLikeImage(new Uint8Array(0)));
 });

@@ -1,9 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../roadmap/data/roadmap_models.dart';
-import '../../roadmap/data/roadmap_repository.dart';
 import '../../score/data/readiness.dart';
-import '../../score/data/score_repository.dart';
+import '../data/dashboard_repository.dart';
 
 /// One row of "Your next three actions".
 ///
@@ -46,7 +45,11 @@ class NextAction {
 /// first-year to apply for jobs would contradict the whole product.
 List<NextAction> rankNextActions({
   required ReadinessScore score,
-  required List<Roadmap> roadmaps,
+  List<Roadmap> roadmaps = const [],
+  String? nextTaskId,
+  String? nextTaskTitle,
+  int nextTaskPoints = 0,
+  int? nextTaskMinutes,
   int limit = 3,
 }) {
   final candidates = <NextAction>[
@@ -58,6 +61,19 @@ List<NextAction> rankNextActions({
         route: component.route,
         componentKey: component.key,
       ),
+    // The dashboard feed sends one task rather than every roadmap: the ranking
+    // only ever shows the top three, and shipping a student's whole roadmap
+    // over the wire to pick at most one row from it was most of the payload.
+    if (nextTaskId != null && nextTaskTitle != null)
+      NextAction(
+        title: nextTaskTitle,
+        points: nextTaskPoints,
+        effortMinutes: nextTaskMinutes ?? 45,
+        route: '/roadmap',
+        taskId: nextTaskId,
+      ),
+    // Still supported, and still what the unit tests exercise: given whole
+    // roadmaps, every open task in an active milestone competes.
     for (final roadmap in roadmaps)
       for (final milestone in roadmap.milestones)
         if (milestone.state == MilestoneState.active)
@@ -95,7 +111,13 @@ List<NextAction> rankNextActions({
 }
 
 final nextActionsProvider = FutureProvider<List<NextAction>>((ref) async {
-  final score = await ref.watch(readinessProvider.future);
-  final roadmaps = await ref.watch(roadmapsProvider.future);
-  return rankNextActions(score: score, roadmaps: roadmaps);
+  final feed = await ref.watch(dashboardFeedProvider.future);
+  if (feed == null) return const [];
+  return rankNextActions(
+    score: feed.score,
+    nextTaskId: feed.roadmap.nextTaskId,
+    nextTaskTitle: feed.roadmap.nextTaskTitle,
+    nextTaskPoints: feed.roadmap.nextTaskPoints,
+    nextTaskMinutes: feed.roadmap.nextTaskMinutes,
+  );
 });

@@ -46,15 +46,52 @@ Set the function secrets. These are names only — take the values from your own
 supabase secrets set GEMINI_API_KEY AI_PROVIDER CRON_SECRET
 ```
 
+Radar needs one more, and works without it in a reduced form:
+
+```bash
+supabase secrets set CAREERJET_API_KEY CAREERJET_LOCALE
+```
+
+`CAREERJET_LOCALE` defaults to `en_BD`. Without the key, Radar still runs on
+the free AI jobs board and says so on screen — "one board is off" — rather than
+showing an empty list as though there were no work in the world. Careerjet is
+the one that actually covers Bangladesh, so until it is set the feed is mostly
+senior roles abroad.
+
 Then deploy:
 
 ```bash
-supabase functions deploy analyze-jd worker interview score-cv
+supabase functions deploy analyze-jd interview score-cv radar
 ```
+
+```bash
+supabase functions deploy worker --no-verify-jwt
+```
+
+**The worker is deployed separately and without JWT verification, on purpose.**
+`dispatch_worker()` calls it from `pg_cron` with `Authorization: Bearer
+<CRON_SECRET>`, which is a shared secret and not a JWT. With verification on,
+Supabase's gateway answers 401 before the function runs, the queue silently
+never drains, and every CV sits in `processing` until the nightly sweep fails
+it. The function is not unprotected — `isWorkerAuthorised` does a
+constant-time compare of that same secret as its first act.
 
 `score-cv` is new and the CV score does not work without it. Until it is
 deployed, uploading a CV saves the file and then tells the student Tack could
 not start reading it — which is honest, but it is not the feature.
+
+Then check it actually works, rather than assuming:
+
+```bash
+deno run --allow-all --config supabase/functions/deno.json tool/verify_deployed.ts
+```
+
+That creates a throwaway student, uploads a photograph of a CV through the real
+endpoint, waits for the cron worker, and asserts a score came back — then
+deletes the account. It is the only check that exercises Supabase's Edge
+Runtime rather than plain Deno, which matters because the OCR engine wants Node
+worker threads and whether it gets them there has never been tested. If it
+cannot start, the run says so specifically instead of leaving you to guess.
 
 The `worker` function must be redeployed at the same time: the CV parsing and
 rescoring handlers live in it, and it now sweeps jobs abandoned by a killed
@@ -69,6 +106,12 @@ Crash reporting is optional and off until a DSN is set — see
 Google sign-in also needs enabling in the Supabase dashboard under
 Authentication → Providers → Google, with `com.tack.app://auth-callback` added
 to the allowed redirect URLs.
+
+## Putting a build on a phone
+
+TestFlight, signing, and the QR for the install link are in
+[TESTFLIGHT.md](TESTFLIGHT.md). The Edge Functions above have to be deployed
+first, or a CV uploads and then cannot be read.
 
 ## The app
 

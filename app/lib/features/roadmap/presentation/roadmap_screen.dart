@@ -8,11 +8,11 @@ import '../../../core/failure.dart';
 import '../../../core/offline/sync.dart';
 import '../../../design/tack.dart';
 import '../../../routing/router.dart';
-import '../../profile/data/profile_repository.dart';
 import '../../score/data/score_repository.dart';
 import '../data/roadmap_models.dart';
 import '../data/roadmap_repository.dart';
 import 'task_tile.dart';
+import '../../../routing/tab_bar.dart';
 
 /// The roadmap.
 ///
@@ -129,15 +129,8 @@ class _RoadmapScreenState extends ConsumerState<RoadmapScreen> {
   @override
   Widget build(BuildContext context) {
     final roadmapsAsync = ref.watch(roadmapsProvider);
-    final mode = ref.watch(modeProvider);
-    final tabs = TackTabs.forMode(mode.name);
-
     return TackScaffold(
-      bottomNav: TackBottomNav(
-        tabs: tabs,
-        currentIndex: tabs.indexWhere((t) => t.route == Routes.roadmap),
-        onTap: (i) => context.go(tabs[i].route),
-      ),
+      bottomNav: const TackTabBar(current: Routes.roadmap),
       header: const TackHeader(title: 'Your roadmap'),
       body: roadmapsAsync.when(
         loading: () => const Column(
@@ -161,7 +154,7 @@ class _RoadmapScreenState extends ConsumerState<RoadmapScreen> {
                   'Pick a career path and Tack turns it into a route you can '
                   'actually follow, one step at a time.',
               primaryLabel: 'Explore career paths',
-              onPrimary: () => context.go(Routes.paths),
+              onPrimary: () => context.push(Routes.paths),
             );
           }
 

@@ -115,6 +115,20 @@ class PathRepository {
     }
   }
 
+  /// Marks one followed path as the student's target.
+  ///
+  /// "Exactly one primary" is enforced in Postgres rather than here: the rule
+  /// has to hold whoever is writing, and doing it client-side would mean two
+  /// requests where the second can fail and leave a student with two targets
+  /// or none.
+  Future<void> makePrimary(String pathId) async {
+    try {
+      await _db.rpc<void>('set_primary_path', params: {'p_path_id': pathId});
+    } catch (e) {
+      throw Failure.from(e);
+    }
+  }
+
   Future<void> unfollow(String pathId) async {
     try {
       await _db

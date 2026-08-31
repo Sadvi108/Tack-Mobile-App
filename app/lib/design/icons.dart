@@ -18,6 +18,15 @@ class TackIcons {
       '<rect x="4" y="3.5" width="16" height="17" rx="2.5"/><path d="M8 9h8M8 13h5"/>';
   static const practice =
       '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="2.5"/>';
+  /// A sweep, not a magnifying glass: Radar keeps watching, it is not a
+  /// search box you have to remember to visit.
+  static const radar =
+      '<path d="M12 3.5a8.5 8.5 0 1 0 8.5 8.5"/><path d="M12 12 18 6"/><circle cx="12" cy="12" r="1.6"/>';
+
+  /// The coach. A speech bubble with a spark: it talks, and it knows things.
+  static const coach =
+      '<path d="M20.5 11.5a7.5 7.5 0 0 1-7.5 7.5H8l-3.5 2.5V17A7.5 7.5 0 1 1 20.5 11.5Z"/><path d="M12.5 7.5 13.6 10l2.4 1-2.4 1-1.1 2.5-1.1-2.5L9 11l2.4-1z"/>';
+
   static const paths =
       '<circle cx="12" cy="12" r="9"/><path d="m15 9-2 5-5 2 2-5z"/>';
   static const profile =

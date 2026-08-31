@@ -236,6 +236,68 @@ const asUser = (tok, p, opt = {}) => fetch(`${URL}${p}`, {
   catch { thirdBlocked = true; }
   ok('a third career path is refused', thirdBlocked);
 
+  console.log('\n13. an application, created the way the app creates one');
+  // Section 7 exercises the status machine over a direct connection, which
+  // runs as the database owner and bypasses row level security. That is why it
+  // passed for months while adding an application from the app failed every
+  // time with 42501: the after-insert trigger writes the status timeline, and
+  // as SECURITY INVOKER that write was refused by the policy meant to stop a
+  // student forging their own history. This section goes through PostgREST
+  // with the student's own token, which is the path that was broken.
+  const userCompany = await asUser(A.token, '/rest/v1/rpc/upsert_company', {
+    method: 'POST', body: JSON.stringify({ raw_name: 'bKash' })
+  }).then(r => r.json());
+
+  const userJob = await asUser(A.token, '/rest/v1/jobs?select=id', {
+    method: 'POST',
+    headers: { Prefer: 'return=representation' },
+    body: JSON.stringify({
+      user_id: A.id, company_id: userCompany, company_name: 'bKash',
+      title: 'Backend intern'
+    })
+  }).then(r => r.json());
+  ok('a student can add the job behind an application', Array.isArray(userJob) && userJob[0]?.id,
+    JSON.stringify(userJob).slice(0, 140));
+
+  const created = await asUser(A.token, '/rest/v1/job_applications?select=id', {
+    method: 'POST',
+    headers: { Prefer: 'return=representation' },
+    body: JSON.stringify({ user_id: A.id, job_id: userJob[0].id, status: 'saved' })
+  });
+  const createdBody = await created.json();
+  ok('a student can create an application', created.status === 201,
+    `status ${created.status} ${JSON.stringify(createdBody).slice(0, 160)}`);
+
+  if (created.status === 201) {
+    const appId = createdBody[0].id;
+
+    const moved = await asUser(A.token, `/rest/v1/job_applications?id=eq.${appId}`, {
+      method: 'PATCH', body: JSON.stringify({ status: 'applied' })
+    });
+    ok('and move it along', moved.status < 300, `status ${moved.status}`);
+
+    const timeline = await asUser(A.token,
+      `/rest/v1/application_status_history?select=from_status,to_status&application_id=eq.${appId}&order=changed_at`
+    ).then(r => r.json());
+    ok('the timeline is written for them', timeline.length === 2, JSON.stringify(timeline));
+    ok('starting at saved and ending at applied',
+      timeline[0]?.to_status === 'saved' && timeline[1]?.to_status === 'applied',
+      JSON.stringify(timeline));
+
+    // The trigger writing history must not become a way to write it by hand.
+    const forged = await asUser(A.token, '/rest/v1/application_status_history', {
+      method: 'POST',
+      body: JSON.stringify({ application_id: appId, user_id: A.id, to_status: 'offer' })
+    });
+    ok('a student still cannot forge their own history', forged.status >= 400,
+      `status ${forged.status}`);
+
+    const theirs = await asUser(B.token,
+      `/rest/v1/job_applications?select=id&id=eq.${appId}`).then(r => r.json());
+    ok('and cannot see someone else\'s application', Array.isArray(theirs) && theirs.length === 0,
+      JSON.stringify(theirs));
+  }
+
   // cleanup
   for (const u of users) await admin(`/auth/v1/admin/users/${u.id}`, { method: 'DELETE' });
   const left = await pg.query(`select count(*)::int n from public.profiles where id = any($1)`, [[A.id, B.id]]);

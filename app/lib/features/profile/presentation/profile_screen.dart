@@ -11,6 +11,7 @@ import '../data/profile.dart';
 import '../data/profile_repository.dart';
 import '../data/profile_sections.dart';
 import '../data/profile_sections_repository.dart';
+import '../../../routing/tab_bar.dart';
 
 /// The profile.
 ///
@@ -28,14 +29,8 @@ class ProfileScreen extends ConsumerWidget {
     final completeness = ref.watch(completenessProvider).value;
     final mode = ref.watch(modeProvider);
     final atSchool = mode.isAtSchool;
-    final tabs = TackTabs.forMode(mode.name);
-
     return TackScaffold(
-      bottomNav: TackBottomNav(
-        tabs: tabs,
-        currentIndex: tabs.indexWhere((t) => t.route == Routes.profile),
-        onTap: (i) => context.go(tabs[i].route),
-      ),
+      bottomNav: const TackTabBar(current: Routes.profile),
       header: TackHeader(
         title: 'Your profile',
         trailing: GestureDetector(
@@ -136,66 +131,40 @@ class ProfileScreen extends ConsumerWidget {
     ProfileSection section,
   ) async {
     final fields = _fieldsFor(section);
-    final controllers = {
-      for (final field in fields) field.key: TextEditingController(),
-    };
 
-    final saved = await showTackSheet<bool>(
+    // The sheet owns its controllers. It used to be the other way round: this
+    // method made them, awaited the sheet, and disposed them the moment the
+    // await returned — which is when Navigator.pop is called, not when the
+    // sheet is gone. The text fields are still mounted through the closing
+    // animation, so the next frame rebuilt them against disposed controllers
+    // and the screen died. Letting the widget own them hands that ordering to
+    // the framework, which is the only thing that actually knows it.
+    final values = await showTackSheet<Map<String, String>>(
       context: context,
-      title: 'Add to ${section.title.toLowerCase()}',
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(
-          TackSpace.screen,
-          0,
-          TackSpace.screen,
-          MediaQuery.viewInsetsOf(context).bottom + TackSpace.xl,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            for (final field in fields) ...[
-              TackTextField(
-                label: field.label,
-                hint: field.hint,
-                controller: controllers[field.key],
-                maxLines: field.multiline ? 4 : 1,
-              ),
-              const SizedBox(height: TackSpace.stack),
-            ],
-            const SizedBox(height: TackSpace.sm),
-            Builder(
-              builder: (sheetContext) => TackButton(
-                'Save',
-                onPressed: () => Navigator.of(sheetContext).pop(true),
-              ),
-            ),
-          ],
-        ),
-      ),
+      title: '${section.saveVerb} ${section.title.toLowerCase()}',
+      child: _EntrySheet(fields: fields),
     );
 
-    final values = {
-      for (final entry in controllers.entries)
-        entry.key: entry.value.text.trim(),
-    };
-    for (final controller in controllers.values) {
-      controller.dispose();
-    }
-    if (saved != true) return;
+    if (values == null) return;
 
     final required = fields.first.key;
     if ((values[required] ?? '').isEmpty) return;
 
     try {
-      await ref.read(profileSectionsRepositoryProvider).insert(section, {
+      await ref.read(sectionInsertProvider)(section, {
         for (final entry in values.entries)
-          if (entry.value.isNotEmpty) entry.key: entry.value,
+          if (entry.value.isNotEmpty)
+            entry.key: _coerce(entry.key, entry.value),
       });
       ref
         ..invalidate(profileSectionsProvider)
         ..invalidate(completenessProvider);
-      if (context.mounted) TackToast.show(context, message: 'Added.');
+      if (context.mounted) {
+        TackToast.show(
+          context,
+          message: section == ProfileSection.education ? 'Updated.' : 'Added.',
+        );
+      }
     } catch (e) {
       if (context.mounted) {
         TackToast.show(
@@ -280,7 +249,7 @@ class ProfileScreen extends ConsumerWidget {
     );
 
     if (!context.mounted) return;
-    if (action == 'documents') context.push(Routes.vault);
+    if (action == 'documents') context.go(Routes.vault);
     if (action == 'signout') {
       await ref.read(authControllerProvider.notifier).signOut();
     }
@@ -298,10 +267,17 @@ class ProfileScreen extends ConsumerWidget {
     ProfileSection.hobbies => const [
       _Field('label', 'What you do', 'Debating, football, editing videos'),
     ],
+    // These are education_profiles' own columns. They used to be the old
+    // education table's, which is why nothing a student typed here ever
+    // reached the record onboarding had already written.
     ProfileSection.education => const [
-      _Field('degree', 'Degree', 'BSc, BBA, BA'),
-      _Field('university_name', 'University', 'Where you study'),
-      _Field('field_of_study', 'Subject', 'Computer science'),
+      _Field(
+        'institution_name',
+        'Where you study',
+        'Your school or university',
+      ),
+      _Field('expected_end_year', 'Finishing in', '2027'),
+      _Field('gpa', 'Your result so far', 'Optional, for example 3.50'),
     ],
     ProfileSection.courses => const [
       _Field('title', 'Course', 'Data structures'),
@@ -495,17 +471,21 @@ class _SectionCard extends StatelessWidget {
               _HealthDot(health: healthFor(section, entries.length)),
               const SizedBox(width: TackSpace.sm),
               Expanded(child: Text(section.title, style: TackText.cardTitle)),
-              GestureDetector(
-                onTap: onAdd,
-                behavior: HitTestBehavior.opaque,
-                child: const SizedBox(
-                  width: TackSpace.tapTarget,
-                  height: TackSpace.tapTarget,
-                  child: Center(
-                    child: TackIcon(
-                      TackIcons.plus,
-                      size: 20,
-                      color: TackColors.maroon,
+              Semantics(
+                button: true,
+                label: '${section.saveVerb} ${section.title.toLowerCase()}',
+                child: GestureDetector(
+                  onTap: onAdd,
+                  behavior: HitTestBehavior.opaque,
+                  child: const SizedBox(
+                    width: TackSpace.tapTarget,
+                    height: TackSpace.tapTarget,
+                    child: Center(
+                      child: TackIcon(
+                        TackIcons.plus,
+                        size: 20,
+                        color: TackColors.maroon,
+                      ),
                     ),
                   ),
                 ),
@@ -635,6 +615,90 @@ class _DirectionCard extends StatelessWidget {
               ],
             ),
           ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Numbers have to arrive as numbers: expected_end_year is an int column and
+/// gpa is numeric, and Postgres will not take "2027" for either.
+Object? _coerce(String key, String value) => switch (key) {
+  'expected_end_year' => int.tryParse(value),
+  'gpa' => double.tryParse(value),
+  _ => value,
+};
+
+/// The add-or-edit sheet.
+///
+/// A StatefulWidget purely so the controllers have an owner with a lifecycle.
+/// It pops the values rather than a flag, so nothing outside it has to read a
+/// controller after the sheet is on its way out.
+class _EntrySheet extends StatefulWidget {
+  const _EntrySheet({required this.fields});
+
+  final List<_Field> fields;
+
+  @override
+  State<_EntrySheet> createState() => _EntrySheetState();
+}
+
+class _EntrySheetState extends State<_EntrySheet> {
+  late final Map<String, TextEditingController> _controllers = {
+    for (final field in widget.fields) field.key: TextEditingController(),
+  };
+
+  @override
+  void dispose() {
+    for (final controller in _controllers.values) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
+
+  void _save() {
+    // Read while the sheet is still standing, then hand the values out.
+    final values = {
+      for (final entry in _controllers.entries)
+        entry.key: entry.value.text.trim(),
+    };
+    final required = widget.fields.first.key;
+    if ((values[required] ?? '').isEmpty) {
+      Navigator.of(context).pop();
+      return;
+    }
+    Navigator.of(context).pop(values);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      // The sheet's own context, so this tracks the keyboard that is actually
+      // covering it rather than the insets of the page underneath.
+      padding: EdgeInsets.fromLTRB(
+        TackSpace.screen,
+        0,
+        TackSpace.screen,
+        MediaQuery.viewInsetsOf(context).bottom + TackSpace.xl,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (final field in widget.fields) ...[
+            TackTextField(
+              label: field.label,
+              hint: field.hint,
+              controller: _controllers[field.key],
+              maxLines: field.multiline ? 4 : 1,
+              textInputAction: field.multiline
+                  ? TextInputAction.newline
+                  : TextInputAction.next,
+            ),
+            const SizedBox(height: TackSpace.stack),
+          ],
+          const SizedBox(height: TackSpace.sm),
+          TackButton('Save', onPressed: _save),
         ],
       ),
     );

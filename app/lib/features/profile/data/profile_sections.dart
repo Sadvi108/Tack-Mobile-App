@@ -124,8 +124,13 @@ enum ProfileSection {
     ProfileSection.portfolio => 'Add your GitHub or LinkedIn',
   };
 
+  /// Education is one record a student edits; everything else is a list they
+  /// add to. The sheet says so rather than offering to "add" a second account
+  /// of where the same person studies.
+  String get saveVerb => this == ProfileSection.education ? 'Update' : 'Add to';
+
   String get table => switch (this) {
-    ProfileSection.education => 'education',
+    ProfileSection.education => 'education_profiles',
     ProfileSection.favourites => 'student_interests',
     ProfileSection.hobbies => 'student_interests',
     ProfileSection.courses => 'courses',

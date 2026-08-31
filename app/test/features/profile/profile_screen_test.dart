@@ -183,4 +183,98 @@ void main() {
     await tester.pump();
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('adding an entry does not outlive its own text fields', (
+    tester,
+  ) async {
+    // The sheet used to be built by the screen, which disposed the controllers
+    // the moment showTackSheet returned — that is when pop is called, not when
+    // the sheet is gone. The fields stayed mounted through the closing
+    // animation and the next frame rebuilt them against disposed controllers,
+    // which killed the screen with a red assertion. pumpAndSettle runs that
+    // whole animation, so this fails if the ordering regresses.
+    final saved = <(ProfileSection, Map<String, Object?>)>[];
+    final profile = undergraduate();
+
+    await pumpAt(
+      tester,
+      const ProfileScreen(),
+      size: const Size(360, 800),
+      overrides: [
+        ...overridesFor(profile, const {}),
+        sectionInsertProvider.overrideWithValue((section, values) async {
+          saved.add((section, values));
+        }),
+      ],
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.bySemanticsLabel('Update education'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField).first, 'Uttara University');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(saved, hasLength(1));
+    expect(saved.first.$1, ProfileSection.education);
+    expect(saved.first.$2['institution_name'], 'Uttara University');
+  });
+
+  testWidgets('closing the sheet without saving writes nothing', (
+    tester,
+  ) async {
+    final saved = <(ProfileSection, Map<String, Object?>)>[];
+
+    await pumpAt(
+      tester,
+      const ProfileScreen(),
+      size: const Size(360, 800),
+      overrides: [
+        ...overridesFor(undergraduate(), const {}),
+        sectionInsertProvider.overrideWithValue((section, values) async {
+          saved.add((section, values));
+        }),
+      ],
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.bySemanticsLabel('Update education'));
+    await tester.pumpAndSettle();
+
+    // Nothing typed, so Save has nothing to save.
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(saved, isEmpty);
+  });
+
+  testWidgets('the education section reads what onboarding wrote', (
+    tester,
+  ) async {
+    // The columns here are education_profiles', not the old education table's.
+    // Reading the wrong one is what told a student who had answered every
+    // question during signup to "add where you study".
+    await pumpAt(
+      tester,
+      const ProfileScreen(),
+      size: const Size(360, 800),
+      overrides: overridesFor(undergraduate(), const {
+        ProfileSection.education: [
+          ProfileEntry(
+            id: 'e1',
+            title: 'Uttara University',
+            subtitle: 'University',
+            meta: 'Finishing 2026',
+          ),
+        ],
+      }),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Uttara University'), findsOneWidget);
+    expect(find.text('Add where you study'), findsNothing);
+  });
 }

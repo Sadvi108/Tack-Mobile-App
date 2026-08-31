@@ -61,10 +61,27 @@ export function redact(input: string): Redaction {
 }
 
 /** Throws if anything that looks personal survived redaction. */
+/**
+ * An address with OCR's spacing in it.
+ *
+ * Tesseract reads `rifat.hasan@example.com` as `rifat. hasan @example.com`,
+ * which EMAIL does not match — so it survived redact() and this check, and
+ * would have reached the model. The OCR path repairs that spacing before
+ * anything else sees the text; this is the backstop for when the repair misses,
+ * because a heuristic that fails quietly is not a safeguard.
+ *
+ * The ending is a list of real top-level domains rather than "two or more
+ * letters", because that looser rule read "Reduced cost @ scale. Shipped four
+ * features" as an address and would have refused a perfectly good CV.
+ */
+const SPACED_EMAIL =
+  /[\w.+-]+\s*@\s*[\w-]+\s*\.\s*(?:com|org|net|edu|gov|io|co|dev|me|info|app|ai|bd|uk|us|xyz)\b/i;
+
 export function assertClean(text: string): void {
   for (
     const [name, pattern] of [
       ["an email address", EMAIL],
+      ["an email address", SPACED_EMAIL],
       ["a phone number", PHONE],
       ["a national ID", NATIONAL_ID],
     ] as const

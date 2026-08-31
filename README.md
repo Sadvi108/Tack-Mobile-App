@@ -54,16 +54,18 @@ cd supabase/functions && deno check analyze-jd/index.ts worker/index.ts intervie
 ```
 
 ```bash
-node tool/verify_db.js && node tool/verify_storage.js
+node tool/verify_db.js && node tool/verify_storage.js && node tool/verify_dashboard.js
 ```
 
-The last two create throwaway users against the live database, try to make one
-read the other's data, and delete them again. Run them after any change to a
-policy or a migration.
+The last three create throwaway users against the live database, try to make
+one read the other's data, and delete them again. Run them after any change to
+a policy or a migration.
 
 ## Where the rules live
 
 - `AGENTS.md` — stack, architecture, security and copy rules
 - `docs/DATA_MODEL.md` — every table and column
+- `docs/DASHBOARD_FEED.md` — the home screen's one RPC, its shape, and the two
+  places it used to contradict itself
 - `docs/DEPLOY.md` — what is live and what still needs a human
 - `design/DESIGN_HANDOFF.md` — colours, type, spacing and every screen's intent

@@ -10,9 +10,29 @@ import '../data/career_path.dart';
 import '../data/path_repository.dart';
 import 'compare_screen.dart';
 
+/// Spelled out up to twelve, because "Ten real jobs" reads as a sentence
+/// where "10 real jobs" reads as a label. Falls back to a plain plural while
+/// the list is still loading, rather than flashing a number that then changes.
+String _countWord(int? n) => switch (n) {
+  null || 0 => 'Real',
+  1 => 'One',
+  2 => 'Two',
+  3 => 'Three',
+  4 => 'Four',
+  5 => 'Five',
+  6 => 'Six',
+  7 => 'Seven',
+  8 => 'Eight',
+  9 => 'Nine',
+  10 => 'Ten',
+  11 => 'Eleven',
+  12 => 'Twelve',
+  _ => '$n',
+};
+
 /// The career path explorer.
 ///
-/// Ten hand-written paths for the Bangladeshi market. Everything on this
+/// Hand-written paths for the Bangladeshi market. Everything on this
 /// screen works with zero model calls, so it never fails because a daily quota
 /// ran out.
 class PathsScreen extends ConsumerStatefulWidget {
@@ -31,18 +51,17 @@ class _PathsScreenState extends ConsumerState<PathsScreen> {
     final matchesAsync = ref.watch(pathMatchesProvider);
     final chosen = ref.watch(chosenPathsProvider).value ?? const <ChosenPath>[];
     final mode = ref.watch(modeProvider);
-    final tabs = TackTabs.forMode(mode.name);
 
     return TackScaffold(
-      bottomNav: TackBottomNav(
-        tabs: tabs,
-        currentIndex: tabs.indexWhere((t) => t.route == Routes.paths),
-        onTap: (i) => context.go(tabs[i].route),
-      ),
       header: TackHeader(
         title: 'Career paths',
+        onBack: () => context.pop(),
+        // Counted, not written down. "Ten real jobs" was true only until
+        // somebody added an eleventh or retired one, and copy that states a
+        // fact about the data has to read it.
         subtitle: mode == YearMode.explore
-            ? 'Ten real jobs, what they pay here, and what it takes. Nothing to commit to.'
+            ? '${_countWord(matchesAsync.value?.length)} real jobs, what they '
+                  'pay here, and what it takes. Nothing to commit to.'
             : 'Pick up to two. Tack builds a roadmap from whichever you choose.',
       ),
       pinnedCta: _toCompare.length == 2

@@ -296,6 +296,62 @@ try {
   ok("and retires it rather than leaving it running", afterFail!.status === "done",
     afterFail!.status);
 
+  console.log("\n11b. a photographed CV is read, not refused");
+  // The common case in this market: a paper CV and a phone camera, no scanner.
+  const photo = await Deno.readFile(
+    "supabase/functions/_shared/cv/fixture_cv_photo.jpg",
+  );
+  const photoId = await addDocument("image/jpeg", photo, "CV photo");
+  const photoResult = await handlers.parse_cv(
+    service,
+    job({ document_id: photoId }),
+  ) as Record<string, unknown>;
+  ok("the photo was parsed rather than refused", Boolean(photoResult.parseId),
+    JSON.stringify(photoResult));
+
+  const { data: photoParse } = await service.from("cv_parse_results")
+    .select("parsed, metrics").eq("document_id", photoId).single();
+  const pm = photoParse!.metrics;
+  ok("it went through OCR", pm.extractor === "ocr", pm.extractor);
+  ok("and recorded how confident the reading was",
+    typeof pm.ocr_confidence === "number" && pm.ocr_confidence > 55,
+    `${pm.ocr_confidence}`);
+  ok("the sections were still found", pm.sections.includes("experience"),
+    pm.sections.join(","));
+  ok("and the contact details were seen", pm.has_contact === true);
+
+  // The reason OCR could not simply be handed to a multimodal model: the
+  // redaction step operates on text, and it has to still work on text a
+  // scanner produced.
+  const photoText = JSON.stringify(photoParse!.parsed);
+  ok("no email reached the model", !photoText.includes("@example.com"),
+    photoText.slice(0, 160));
+  ok("no phone number reached the model", !photoText.includes("8801712345678"));
+
+  const { data: photoScore } = await service.from("cv_scores")
+    .select("score_10, basis").eq("document_id", photoId)
+    .order("computed_at", { ascending: false }).limit(1).single();
+  ok("a photographed CV gets a score like any other",
+    photoScore !== null && Number(photoScore.score_10) > 0,
+    JSON.stringify(photoScore));
+
+  console.log("\n11c. an unreadable photo says so instead of scoring noise");
+  const noise = new Uint8Array(4096);
+  crypto.getRandomValues(noise);
+  const noiseId = await addDocument("image/jpeg", noise, "Not a photo");
+  const noiseResult = await handlers.parse_cv(
+    service,
+    job({ document_id: noiseId }),
+  ) as Record<string, unknown>;
+  ok("it is reported unreadable", noiseResult.unreadable === true,
+    JSON.stringify(noiseResult));
+  const { data: noiseDoc } = await service.from("documents")
+    .select("status, failure_reason").eq("id", noiseId).single();
+  ok("the document is failed, not left processing", noiseDoc!.status === "failed",
+    noiseDoc!.status);
+  ok("with something the student can act on",
+    /photo|PDF/i.test(noiseDoc!.failure_reason ?? ""), noiseDoc!.failure_reason ?? "");
+
   console.log("\n11. the nightly sweep clears anything still stuck");
   const orphanId = await addDocument("application/pdf", pdf, "Orphan");
 

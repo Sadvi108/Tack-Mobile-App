@@ -37,3 +37,12 @@ tool/node_modules/
 .idea/
 .vscode/
 *.iml
+
+# Tesseract downloads its trained data beside the process at runtime.
+*.traineddata
+
+# Supabase CLI scratch
+supabase/.temp/
+
+# Design-review renders from test/dashboard_shots.dart
+app/build/shots/

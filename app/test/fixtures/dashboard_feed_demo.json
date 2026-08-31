@@ -1,0 +1,416 @@
+{
+  "paths": {
+    "chosen": 1,
+    "available": 10,
+    "primary_slug": "frontend-developer",
+    "primary_title": "Frontend developer"
+  },
+  "score": {
+    "mode": "launch",
+    "delta": 6,
+    "total": 40,
+    "components": {
+      "skills": {
+        "max": 12,
+        "ratio": 0.7292,
+        "earned": 9,
+        "available": 3
+      },
+      "academic": {
+        "max": 6,
+        "ratio": 0,
+        "earned": 0,
+        "available": 6
+      },
+      "projects": {
+        "max": 10,
+        "ratio": 0.3333,
+        "earned": 3,
+        "available": 7
+      },
+      "activities": {
+        "max": 4,
+        "ratio": 0.3333,
+        "earned": 1,
+        "available": 3
+      },
+      "cv_quality": {
+        "max": 13,
+        "ratio": 0.35,
+        "earned": 5,
+        "available": 8
+      },
+      "experience": {
+        "max": 10,
+        "ratio": 0,
+        "earned": 0,
+        "available": 10
+      },
+      "certifications": {
+        "max": 6,
+        "ratio": 0.3333,
+        "earned": 2,
+        "available": 4
+      },
+      "roadmap_progress": {
+        "max": 8,
+        "ratio": 0.3478,
+        "earned": 3,
+        "available": 5
+      },
+      "interview_practice": {
+        "max": 9,
+        "ratio": 0.45,
+        "earned": 4,
+        "available": 5
+      },
+      "application_activity": {
+        "max": 14,
+        "ratio": 0.44,
+        "earned": 6,
+        "available": 8
+      },
+      "profile_completeness": {
+        "max": 8,
+        "ratio": 0.875,
+        "earned": 7,
+        "available": 1
+      }
+    },
+    "computed_at": "2026-08-30T22:01:56.224363+00:00",
+    "week_change": 6
+  },
+  "today": "2026-08-31",
+  "trend": [
+    {
+      "week": "2026-06-15",
+      "total": 9
+    },
+    {
+      "week": "2026-06-22",
+      "total": 12
+    },
+    {
+      "week": "2026-06-29",
+      "total": 12
+    },
+    {
+      "week": "2026-07-06",
+      "total": 16
+    },
+    {
+      "week": "2026-07-13",
+      "total": 19
+    },
+    {
+      "week": "2026-07-20",
+      "total": 21
+    },
+    {
+      "week": "2026-07-27",
+      "total": 24
+    },
+    {
+      "week": "2026-08-03",
+      "total": 27
+    },
+    {
+      "week": "2026-08-10",
+      "total": 29
+    },
+    {
+      "week": "2026-08-17",
+      "total": 31
+    },
+    {
+      "week": "2026-08-24",
+      "total": 34
+    },
+    {
+      "week": "2026-08-31",
+      "total": 40
+    }
+  ],
+  "cohort": null,
+  "streak": {
+    "days": [
+      "2026-08-05",
+      "2026-08-07",
+      "2026-08-13",
+      "2026-08-16",
+      "2026-08-17",
+      "2026-08-18",
+      "2026-08-21",
+      "2026-08-22",
+      "2026-08-23",
+      "2026-08-24",
+      "2026-08-25",
+      "2026-08-26",
+      "2026-08-27",
+      "2026-08-28",
+      "2026-08-29",
+      "2026-08-30",
+      "2026-08-31"
+    ],
+    "current": 11,
+    "longest": 11
+  },
+  "profile": {
+    "id": "demo-student",
+    "mode": "launch",
+    "stage": "bachelors",
+    "full_name": "Nusrat Jahan",
+    "target_role": "Data analyst",
+    "years_total": 4,
+    "year_of_study": 4,
+    "expected_graduation": "2026-12-29",
+    "onboarding_completed_at": "2026-07-01T22:01:45.892682+00:00"
+  },
+  "roadmap": {
+    "done": 8,
+    "total": 23,
+    "overdue": 1,
+    "next_task": {
+      "id": "e78c916c-efe0-43c1-8103-53895b3f9551",
+      "type": "skill",
+      "title": "Learn to fetch data from a public API",
+      "points": 3,
+      "est_minutes": 180
+    },
+    "active_milestone": "Build with a framework"
+  },
+  "timeline": [
+    {
+      "id": "e78c916c-efe0-43c1-8103-53895b3f9551",
+      "on": "2026-08-29",
+      "kind": "task",
+      "route": "/roadmap",
+      "title": "Learn to fetch data from a public API",
+      "points": 3,
+      "overdue": true,
+      "subtitle": "Build with a framework"
+    },
+    {
+      "id": "0a9aff3f-982d-46f4-904d-a26357997a86",
+      "on": "2026-08-31",
+      "kind": "task",
+      "route": "/roadmap",
+      "title": "Rebuild an existing Bangladeshi site's homepage",
+      "points": 5,
+      "overdue": false,
+      "subtitle": "Build with a framework"
+    },
+    {
+      "id": "4b0935df-cf34-401a-8933-3c6afc339ef2",
+      "on": "2026-09-01",
+      "kind": "application",
+      "route": "/applications/4b0935df-cf34-401a-8933-3c6afc339ef2",
+      "title": "Finish the take-home",
+      "points": 0,
+      "overdue": false,
+      "subtitle": "Business analyst · Grameenphone"
+    },
+    {
+      "id": "82681bd6-3c07-440c-8a58-776b254b638b",
+      "on": "2026-09-01",
+      "kind": "task",
+      "route": "/roadmap",
+      "title": "Learn TypeScript basics",
+      "points": 3,
+      "overdue": false,
+      "subtitle": "Build with a framework"
+    },
+    {
+      "id": "d2718cb4-78c6-40e1-89ea-56de7c737594",
+      "on": "2026-09-02",
+      "kind": "application",
+      "route": "/applications/d2718cb4-78c6-40e1-89ea-56de7c737594",
+      "title": "Send the portfolio",
+      "points": 0,
+      "overdue": false,
+      "subtitle": "Data analyst · bKash"
+    },
+    {
+      "id": "d7a0bb4a-1f6d-41b6-9bba-972e4f9d9057",
+      "on": "2026-09-04",
+      "kind": "application",
+      "route": "/applications/d7a0bb4a-1f6d-41b6-9bba-972e4f9d9057",
+      "title": "Prepare for the call",
+      "points": 0,
+      "overdue": false,
+      "subtitle": "Junior analyst · Pathao"
+    },
+    {
+      "id": "dc2b3761-aa2f-41d7-8847-e72f4586028a",
+      "on": "2026-09-05",
+      "kind": "closing",
+      "route": "/applications/dc2b3761-aa2f-41d7-8847-e72f4586028a",
+      "title": "Applications close",
+      "points": 0,
+      "overdue": false,
+      "subtitle": "Data associate · Chaldal"
+    },
+    {
+      "id": "d2718cb4-78c6-40e1-89ea-56de7c737594",
+      "on": "2026-09-06",
+      "kind": "closing",
+      "route": "/applications/d2718cb4-78c6-40e1-89ea-56de7c737594",
+      "title": "Applications close",
+      "points": 0,
+      "overdue": false,
+      "subtitle": "Data analyst · bKash"
+    },
+    {
+      "id": "492203ba-f4b2-4f45-85df-062dace5d6e0",
+      "on": "2026-09-09",
+      "kind": "task",
+      "route": "/roadmap",
+      "title": "Learn Figma well enough to read a handoff",
+      "points": 3,
+      "overdue": false,
+      "subtitle": "Make it look designed"
+    },
+    {
+      "id": "cf831a2f-d1d5-4f0a-ba37-3c373e445477",
+      "on": "2026-09-10",
+      "kind": "task",
+      "route": "/roadmap",
+      "title": "Rebuild one project from a real Figma file",
+      "points": 5,
+      "overdue": false,
+      "subtitle": "Make it look designed"
+    },
+    {
+      "id": "dc3926ca-cbeb-4040-be7e-f7269efd9d14",
+      "on": "2026-09-11",
+      "kind": "task",
+      "route": "/roadmap",
+      "title": "Fix the accessibility issues in your best project",
+      "points": 4,
+      "overdue": false,
+      "subtitle": "Make it look designed"
+    },
+    {
+      "id": "80064702-5d39-4273-82d4-4bb504c31bea",
+      "on": "2026-09-12",
+      "kind": "task",
+      "route": "/roadmap",
+      "title": "Get the page loading in under 3 seconds on 3G",
+      "points": 4,
+      "overdue": false,
+      "subtitle": "Make it look designed"
+    },
+    {
+      "id": "1a8744a7-5afd-4fba-8eb8-174bfc2662b7",
+      "on": "2026-09-13",
+      "kind": "task",
+      "route": "/roadmap",
+      "title": "Ask two people to use your app and write down what confused them",
+      "points": 3,
+      "overdue": false,
+      "subtitle": "Make it look designed"
+    }
+  ],
+  "documents": {
+    "count": 1,
+    "has_cv": true
+  },
+  "last_week": {
+    "to": "2026-08-30",
+    "from": "2026-08-24",
+    "moves": 11,
+    "tasks_done": 6,
+    "active_days": 7,
+    "task_points": 17,
+    "score_gained": 3,
+    "skills_added": 2,
+    "projects_added": 0,
+    "documents_added": 0,
+    "applications_added": 2,
+    "interviews_practised": 1
+  },
+  "skill_fit": {
+    "have": 5,
+    "total": 16
+  },
+  "skill_gap": [
+    {
+      "id": "230ed68f-d416-4839-b405-ba84fe6ed8a7",
+      "name": "CSS",
+      "importance": "core"
+    },
+    {
+      "id": "03cbaf4e-8254-42ab-bf0b-de8408fd3603",
+      "name": "HTML",
+      "importance": "core"
+    },
+    {
+      "id": "0f66f296-5f88-43e5-9bd7-38ce488b55d9",
+      "name": "JavaScript",
+      "importance": "core"
+    },
+    {
+      "id": "2fd6aa87-e212-406f-a253-744545c0502a",
+      "name": "Responsive design",
+      "importance": "core"
+    },
+    {
+      "id": "b2bc8924-5587-4b64-8610-81f676c72a6a",
+      "name": "Browser DevTools",
+      "importance": "important"
+    },
+    {
+      "id": "e944eb16-58c9-4e8b-8ae1-d372b17738f0",
+      "name": "REST APIs",
+      "importance": "important"
+    },
+    {
+      "id": "ae247300-42da-4a5f-9389-fa28f5a57cef",
+      "name": "Tailwind CSS",
+      "importance": "important"
+    },
+    {
+      "id": "02fb735f-2705-4213-8a68-aaf98d175b6b",
+      "name": "Web accessibility",
+      "importance": "important"
+    },
+    {
+      "id": "6a75482a-c870-4982-a796-820f08bea5e3",
+      "name": "Next.js",
+      "importance": "nice"
+    },
+    {
+      "id": "a9e4626d-261f-4713-9515-9580482753df",
+      "name": "Unit testing",
+      "importance": "nice"
+    },
+    {
+      "id": "9b4e60d1-87ac-45fb-aefe-5ed3f26ce9a2",
+      "name": "Web performance",
+      "importance": "nice"
+    }
+  ],
+  "this_week": {
+    "to": "2026-09-06",
+    "from": "2026-08-31",
+    "moves": 2,
+    "tasks_done": 2,
+    "active_days": 1,
+    "task_points": 9,
+    "score_gained": 6,
+    "skills_added": 0,
+    "projects_added": 0,
+    "documents_added": 0,
+    "applications_added": 0,
+    "interviews_practised": 0
+  },
+  "applications": {
+    "saved": 1,
+    "applied": 1,
+    "rejected": 1,
+    "interview": 1,
+    "assessment": 1
+  },
+  "generated_at": "2026-08-31T15:58:29.998762+00:00",
+  "unread_notifications": 1
+}
