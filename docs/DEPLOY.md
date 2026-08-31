@@ -46,10 +46,22 @@ Set the function secrets. These are names only — take the values from your own
 supabase secrets set GEMINI_API_KEY AI_PROVIDER CRON_SECRET
 ```
 
+Radar needs one more, and works without it in a reduced form:
+
+```bash
+supabase secrets set CAREERJET_API_KEY CAREERJET_LOCALE
+```
+
+`CAREERJET_LOCALE` defaults to `en_BD`. Without the key, Radar still runs on
+the free AI jobs board and says so on screen — "one board is off" — rather than
+showing an empty list as though there were no work in the world. Careerjet is
+the one that actually covers Bangladesh, so until it is set the feed is mostly
+senior roles abroad.
+
 Then deploy:
 
 ```bash
-supabase functions deploy analyze-jd interview score-cv
+supabase functions deploy analyze-jd interview score-cv radar
 ```
 
 ```bash
