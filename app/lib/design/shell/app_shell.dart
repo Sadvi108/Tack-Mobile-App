@@ -308,6 +308,12 @@ class TackTab {
 /// at 360px with 44px targets and labels that stay readable, so something had
 /// to go. Paths is reached from the dashboard and from the roadmap, both of
 /// which lead with it in the modes where it is the point.
+///
+/// Radar then took the Application slot rather than becoming a sixth tab, for
+/// the same 360px reason. It did not displace the tracker: finding a role and
+/// tracking it are one job, so tracking is the second view inside Radar, and
+/// `/applications` is still a route because notifications and the readiness
+/// breakdown link straight to it.
 class TackTabs {
   const TackTabs._();
 
@@ -321,10 +327,10 @@ class TackTabs {
     icon: TackIcons.roadmap,
     route: '/roadmap',
   );
-  static const applications = TackTab(
-    label: 'Application',
-    icon: TackIcons.apply,
-    route: '/applications',
+  static const radar = TackTab(
+    label: 'Radar',
+    icon: TackIcons.radar,
+    route: '/radar',
   );
   static const vault = TackTab(
     label: 'Vault',
@@ -337,7 +343,7 @@ class TackTabs {
     route: '/profile',
   );
 
-  static const all = <TackTab>[home, roadmap, applications, vault, profile];
+  static const all = <TackTab>[home, roadmap, radar, vault, profile];
 }
 
 class TackBottomNav extends StatelessWidget {

@@ -9,18 +9,36 @@ import '../data/application_repository.dart';
 import 'add_application_sheet.dart';
 import '../../../routing/tab_bar.dart';
 
-/// The application tracker.
+/// The application tracker, as its own screen.
 ///
-/// A filterable list, not a kanban — horizontal scrolling loses cards at
-/// 360px. The count strip doubles as the filter, so one row does two jobs.
-class ApplicationsScreen extends ConsumerStatefulWidget {
+/// Radar is where a student normally reaches this — tracking is the second
+/// half of finding a job, so it lives in the same destination. This screen
+/// stays because `/applications` is still a real route: notifications point at
+/// it, the readiness breakdown points at it, and a deep link into a single
+/// application has to land somewhere.
+class ApplicationsScreen extends ConsumerWidget {
   const ApplicationsScreen({super.key});
 
   @override
-  ConsumerState<ApplicationsScreen> createState() => _ApplicationsScreenState();
+  Widget build(BuildContext context, WidgetRef ref) {
+    return TackScaffold(
+      bottomNav: const TackTabBar(current: Routes.radar),
+      header: const TackHeader(title: 'Applications'),
+      body: const ApplicationsBody(),
+    );
+  }
 }
 
-class _ApplicationsScreenState extends ConsumerState<ApplicationsScreen> {
+/// The list itself, without a scaffold, so Radar can host it under its own
+/// header and segmented control.
+class ApplicationsBody extends ConsumerStatefulWidget {
+  const ApplicationsBody({super.key});
+
+  @override
+  ConsumerState<ApplicationsBody> createState() => _ApplicationsBodyState();
+}
+
+class _ApplicationsBodyState extends ConsumerState<ApplicationsBody> {
   TackStatus? _filter;
 
   @override
@@ -28,19 +46,7 @@ class _ApplicationsScreenState extends ConsumerState<ApplicationsScreen> {
     final counts =
         ref.watch(applicationCountsProvider).value ?? ApplicationCounts.empty;
     final listAsync = ref.watch(applicationsProvider(_filter));
-    return TackScaffold(
-      bottomNav: const TackTabBar(current: Routes.applications),
-      header: const TackHeader(title: 'Applications'),
-      floatingAction: TackFab(
-        semanticLabel: 'Add an application',
-        onPressed: () => _add(context),
-        child: const TackIcon(
-          TackIcons.plus,
-          size: 26,
-          color: TackColors.white,
-        ),
-      ),
-      body: Column(
+    return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
@@ -114,7 +120,6 @@ class _ApplicationsScreenState extends ConsumerState<ApplicationsScreen> {
             },
           ),
         ],
-      ),
     );
   }
 

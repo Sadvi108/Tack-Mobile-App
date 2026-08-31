@@ -13,12 +13,14 @@ import '../features/auth/presentation/welcome_screen.dart';
 import '../features/analyser/presentation/analyser_screen.dart';
 import '../features/applications/presentation/application_detail_screen.dart';
 import '../features/applications/presentation/applications_screen.dart';
+import '../features/coach/presentation/coach_screen.dart';
 import '../features/dashboard/presentation/dashboard_screen.dart';
 import '../features/interview/presentation/interview_screen.dart';
 import '../features/notifications/presentation/notifications_screen.dart';
 import '../features/onboarding/presentation/intake_screen.dart';
 import '../features/paths/presentation/path_detail_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
+import '../features/radar/presentation/radar_screen.dart';
 import '../features/paths/presentation/paths_screen.dart';
 import '../features/roadmap/presentation/roadmap_screen.dart';
 import '../features/score/presentation/score_screen.dart';
@@ -41,6 +43,8 @@ class Routes {
   static const home = '/home';
   static const paths = '/paths';
   static const roadmap = '/roadmap';
+  static const radar = '/radar';
+  static const coach = '/coach';
   static const applications = '/applications';
   static const profile = '/profile';
 
@@ -151,6 +155,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: Routes.roadmap,
         builder: (context, state) => const RoadmapScreen(),
+      ),
+      GoRoute(
+        path: Routes.coach,
+        builder: (context, state) => const CoachScreen(),
+      ),
+      GoRoute(
+        path: Routes.radar,
+        builder: (context, state) => const RadarScreen(),
       ),
       GoRoute(
         path: Routes.applications,
