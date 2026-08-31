@@ -1,128 +1,113 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../applications/data/application_models.dart';
-import '../../applications/data/application_repository.dart';
-import '../../paths/data/path_repository.dart';
 import '../../profile/data/profile.dart';
-import '../../profile/data/profile_repository.dart';
-import '../../roadmap/data/roadmap_models.dart';
-import '../../roadmap/data/roadmap_repository.dart';
 import '../../score/data/readiness.dart';
-import '../../score/data/score_repository.dart';
-import '../../vault/data/document_models.dart';
-import '../../vault/data/document_repository.dart';
+import '../data/dashboard_feed.dart';
+import '../data/dashboard_repository.dart';
+import 'insights.dart';
 import 'next_actions.dart';
 
 /// Everything the dashboard draws, resolved together.
 ///
-/// The screen used to read six providers separately and fall back to an empty
-/// value on each, which meant a student who had just signed up watched a
-/// screen full of confident zeros while their real score was still in flight.
-/// One future gives the screen three honest states instead of a permanent
-/// optimistic guess.
+/// This used to compose nine providers and fall back to an empty value on
+/// each, which meant a student who had just signed up watched a screen full of
+/// confident zeros while their real score was still in flight. It then became
+/// one composed future, which fixed the honesty problem but kept the nine
+/// round trips.
+///
+/// It is now one RPC. The database assembles the snapshot, so every card on
+/// the screen is describing the same moment — the roadmap card and the
+/// timeline can no longer disagree about whether a task is done.
+///
+/// What stays on the client is the ranking and the wording: which suggestion
+/// leads, and how it is phrased for this student's year. That is product
+/// judgement, it changes far more often than the schema, and it is where the
+/// tests are.
 class DashboardData {
   const DashboardData({
-    required this.profile,
-    required this.score,
-    required this.weekChange,
-    required this.cohort,
+    required this.feed,
     required this.actions,
     required this.setupSteps,
-    required this.roadmaps,
-    required this.counts,
-    required this.upcoming,
-    required this.documents,
-    required this.chosenPaths,
+    required this.insights,
   });
 
-  final Profile profile;
-  final ReadinessScore score;
-  final int weekChange;
-  final CohortBenchmark? cohort;
+  final DashboardFeed feed;
+
+  /// The ranked "next three actions", best value for time first.
   final List<NextAction> actions;
 
   /// The remaining first-run steps, empty once the student is set up.
   final List<NextAction> setupSteps;
 
-  final List<Roadmap> roadmaps;
-  final ApplicationCounts counts;
-  final List<JobApplication> upcoming;
-  final List<TackDocument> documents;
-  final List<ChosenPath> chosenPaths;
+  /// The suggestion deck.
+  final List<Insight> insights;
 
-  YearMode get mode => profile.mode;
+  Profile get profile => feed.profile;
+  ReadinessScore get score => feed.score;
+  YearMode get mode => feed.mode;
+  int get weekChange => feed.weekChange;
+  ApplicationCounts get counts => feed.counts;
+  Streak get streak => feed.streak;
+  RoadmapSummary get roadmap => feed.roadmap;
 
-  /// How many of the areas that count in this mode have any score at all.
-  ///
-  /// A component weighted zero for this student is not an area they are
-  /// failing at — it is a question nobody asked them — so it is left out of
-  /// both halves of the fraction.
-  int get areasCounted => score.components.where((c) => c.max > 0).length;
-  int get areasScored =>
-      score.components.where((c) => c.max > 0 && c.earned > 0).length;
+  int get areasCounted => feed.areasCounted;
+  int get areasScored => feed.areasScored;
 
   bool get isSetUp => setupSteps.isEmpty;
+
+  /// The timeline, filtered to what this year mode is allowed to be told
+  /// about. A first-year is never shown a closing date or a follow-up.
+  List<TimelineEntry> get timeline {
+    final jobsAreRelevant = mode.showsFunnel || mode == YearMode.prove;
+    return feed.timeline
+        .where((e) => jobsAreRelevant || e.kind == TimelineKind.task)
+        .toList(growable: false);
+  }
+
+  List<TimelineEntry> get overdue =>
+      timeline.where((e) => e.isOverdue).toList(growable: false);
+  List<TimelineEntry> get upcoming =>
+      timeline.where((e) => !e.isOverdue).toList(growable: false);
+
+  factory DashboardData.from(DashboardFeed feed) => DashboardData(
+    feed: feed,
+    actions: rankNextActions(
+      score: feed.score,
+      roadmaps: const [],
+      nextTaskId: feed.roadmap.nextTaskId,
+      nextTaskTitle: feed.roadmap.nextTaskTitle,
+      nextTaskPoints: feed.roadmap.nextTaskPoints,
+      nextTaskMinutes: feed.roadmap.nextTaskMinutes,
+    ),
+    setupSteps: remainingSetupSteps(
+      score: feed.score,
+      hasCv: feed.hasCv,
+      chosenPathCount: feed.chosenPaths,
+      applicationCount: feed.counts.total,
+    ),
+    insights: buildInsights(feed),
+  );
 }
 
 final dashboardProvider = FutureProvider<DashboardData?>((ref) async {
-  // Every dependency is watched synchronously, before the first await.
-  //
-  // This is not style. `ref.watch` after an await does not register the
-  // dependency properly and the provider never settles — the screen sat on its
-  // loading skeleton forever. Collecting the futures first also means the nine
-  // reads happen at once rather than one after another.
-  final profileFuture = ref.watch(profileProvider.future);
-  final scoreFuture = ref.watch(readinessProvider.future);
-  final weekChangeFuture = ref.watch(weekChangeProvider.future);
-  final cohortFuture = ref.watch(cohortProvider.future);
-  final roadmapsFuture = ref.watch(roadmapsProvider.future);
-  final documentsFuture = ref.watch(documentsProvider.future);
-  final chosenFuture = ref.watch(chosenPathsProvider.future);
-  final countsFuture = ref.watch(applicationCountsProvider.future);
-  final upcomingFuture = ref.watch(upcomingApplicationsProvider.future);
-
-  final profile = await profileFuture;
-  if (profile == null) return null;
-
-  final score = await scoreFuture;
-  final roadmaps = await roadmapsFuture;
-  final documents = await documentsFuture;
-  final chosen = await chosenFuture;
-  final counts = await countsFuture;
-
-  return DashboardData(
-    profile: profile,
-    score: score,
-    weekChange: await weekChangeFuture,
-    cohort: await cohortFuture,
-    actions: rankNextActions(score: score, roadmaps: roadmaps),
-    setupSteps: setupSteps(
-      score: score,
-      documents: documents,
-      chosenPaths: chosen,
-      applicationCount: counts.total,
-    ),
-    roadmaps: roadmaps,
-    counts: counts,
-    upcoming: await upcomingFuture,
-    documents: documents,
-    chosenPaths: chosen,
-  );
+  final feed = await ref.watch(dashboardFeedProvider.future);
+  return feed == null ? null : DashboardData.from(feed);
 });
 
 /// What a student still has to do before Tack can be useful to them.
 ///
-/// Deliberately computed rather than a fixed list. The eight onboarding
-/// questions are already answered by the time anyone reaches this screen — the
-/// flow will not let them past — so printing "answer 8 questions" as step one
-/// would show every real student a step they finished minutes ago.
+/// Deliberately computed rather than a fixed list. The onboarding questions
+/// are already answered by the time anyone reaches this screen — the flow will
+/// not let them past — so printing "answer 8 questions" as step one would show
+/// every real student a step they finished minutes ago.
 ///
 /// Points come from the score engine rather than being written here, so the
 /// card and the score can never disagree about what something is worth.
-List<NextAction> setupSteps({
+List<NextAction> remainingSetupSteps({
   required ReadinessScore score,
-  required List<TackDocument> documents,
-  required List<ChosenPath> chosenPaths,
+  required bool hasCv,
+  required int chosenPathCount,
   required int applicationCount,
 }) {
   int worth(String component) => score.components
@@ -132,11 +117,10 @@ List<NextAction> setupSteps({
   bool counts(String component) =>
       score.components.any((c) => c.key == component && c.max > 0);
 
-  final hasCv = documents.any(
-    (d) => d.type == DocumentType.cv && d.status != DocumentStatus.failed,
-  );
-
   return [
+    // `hasCv` comes from the feed, which excludes a failed upload and includes
+    // one still being read: a CV Tack is halfway through parsing is already
+    // uploaded, and asking for it again would be wrong.
     if (!hasCv)
       NextAction(
         title: 'Upload your CV',
@@ -145,7 +129,7 @@ List<NextAction> setupSteps({
         route: '/vault',
         componentKey: 'cv_quality',
       ),
-    if (chosenPaths.isEmpty)
+    if (chosenPathCount == 0)
       NextAction(
         title: 'Pick a target job',
         // Choosing a path does not score directly; it builds the roadmap that

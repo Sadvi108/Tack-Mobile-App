@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../../design/tack.dart';
 import '../../profile/data/profile.dart';
-import '../../score/data/score_repository.dart';
 import '../application/next_actions.dart';
+import 'motion.dart';
 
 /// The chip above the greeting. It warms from amber to maroon as the years
 /// progress, so the app visibly changes character alongside the student.
@@ -35,77 +35,6 @@ class ModeChip extends StatelessWidget {
         style: TackText.pill.copyWith(color: foreground),
       ),
     );
-  }
-}
-
-/// The score card. Shows the week-on-week change, and the cohort comparison
-/// against the student's own year — never against final-years.
-class ScoreSummaryCard extends StatelessWidget {
-  const ScoreSummaryCard({
-    super.key,
-    required this.score,
-    required this.weekChange,
-    required this.mode,
-    this.cohort,
-    this.onTap,
-  });
-
-  final int score;
-  final int weekChange;
-  final YearMode mode;
-  final CohortBenchmark? cohort;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return TackCard(
-      onTap: onTap,
-      child: Row(
-        children: [
-          ScoreRing(score: score, caption: 'of 100'),
-          const SizedBox(width: TackSpace.lg),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Career readiness', style: TackText.cardTitle),
-                const SizedBox(height: TackSpace.xs),
-                if (weekChange != 0)
-                  Text(
-                    weekChange > 0
-                        ? '+$weekChange this week'
-                        : '$weekChange this week',
-                    style: TackText.pill.copyWith(
-                      color: weekChange > 0
-                          ? TackColors.tealText
-                          : TackColors.muted,
-                    ),
-                  )
-                else
-                  Text('No change this week', style: TackText.meta),
-                const SizedBox(height: TackSpace.sm),
-                Text(_framing, style: TackText.bodyMuted),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// The comparison, in words. A first-year on 30 reads as ahead, not behind,
-  /// and the sentence says which year the comparison is against.
-  String get _framing {
-    final benchmark = cohort;
-    if (benchmark == null) {
-      return score == 0
-          ? 'Everyone starts low. Three short steps will move it.'
-          : 'This is a starting point, not a grade. It moves fast early.';
-    }
-    final noun = mode.cohortNoun;
-    if (score >= benchmark.average + 5) return 'Ahead of most $noun.';
-    if (score >= benchmark.average - 5) return 'About average for $noun.';
-    return 'A little behind most $noun, and very fixable.';
   }
 }
 
@@ -314,6 +243,7 @@ class ReadinessBlock extends StatelessWidget {
     required this.areasScored,
     required this.areasCounted,
     required this.onSeeBreakdown,
+    this.animated = false,
   });
 
   final int score;
@@ -321,13 +251,22 @@ class ReadinessBlock extends StatelessWidget {
   final int areasCounted;
   final VoidCallback onSeeBreakdown;
 
+  /// Sweeps the ring to its value once, on the dashboard only. A number that
+  /// climbs to 34 reads as something that moves; a number that is simply there
+  /// reads as a verdict, and "your score moves" is the claim this app most
+  /// needs a student to believe on day one.
+  final bool animated;
+
   @override
   Widget build(BuildContext context) {
     return TackCard(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          ScoreRing(score: score, size: 92, caption: null),
+          if (animated)
+            AnimatedScoreRing(score: score, size: 92)
+          else
+            ScoreRing(score: score, size: 92, caption: null),
           const SizedBox(width: TackSpace.lg),
           Expanded(
             child: Column(

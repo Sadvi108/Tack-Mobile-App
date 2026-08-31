@@ -2,28 +2,36 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/analytics.dart';
 import '../../../core/offline/sync.dart';
 import '../../../design/tack.dart';
 import '../../../routing/router.dart';
-import '../../applications/data/application_models.dart';
-import '../../applications/data/application_repository.dart';
-import '../../notifications/data/notification_repository.dart';
+import '../../../routing/tab_bar.dart';
 import '../../paths/data/path_repository.dart';
 import '../../profile/data/profile.dart';
-import '../../profile/data/profile_repository.dart';
-import '../../roadmap/data/roadmap_models.dart';
 import '../../roadmap/data/roadmap_repository.dart';
-import '../../score/data/score_repository.dart';
-import '../../vault/data/document_repository.dart';
 import '../application/dashboard_data.dart';
+import '../application/insights.dart';
+import '../data/dashboard_feed.dart';
+import '../data/dashboard_repository.dart';
+import 'insight_deck.dart';
+import 'motion.dart';
+import 'path_fit_card.dart';
+import 'progress_card.dart';
+import 'streak_card.dart';
+import 'timeline_card.dart';
 import 'widgets.dart';
-import '../../../routing/tab_bar.dart';
 
-/// The home screen, in four flavours.
+/// The home screen, in six flavours.
 ///
-/// Same components, four priorities. The mode comes from the student's year of
-/// study and decides what leads, what is hidden, and which words are used.
-/// A first-year is never shown a funnel or told about a deadline.
+/// Same components, different priorities. The mode comes from the student's
+/// education stage and year and decides what leads, what is hidden, and which
+/// words are used. A first-year is never shown a funnel, a closing date or the
+/// word "apply" — that is enforced here and checked by a test, not left to
+/// whoever writes the next card.
+///
+/// Everything on the screen is one snapshot from `dashboard_feed()`, so no two
+/// cards can disagree about the same fact.
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
@@ -39,7 +47,7 @@ class DashboardScreen extends ConsumerWidget {
         body: TackErrorState(
           body:
               'Your dashboard did not load. Check your connection and try again.',
-          onRetry: () => ref.invalidate(dashboardProvider),
+          onRetry: () => ref.invalidate(dashboardFeedProvider),
         ),
       ),
       data: (data) =>
@@ -55,32 +63,60 @@ class _Dashboard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final feed = data.feed;
     final profile = data.profile;
     final mode = data.mode;
     final online = ref.watch(isOnlineProvider);
     final queued = ref.watch(pendingChangesProvider).value ?? 0;
 
+    // Final year and graduates lead with dates; nobody else is shown one.
+    // Urgency is appropriate exactly once in this app.
+    final leadsWithDates = mode.showsFunnel;
+    final sevenDays = data.upcoming
+        .where((e) => e.daysFrom(feed.today) <= 7)
+        .toList();
+
     Future<void> refresh() async {
-      ref
-        ..invalidate(profileProvider)
-        ..invalidate(readinessProvider)
-        ..invalidate(weekChangeProvider)
-        ..invalidate(roadmapsProvider)
-        ..invalidate(documentsProvider)
-        ..invalidate(chosenPathsProvider)
-        ..invalidate(applicationCountsProvider)
-        ..invalidate(upcomingApplicationsProvider)
-        ..invalidate(dashboardProvider);
+      ref.invalidate(dashboardFeedProvider);
+      await ref.read(dashboardFeedProvider.future);
     }
+
+    // One counter for the whole screen so the stagger is continuous no matter
+    // which cards this mode happens to render.
+    //
+    // The list itself is unpadded and each card brings its own gutter, so the
+    // suggestion deck can run off the right edge while everything else lines
+    // up. A deck clipped inside the gutter reads as a rendering bug rather
+    // than as "there is another card".
+    var step = 0;
+    Widget reveal(Widget child) => TackReveal(
+      index: step++,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: TackSpace.screen),
+        child: child,
+      ),
+    );
+    Widget revealFullBleed(Widget child) =>
+        TackReveal(index: step++, child: child);
+    Widget padded(Widget child) => Padding(
+      padding: const EdgeInsets.symmetric(horizontal: TackSpace.screen),
+      child: child,
+    );
 
     return TackScaffold(
       // The body brings its own ListView so it can pull to refresh; the shell
       // must not wrap it in a second scroll view.
       scrollable: false,
       bottomNav: const _Nav(),
+      // The coach floats over the dashboard rather than taking a tab: the five
+      // destinations are full at 360px, and asking a question is something a
+      // student does *about* what they are looking at, not instead of it.
+      floatingAction: _CoachButton(
+        onTap: () => context.push(Routes.coach),
+      ),
       header: TackHomeHeader(
         initials: profile.initials,
-        unread: ref.watch(unreadCountProvider),
+        unread: feed.unreadNotifications,
         onAvatarTap: () => context.go(Routes.profile),
         onBellTap: () => context.push(Routes.notifications),
       ),
@@ -92,93 +128,233 @@ class _Dashboard extends ConsumerWidget {
           physics: const AlwaysScrollableScrollPhysics(),
           children: [
             if (!online) ...[
-              TackOfflineState(queuedChanges: queued),
+              padded(TackOfflineState(queuedChanges: queued)),
               const SizedBox(height: TackSpace.stackLoose),
             ],
-            ModeChip(mode),
-            const SizedBox(height: TackSpace.md),
-            Text('Hi ${profile.firstName}', style: TackText.screenTitle),
-            const SizedBox(height: TackSpace.xs),
-            Text(_greeting(mode), style: TackText.bodyMuted),
+
+            reveal(
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ModeChip(mode),
+                  const SizedBox(height: TackSpace.md),
+                  Text('Hi ${profile.firstName}', style: TackText.screenTitle),
+                  const SizedBox(height: TackSpace.xs),
+                  Text(_greeting(mode), style: TackText.bodyMuted),
+                ],
+              ),
+            ),
             const SizedBox(height: TackSpace.lg),
 
-            // Explore mode leads with a path CTA rather than a score, because a
-            // first-year's problem is not knowing what to aim at.
-            if (mode == YearMode.explore) ...[
-              _ExploreCta(onTap: () => context.push(Routes.paths)),
+            // Explore mode leads with a path CTA rather than a score, because
+            // a first-year's problem is not knowing what to aim at.
+            if (mode == YearMode.explore || mode == YearMode.discover) ...[
+              reveal(
+                _ExploreCta(
+                  available: feed.availablePaths,
+                  onTap: () => context.push(Routes.paths),
+                ),
+              ),
               const SizedBox(height: TackSpace.stackLoose),
             ],
 
-            // Final year leads with dates. Urgency is appropriate here and
-            // nowhere else.
-            if (mode == YearMode.launch) ...[
-              const _SevenDayCard(),
+            if (leadsWithDates) ...[
+              reveal(
+                _NextSevenDays(
+                  entries: sevenDays,
+                  overdue: data.overdue,
+                  today: feed.today,
+                  hasApplications: data.counts.total > 0,
+                  onOpen: (entry) => context.push(entry.route),
+                  onSeeAll: () => context.go(Routes.applications),
+                ),
+              ),
               const SizedBox(height: TackSpace.stackLoose),
             ],
 
-            ReadinessBlock(
-              score: data.score.total,
-              areasScored: data.areasScored,
-              areasCounted: data.areasCounted,
-              onSeeBreakdown: () => context.push(Routes.score),
+            reveal(
+              ReadinessBlock(
+                score: data.score.total,
+                areasScored: data.areasScored,
+                areasCounted: data.areasCounted,
+                onSeeBreakdown: () => context.push(Routes.score),
+                animated: true,
+              ),
             ),
             const SizedBox(height: TackSpace.stackLoose),
 
+            // The deck is the screen's answer to "what should I be doing".
+            if (data.insights.isNotEmpty) ...[
+              revealFullBleed(
+                InsightDeck(
+                  insights: data.insights,
+                  onOpen: (insight) => _openInsight(context, ref, insight),
+                ),
+              ),
+              const SizedBox(height: TackSpace.stackLoose),
+            ],
+
             // One to-do list at a time. While a student is still setting up,
-            // the ranked suggestions would compete with the three things that
+            // the ranked suggestions would compete with the things that
             // actually have to happen first, so they wait their turn.
             if (!data.isSetUp) ...[
-              StartHereCard(
-                steps: data.setupSteps,
-                onOpen: (step) => context.go(step.route),
+              reveal(
+                StartHereCard(
+                  steps: data.setupSteps,
+                  onOpen: (step) => context.go(step.route),
+                ),
               ),
               const SizedBox(height: TackSpace.stackLoose),
             ] else ...[
-              NextThreeActions(
-                actions: data.actions,
-                heading: mode == YearMode.explore
-                    ? 'Try these this month'
-                    : 'Your next three actions',
-                onOpen: (action) => context.go(action.route),
-                onTickTask: (action) async {
-                  await ref
-                      .read(roadmapRepositoryProvider)
-                      .setTaskDone(action.taskId!, done: true);
-                  ref
-                    ..invalidate(roadmapsProvider)
-                    ..invalidate(readinessProvider)
-                    ..invalidate(dashboardProvider);
-                  if (context.mounted) {
-                    TackToast.show(
-                      context,
-                      message: 'Done. +${action.points} points.',
-                    );
-                  }
-                },
+              reveal(
+                NextThreeActions(
+                  actions: data.actions,
+                  heading: mode == YearMode.explore || mode == YearMode.discover
+                      ? 'Try these this month'
+                      : 'Your next three actions',
+                  onOpen: (action) => context.go(action.route),
+                  onTickTask: (action) async {
+                    await ref
+                        .read(roadmapRepositoryProvider)
+                        .setTaskDone(action.taskId!, done: true);
+                    ref.invalidate(dashboardFeedProvider);
+                    if (context.mounted) {
+                      TackToast.show(
+                        context,
+                        message: 'Done. +${action.points} points.',
+                      );
+                    }
+                  },
+                ),
               ),
               const SizedBox(height: TackSpace.stackLoose),
             ],
 
-            if (data.roadmaps.isNotEmpty) ...[
-              _RoadmapProgressCard(
-                roadmaps: data.roadmaps,
-                onTap: () => context.go(Routes.roadmap),
+            // Everybody else gets the same dates, without the urgency.
+            if (!leadsWithDates && data.timeline.isNotEmpty) ...[
+              reveal(
+                TimelineCard(
+                  entries: [...data.overdue, ...data.upcoming],
+                  today: feed.today,
+                  onOpen: (entry) => context.push(entry.route),
+                ),
               ),
               const SizedBox(height: TackSpace.stackLoose),
             ],
 
-            // The funnel exists only in final year. Junior years never see it.
+            // A target the student actually chose: show how close they are.
+            if (feed.primaryPathTitle case final title?) ...[
+              reveal(
+                PathFitCard(
+                  pathTitle: title,
+                  gap: feed.skillGap,
+                  held: feed.skillsHeld,
+                  asked: feed.skillsAsked,
+                  onOpen: () => context.push(
+                    feed.primaryPathSlug == null
+                        ? Routes.paths
+                        : Routes.path(feed.primaryPathSlug!),
+                  ),
+                ),
+              ),
+              const SizedBox(height: TackSpace.stackLoose),
+            ]
+            // Following something without committing to it. Ask; do not
+            // promote a browse into a decision on their behalf.
+            else if (feed.following.isNotEmpty) ...[
+              reveal(
+                NoTargetCard(
+                  following: feed.following.first,
+                  statedRole: profile.targetRole,
+                  onChoose: () async {
+                    await ref
+                        .read(pathRepositoryProvider)
+                        .makePrimary(feed.following.first.id);
+                    ref
+                      ..invalidate(dashboardFeedProvider)
+                      ..invalidate(chosenPathsProvider);
+                    if (context.mounted) {
+                      TackToast.show(
+                        context,
+                        message:
+                            '${feed.following.first.title} is your target now.',
+                      );
+                    }
+                  },
+                  onOpen: () =>
+                      context.push(Routes.path(feed.following.first.slug)),
+                  onBrowse: () => context.push(Routes.paths),
+                ),
+              ),
+              const SizedBox(height: TackSpace.stackLoose),
+            ]
+            // Nothing followed, but they told us what they want to be.
+            else if (profile.targetRole case final role?
+                when role.trim().isNotEmpty) ...[
+              reveal(
+                NoTargetCard(
+                  statedRole: role,
+                  onBrowse: () => context.push(Routes.paths),
+                ),
+              ),
+              const SizedBox(height: TackSpace.stackLoose),
+            ],
+
+            reveal(
+              ProgressCard(
+                trend: feed.trend,
+                weekChange: data.weekChange,
+                thisWeek: feed.thisWeek,
+                lastWeek: feed.lastWeek,
+                onTap: () => context.push(Routes.score),
+              ),
+            ),
+            const SizedBox(height: TackSpace.stackLoose),
+
+            reveal(StreakCard(streak: data.streak, today: feed.today)),
+            const SizedBox(height: TackSpace.stackLoose),
+
+            if (data.roadmap.exists) ...[
+              reveal(
+                _RoadmapProgressCard(
+                  roadmap: data.roadmap,
+                  onTap: () => context.go(Routes.roadmap),
+                ),
+              ),
+              const SizedBox(height: TackSpace.stackLoose),
+            ],
+
+            // The funnel exists only in final year and after. Junior years
+            // never see it.
             if (mode.showsFunnel) ...[
-              const _Funnel(),
+              reveal(
+                ApplicationFunnel(
+                  counts: data.counts.asWireMap,
+                  onTap: () => context.go(Routes.applications),
+                ),
+              ),
               const SizedBox(height: TackSpace.stackLoose),
             ],
 
-            const PrivacyNote(),
+            padded(const PrivacyNote()),
             const SizedBox(height: TackSpace.xl),
           ],
         ),
       ),
     );
+  }
+
+  /// Opening a suggestion records which one, and nothing about it. The card's
+  /// id is a fixed slug — never its title, which can carry a job title or a
+  /// student's own words for a milestone.
+  void _openInsight(BuildContext context, WidgetRef ref, Insight insight) {
+    final route = insight.route;
+    if (route == null) return;
+    ref.read(analyticsProvider).track('insight_opened', properties: {
+      'insight': insight.id,
+      'tone': insight.tone.name,
+    });
+    context.push(route);
   }
 
   static String _greeting(YearMode mode) => switch (mode) {
@@ -194,7 +370,11 @@ class _Dashboard extends ConsumerWidget {
 }
 
 class _ExploreCta extends StatelessWidget {
-  const _ExploreCta({required this.onTap});
+  const _ExploreCta({required this.available, required this.onTap});
+
+  /// How many paths there actually are. The copy used to say "Ten", which was
+  /// true only until somebody added an eleventh or retired one.
+  final int available;
 
   final VoidCallback onTap;
 
@@ -212,8 +392,11 @@ class _ExploreCta extends StatelessWidget {
           ),
           const SizedBox(height: TackSpace.sm),
           Text(
-            'Ten real jobs, what they pay in Bangladesh, and what it takes to get one. '
-            'Nothing to commit to.',
+            available == 0
+                ? 'Real jobs, what they pay in Bangladesh, and what it takes to '
+                      'get one. Nothing to commit to.'
+                : '$available real jobs, what they pay in Bangladesh, and what it '
+                      'takes to get one. Nothing to commit to.',
             style: TackText.bodyMuted.copyWith(color: const Color(0xD1FFFFFF)),
           ),
           const SizedBox(height: TackSpace.lg),
@@ -224,100 +407,131 @@ class _ExploreCta extends StatelessWidget {
   }
 }
 
-class _SevenDayCard extends ConsumerWidget {
-  const _SevenDayCard();
+/// The maroon date card, final year and after only.
+///
+/// Overdue rows sit above the rest and are counted in the heading, because a
+/// missed date buried in a list of upcoming ones gets missed a second time.
+class _NextSevenDays extends StatelessWidget {
+  const _NextSevenDays({
+    required this.entries,
+    required this.overdue,
+    required this.today,
+    required this.hasApplications,
+    required this.onOpen,
+    required this.onSeeAll,
+  });
+
+  final List<TimelineEntry> entries;
+  final List<TimelineEntry> overdue;
+  final bool hasApplications;
+  final DateTime today;
+  final void Function(TimelineEntry entry) onOpen;
+  final VoidCallback onSeeAll;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final upcoming =
-        ref.watch(upcomingApplicationsProvider).value ??
-        const <JobApplication>[];
+  Widget build(BuildContext context) {
+    final rows = [...overdue, ...entries].take(4).toList();
+    const onMaroon = Color(0xD1FFFFFF);
 
     return TackCard(
       background: TackColors.maroon,
-      onTap: () => context.go(Routes.applications),
+      onTap: onSeeAll,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Next seven days',
-            style: TackText.cardTitle.copyWith(color: TackColors.white),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Next seven days',
+                  style: TackText.cardTitle.copyWith(color: TackColors.white),
+                ),
+              ),
+              if (overdue.isNotEmpty)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: const BoxDecoration(
+                    color: TackColors.amber,
+                    borderRadius: TackRadius.pillAll,
+                  ),
+                  child: Text(
+                    '${overdue.length} late',
+                    style: TackText.pill.copyWith(color: TackColors.amberText),
+                  ),
+                ),
+            ],
           ),
           const SizedBox(height: TackSpace.md),
-          if (upcoming.isEmpty)
+          if (rows.isEmpty)
             Text(
-              'Nothing due this week. A good week to add two applications.',
-              style: TackText.bodyMuted.copyWith(
-                color: const Color(0xD1FFFFFF),
+              // "Add two more" told a student with no applications at all that
+              // they had some already. What is empty here is the *dates*, and
+              // whether they have applied is a different question.
+              hasApplications
+                  ? 'Nothing due this week. A good week to line up what is next.'
+                  : 'Nothing here yet. Add an application and its dates show up here.',
+              style: const TextStyle(
+                fontFamily: 'Inter',
+                fontSize: 15,
+                height: 1.45,
+                color: onMaroon,
               ),
             )
           else
-            for (final application in upcoming.take(4))
+            for (final entry in rows)
               Padding(
                 padding: const EdgeInsets.only(bottom: TackSpace.sm),
-                child: Row(
-                  children: [
-                    SizedBox(
-                      width: 56,
-                      child: Text(
-                        _relativeDay(application.daysUntilNextAction),
-                        style: TackText.pill.copyWith(color: TackColors.amber),
-                      ),
-                    ),
-                    Expanded(
-                      child: Text(
-                        application.nextAction ?? application.title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TackText.body.copyWith(
-                          color: TackColors.white,
-                          fontSize: 15,
+                child: GestureDetector(
+                  onTap: () => onOpen(entry),
+                  behavior: HitTestBehavior.opaque,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(minHeight: 30),
+                    child: Row(
+                      children: [
+                        SizedBox(
+                          width: 82,
+                          child: Text(
+                            entry.relativeTo(today),
+                            style: TackText.pill.copyWith(
+                              color: entry.isOverdue
+                                  ? TackColors.amber
+                                  : TackColors.white,
+                            ),
+                          ),
                         ),
-                      ),
+                        Expanded(
+                          child: Text(
+                            entry.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TackText.body.copyWith(
+                              color: TackColors.white,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
         ],
       ),
     );
   }
-
-  static String _relativeDay(int? days) => switch (days) {
-    null => '',
-    < 0 => 'Overdue',
-    0 => 'Today',
-    1 => 'Tomorrow',
-    _ => 'In $days d',
-  };
-}
-
-class _Funnel extends ConsumerWidget {
-  const _Funnel();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final counts =
-        ref.watch(applicationCountsProvider).value ?? ApplicationCounts.empty;
-    return ApplicationFunnel(
-      counts: counts.asWireMap,
-      onTap: () => context.go(Routes.applications),
-    );
-  }
 }
 
 class _RoadmapProgressCard extends StatelessWidget {
-  const _RoadmapProgressCard({required this.roadmaps, required this.onTap});
+  const _RoadmapProgressCard({required this.roadmap, required this.onTap});
 
-  final List<Roadmap> roadmaps;
+  final RoadmapSummary roadmap;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final done = roadmaps.fold(0, (sum, r) => sum + r.doneCount);
-    final total = roadmaps.fold(0, (sum, r) => sum + r.totalCount);
-    final percent = total == 0 ? 0 : (done * 100 / total).round();
-
     return TackCard(
       onTap: onTap,
       child: Column(
@@ -326,17 +540,88 @@ class _RoadmapProgressCard extends StatelessWidget {
           Row(
             children: [
               Expanded(child: Text('Your roadmap', style: TackText.cardTitle)),
-              Text(
-                '$percent%',
+              TackCountUp(
+                roadmap.percent,
+                suffix: '%',
                 style: TackText.cardTitle.copyWith(color: TackColors.maroon),
+                semanticsLabel: '${roadmap.percent} percent of your roadmap',
               ),
             ],
           ),
           const SizedBox(height: TackSpace.md),
-          TackProgressBar(value: total == 0 ? 0 : done / total, height: 8),
+          TackProgressBar(value: roadmap.fraction, height: 8),
           const SizedBox(height: TackSpace.sm),
-          Text('$done of $total steps done', style: TackText.meta),
+          Row(
+            children: [
+              Text(
+                '${roadmap.done} of ${roadmap.total} steps done',
+                style: TackText.meta,
+              ),
+              if (roadmap.activeMilestone case final milestone?) ...[
+                // Two counts running straight into each other read as one
+                // broken sentence — "8 of 23 steps done Build with a fram…".
+                Text('  ·  ', style: TackText.meta),
+                Flexible(
+                  child: Text(
+                    milestone,
+                    style: TackText.meta,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ],
+          ),
         ],
+      ),
+    );
+  }
+}
+
+/// The floating coach button.
+///
+/// Labelled, not a bare icon. A lone speech bubble in the corner of a careers
+/// app could be help, feedback, or a chatbot nobody wants; "Ask" says what
+/// happens when you press it, and it still fits beside the bottom bar at
+/// 360px.
+class _CoachButton extends StatelessWidget {
+  const _CoachButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: 'Ask your coach',
+      excludeSemantics: true,
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: Container(
+          height: 52,
+          padding: const EdgeInsets.symmetric(horizontal: 18),
+          decoration: const BoxDecoration(
+            color: TackColors.maroon,
+            borderRadius: BorderRadius.all(TackRadius.buttonRound),
+            boxShadow: TackShadow.fab,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const TackIcon(
+                TackIcons.coach,
+                size: 21,
+                color: TackColors.white,
+              ),
+              const SizedBox(width: TackSpace.sm),
+              Text(
+                'Ask',
+                style: TackText.button.copyWith(fontSize: 16),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -363,6 +648,8 @@ class _DashboardLoading extends StatelessWidget {
           TackSkeleton(width: 140, height: 28, radius: 14),
           SizedBox(height: TackSpace.lg),
           TackSkeleton(height: 128, radius: 20),
+          SizedBox(height: TackSpace.stackLoose),
+          TackSkeleton(height: 176, radius: 20),
           SizedBox(height: TackSpace.stackLoose),
           TackSkeleton(height: 190, radius: 20),
         ],

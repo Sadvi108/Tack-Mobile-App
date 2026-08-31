@@ -124,6 +124,22 @@ class TackMotion {
   static const fast = Duration(milliseconds: 150);
   static const normal = Duration(milliseconds: 200);
   static const curve = Curves.easeOut;
+
+  /// One-shot reveals only: the score ring sweeping to its value, a figure
+  /// counting up, a card arriving as the screen opens.
+  ///
+  /// Longer than [normal] on purpose, and the exception is narrow. The 150–200ms
+  /// rule exists so nothing costs a repaint per frame while a student reads the
+  /// screen; a reveal plays once when the data lands and then stops, so at rest
+  /// it costs exactly nothing. Anything that repeats, loops or reacts to scroll
+  /// stays inside [normal] — no exceptions, because those are the ones that
+  /// flatten a mid-range battery.
+  static const reveal = Duration(milliseconds: 620);
+  static const revealCurve = Curves.easeOutCubic;
+
+  /// The gap between one revealed card and the next. Small enough that the
+  /// whole screen has settled inside a second.
+  static const stagger = Duration(milliseconds: 55);
 }
 
 /// The narrowest screen the app must work on. Layout is checked against this,

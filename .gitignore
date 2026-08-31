@@ -43,3 +43,6 @@ tool/node_modules/
 
 # Supabase CLI scratch
 supabase/.temp/
+
+# Design-review renders from test/dashboard_shots.dart
+app/build/shots/

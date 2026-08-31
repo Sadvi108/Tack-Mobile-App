@@ -1,9 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tack/features/dashboard/application/dashboard_data.dart';
-import 'package:tack/features/paths/data/path_repository.dart';
 import 'package:tack/features/profile/data/profile.dart';
 import 'package:tack/features/score/data/readiness.dart';
-import 'package:tack/features/vault/data/document_models.dart';
 
 ReadinessScore scoreWith(Map<String, (int earned, int max)> components) =>
     ReadinessScore(
@@ -22,15 +20,6 @@ ReadinessScore scoreWith(Map<String, (int earned, int max)> components) =>
       computedAt: DateTime(2026),
     );
 
-TackDocument cv({DocumentStatus status = DocumentStatus.ready}) => TackDocument(
-  id: 'd1',
-  type: DocumentType.cv,
-  title: 'CV',
-  storagePath: 'users/u/cv/d1',
-  status: status,
-  createdAt: DateTime(2026),
-);
-
 final launchScore = scoreWith({
   'cv_quality': (0, 13),
   'application_activity': (0, 14),
@@ -39,10 +28,10 @@ final launchScore = scoreWith({
 void main() {
   group('what is left to set up', () {
     test('a brand-new final-year is asked for all three', () {
-      final steps = setupSteps(
+      final steps = remainingSetupSteps(
         score: launchScore,
-        documents: const [],
-        chosenPaths: const [],
+        hasCv: false,
+        chosenPathCount: 0,
         applicationCount: 0,
       );
 
@@ -54,10 +43,10 @@ void main() {
     });
 
     test('point values come from the score engine, not from the card', () {
-      final steps = setupSteps(
+      final steps = remainingSetupSteps(
         score: launchScore,
-        documents: const [],
-        chosenPaths: const [],
+        hasCv: false,
+        chosenPathCount: 0,
         applicationCount: 0,
       );
 
@@ -66,10 +55,10 @@ void main() {
     });
 
     test('a step already done drops out', () {
-      final steps = setupSteps(
+      final steps = remainingSetupSteps(
         score: launchScore,
-        documents: [cv()],
-        chosenPaths: const [ChosenPath(pathId: 'p1', isPrimary: true)],
+        hasCv: true,
+        chosenPathCount: 1,
         applicationCount: 0,
       );
 
@@ -77,32 +66,35 @@ void main() {
     });
 
     test('once everything is done the card has nothing to show', () {
-      final steps = setupSteps(
+      final steps = remainingSetupSteps(
         score: launchScore,
-        documents: [cv()],
-        chosenPaths: const [ChosenPath(pathId: 'p1', isPrimary: true)],
+        hasCv: true,
+        chosenPathCount: 1,
         applicationCount: 2,
       );
 
       expect(steps, isEmpty);
     });
 
-    test('a CV that failed to upload does not count as having one', () {
-      final steps = setupSteps(
+    // The feed decides what counts as having a CV: a failed upload does not,
+    // and one still being parsed does. Both are asserted against the live
+    // database in tool/verify_dashboard.js, because that rule is now SQL.
+    test('no CV means the step is still there', () {
+      final steps = remainingSetupSteps(
         score: launchScore,
-        documents: [cv(status: DocumentStatus.failed)],
-        chosenPaths: const [],
+        hasCv: false,
+        chosenPathCount: 0,
         applicationCount: 0,
       );
 
       expect(steps.first.title, 'Upload your CV');
     });
 
-    test('a CV still being read does count — it is already uploaded', () {
-      final steps = setupSteps(
+    test('a CV the feed reports drops the step', () {
+      final steps = remainingSetupSteps(
         score: launchScore,
-        documents: [cv(status: DocumentStatus.processing)],
-        chosenPaths: const [],
+        hasCv: true,
+        chosenPathCount: 0,
         applicationCount: 0,
       );
 
@@ -112,13 +104,13 @@ void main() {
     test('a first-year is never told to apply for anything', () {
       // application_activity is weighted zero in explore mode on purpose. A
       // step worth nothing in this student's mode is not a step.
-      final steps = setupSteps(
+      final steps = remainingSetupSteps(
         score: scoreWith({
           'cv_quality': (0, 6),
           'application_activity': (0, 0),
         }),
-        documents: const [],
-        chosenPaths: const [],
+        hasCv: false,
+        chosenPathCount: 0,
         applicationCount: 0,
       );
 
@@ -130,10 +122,10 @@ void main() {
     });
 
     test('picking a path is worth saying even though it scores nothing', () {
-      final steps = setupSteps(
+      final steps = remainingSetupSteps(
         score: launchScore,
-        documents: [cv()],
-        chosenPaths: const [],
+        hasCv: true,
+        chosenPathCount: 0,
         applicationCount: 5,
       );
 
