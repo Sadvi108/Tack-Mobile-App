@@ -17,7 +17,7 @@
     "tesseract.js": "npm:tesseract.js@^6.0.1"
   },
   "tasks": {
-    "check": "deno check analyze-jd/index.ts worker/index.ts interview/index.ts score-cv/index.ts",
+    "check": "deno check analyze-jd/index.ts worker/index.ts interview/index.ts score-cv/index.ts radar/index.ts coach/index.ts",
     "test": "deno test _shared/",
     "lint": "deno lint",
     "fmt": "deno fmt --check"
