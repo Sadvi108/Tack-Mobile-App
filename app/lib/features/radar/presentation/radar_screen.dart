@@ -13,6 +13,7 @@ import '../../dashboard/data/dashboard_repository.dart';
 import '../../profile/data/profile.dart';
 import '../../profile/data/profile_repository.dart';
 import '../data/listing.dart';
+import '../data/radar_filter.dart';
 import '../data/radar_repository.dart';
 import 'listing_card.dart';
 
@@ -81,8 +82,7 @@ class _RadarScreenState extends ConsumerState<RadarScreen> {
         children: [
           _Segments(
             tracking: _tracking,
-            savedCount:
-                ref.watch(applicationCountsProvider).value?.total ?? 0,
+            savedCount: ref.watch(applicationCountsProvider).value?.total ?? 0,
             onChanged: (tracking) => setState(() => _tracking = tracking),
           ),
           const SizedBox(height: TackSpace.lg),
@@ -190,9 +190,9 @@ class _Find extends ConsumerWidget {
     final query = ref.watch(radarQueryProvider);
     final results = ref.watch(radarResultsProvider);
 
-    void submit() => ref.read(radarQueryProvider.notifier).submit(
-      query.copyWith(text: controller.text.trim()),
-    );
+    void submit() => ref
+        .read(radarQueryProvider.notifier)
+        .submit(query.copyWith(text: controller.text.trim()));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -203,18 +203,11 @@ class _Find extends ConsumerWidget {
           onSubmitted: (_) => submit(),
         ),
         const SizedBox(height: TackSpace.md),
-        Row(
-          children: [
-            _Toggle(
-              label: 'Remote only',
-              on: query.remoteOnly,
-              onTap: () => ref
-                  .read(radarQueryProvider.notifier)
-                  .setRemoteOnly(value: !query.remoteOnly),
-            ),
-            const Spacer(),
-            TackButton.ghost('Search', fullWidth: false, onPressed: submit),
-          ],
+        _FilterChips(
+          selected: query.filter,
+          counts: ref.watch(radarKindsProvider).value ?? const {},
+          onPick: (filter) =>
+              ref.read(radarQueryProvider.notifier).setFilter(filter),
         ),
         const SizedBox(height: TackSpace.lg),
         Expanded(
@@ -233,48 +226,117 @@ class _Find extends ConsumerWidget {
   }
 }
 
-class _Toggle extends StatelessWidget {
-  const _Toggle({required this.label, required this.on, required this.onTap});
+/// The filter row.
+///
+/// Every chip carries how many listings sit behind it, and a chip with none is
+/// still shown but reads as empty rather than being hidden. Hiding it would
+/// leave a student wondering whether Tack does internships at all; showing
+/// "Volunteer 0" answers the question honestly.
+class _FilterChips extends StatelessWidget {
+  const _FilterChips({
+    required this.selected,
+    required this.counts,
+    required this.onPick,
+  });
 
-  final String label;
-  final bool on;
+  final RadarFilter selected;
+  final Map<String, int> counts;
+  final void Function(RadarFilter filter) onPick;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: TackSpace.tapTarget,
+      // A Row inside a scroll view rather than a horizontal ListView: seven
+      // chips is far too few for laziness to buy anything, and a lazy list
+      // does not build what is off the right edge — which means a screen
+      // reader cannot reach "Volunteer" and neither can a test.
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        padding: EdgeInsets.zero,
+        child: Row(
+          children: [
+            for (final filter in RadarFilter.values) ...[
+              if (filter != RadarFilter.values.first)
+                const SizedBox(width: TackSpace.sm),
+              _Chip(
+                filter: filter,
+                selected: filter == selected,
+                count: filter == RadarFilter.all
+                    ? null
+                    : counts[filter.countKey],
+                onTap: () => onPick(filter),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _Chip extends StatelessWidget {
+  const _Chip({
+    required this.filter,
+    required this.selected,
+    required this.count,
+    required this.onTap,
+  });
+
+  final RadarFilter filter;
+  final bool selected;
+  final int? count;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
+    final empty = count == 0;
     return Semantics(
       button: true,
-      selected: on,
+      selected: selected,
+      label: count == null ? filter.label : '${filter.label}, $count listings',
+      excludeSemantics: true,
       child: GestureDetector(
         onTap: onTap,
         behavior: HitTestBehavior.opaque,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: TackSpace.tapTarget),
+        child: AnimatedContainer(
+          duration: TackMotion.fast,
+          curve: TackMotion.curve,
+          alignment: Alignment.center,
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          decoration: BoxDecoration(
+            color: selected ? TackColors.maroon : TackColors.white,
+            borderRadius: TackRadius.pillAll,
+            border: Border.all(
+              color: selected ? TackColors.maroon : TackColors.line,
+            ),
+          ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              AnimatedContainer(
-                duration: TackMotion.fast,
-                width: 20,
-                height: 20,
-                decoration: BoxDecoration(
-                  color: on ? TackColors.maroon : TackColors.white,
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(
-                    color: on ? TackColors.maroon : TackColors.strokeFaint,
-                    width: 1.5,
+              Text(
+                filter.label,
+                style: TackText.chip.copyWith(
+                  fontSize: 14.5,
+                  color: selected
+                      ? TackColors.white
+                      : empty
+                      ? TackColors.muted
+                      : TackColors.ink,
+                ),
+              ),
+              if (count != null) ...[
+                const SizedBox(width: 6),
+                Text(
+                  '$count',
+                  style: TackText.pill.copyWith(
+                    fontSize: 12.5,
+                    color: selected
+                        ? const Color(0xCCFFFFFF)
+                        : TackColors.muted,
                   ),
                 ),
-                child: on
-                    ? const TackIcon(
-                        TackIcons.check,
-                        size: 13,
-                        color: TackColors.white,
-                      )
-                    : null,
-              ),
-              const SizedBox(width: TackSpace.sm),
-              Text(label, style: TackText.chip),
+              ],
             ],
           ),
         ),
@@ -291,6 +353,7 @@ class _Results extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final listings = result.listings;
+    final filter = ref.watch(radarQueryProvider).filter;
 
     return ListView(
       padding: EdgeInsets.zero,
@@ -304,12 +367,15 @@ class _Results extends ConsumerWidget {
         ],
         if (listings.isEmpty)
           TackEmptyState(
-            title: 'Nothing matched that',
-            body: result.isMissingCareerjet
-                ? 'Only the AI jobs board is switched on, and it mostly lists senior '
-                      'roles abroad. Try "remote only", or a broader search.'
-                : 'Try a broader search — a role rather than a job title, or turn on '
-                      'remote only.',
+            title: filter == RadarFilter.all
+                ? 'Nothing matched that'
+                : 'No ${filter.label.toLowerCase()} right now',
+            // An empty filter is usually a fact about the boards, not about
+            // the student's search, and saying which is the difference between
+            // "try again tomorrow" and "try different words".
+            body: filter == RadarFilter.all
+                ? 'Try a broader search — a role rather than a full job title.'
+                : filter.emptyReason,
           )
         else
           for (final listing in listings) ...[
@@ -385,7 +451,9 @@ class _BoardNotice extends StatelessWidget {
         children: [
           Text(
             'ONE BOARD IS OFF',
-            style: TackText.monoLabelSmall.copyWith(color: TackColors.amberText),
+            style: TackText.monoLabelSmall.copyWith(
+              color: TackColors.amberText,
+            ),
           ),
           const SizedBox(height: TackSpace.sm),
           Text(

@@ -13,8 +13,16 @@
  * business model and not a student's problem.
  */
 
+export type Source =
+  | "careerjet"
+  | "aijobs"
+  | "remotive"
+  | "arbeitnow"
+  | "themuse"
+  | "jobicy";
+
 export interface Listing {
-  source: "careerjet" | "aijobs";
+  source: Source;
   externalId: string;
   title: string;
   company: string | null;
@@ -38,8 +46,29 @@ export interface Query {
   limit?: number;
 }
 
+/**
+ * Descriptions are what the fit score reads.
+ *
+ * The first board Radar shipped with published none, so every listing scored
+ * "we could not tell" and the one number that makes Radar worth opening was
+ * inert. Boards that carry a description are worth more here than boards that
+ * carry more jobs, and these are capped rather than truncated to nothing:
+ * enough text to find the skills, not so much that a page of listings is a
+ * megabyte of HTML.
+ */
+function description(raw: unknown, limit = 4000): string | null {
+  const text = typeof raw === "string" ? raw : null;
+  if (!text) return null;
+  const stripped = text
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&[a-z]+;/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return stripped === "" ? null : stripped.slice(0, limit);
+}
+
 export interface ProviderResult {
-  source: Listing["source"];
+  source: Source;
   listings: Listing[];
   /** Set when the provider could not be reached or is not configured. */
   problem?: string;
@@ -244,7 +273,209 @@ export async function careerjet(query: Query): Promise<ProviderResult> {
   }
 }
 
-export const providers = [aiJobs, careerjet];
+// --------------------------------------------------------------- remotive
+//
+// Free, no key, and every listing is remote by definition — which for a
+// student in Dhaka is the category that matters most, because a remote role
+// is one they can actually take. Carries a description and a clean job_type.
+export async function remotive(query: Query): Promise<ProviderResult> {
+  const params = new URLSearchParams({
+    limit: String(Math.min(query.limit ?? 30, 100)),
+  });
+  if (query.q) params.set("search", broaden(query.q));
+
+  try {
+    const body = await getJson(
+      `https://remotive.com/api/remote-jobs?${params}`,
+    ) as { jobs?: unknown[] };
+
+    const listings: Listing[] = [];
+    for (const row of Array.isArray(body?.jobs) ? body.jobs : []) {
+      if (typeof row !== "object" || row === null) continue;
+      const r = row as Record<string, unknown>;
+      const url = str(r.url);
+      const title = str(r.title);
+      if (!url || !title) continue;
+
+      listings.push({
+        source: "remotive",
+        externalId: str(r.id) ?? await hashUrl(url),
+        title,
+        company: str(r.company_name),
+        location: str(r.candidate_required_location),
+        isRemote: true,
+        employmentType: str(r.job_type),
+        description: description(r.description),
+        url,
+        applyUrl: null,
+        salaryText: str(r.salary),
+        category: str(r.category),
+        level: null,
+        postedAt: str(r.publication_date),
+      });
+    }
+    return { source: "remotive", listings };
+  } catch (e) {
+    return {
+      source: "remotive",
+      listings: [],
+      problem: e instanceof Error ? e.message : "unreachable",
+    };
+  }
+}
+
+// -------------------------------------------------------------- arbeitnow
+//
+// The only free board that reliably carries both an employment type and a
+// full description, and the only one where internships appear in any number.
+// Mostly European and mostly on-site, which is exactly the half of the filter
+// the other boards cannot fill.
+export async function arbeitnow(query: Query): Promise<ProviderResult> {
+  try {
+    const body = await getJson(
+      "https://www.arbeitnow.com/api/job-board-api",
+    ) as { data?: unknown[] };
+
+    // No query filtering here on purpose. This board has no search parameter,
+    // and filtering its one page in memory meant a search for "developer"
+    // kept 5 of 175 rows and a search The Muse could not match kept none.
+    // Providers fill the cache; radar_feed filters and ranks across all of
+    // it, per word, which is where that job belongs.
+    const listings: Listing[] = [];
+
+    for (const row of Array.isArray(body?.data) ? body.data : []) {
+      if (typeof row !== "object" || row === null) continue;
+      const r = row as Record<string, unknown>;
+      const url = str(r.url);
+      const title = str(r.title);
+      if (!url || !title) continue;
+
+      const types = Array.isArray(r.job_types)
+        ? (r.job_types as unknown[]).filter((t) => typeof t === "string")
+        : [];
+
+      listings.push({
+        source: "arbeitnow",
+        externalId: str(r.slug) ?? await hashUrl(url),
+        title,
+        company: str(r.company_name),
+        location: str(r.location),
+        isRemote: r.remote === true,
+        employmentType: types.length > 0 ? types.join(" ") : null,
+        description: description(r.description),
+        url,
+        applyUrl: null,
+        salaryText: null,
+        category: Array.isArray(r.tags) ? str(r.tags[0]) : null,
+        level: null,
+        postedAt: typeof r.created_at === "number"
+          ? new Date(r.created_at * 1000).toISOString()
+          : null,
+      });
+      if (listings.length >= (query.limit ?? 60)) break;
+    }
+    return { source: "arbeitnow", listings };
+  } catch (e) {
+    return {
+      source: "arbeitnow",
+      listings: [],
+      problem: e instanceof Error ? e.message : "unreachable",
+    };
+  }
+}
+
+// ---------------------------------------------------------------- themuse
+//
+// Publishes an explicit experience level, and "Internship" is one of them —
+// the only board here that says so outright rather than leaving it to be read
+// out of a job title.
+export async function themuse(query: Query): Promise<ProviderResult> {
+  // Two ordinary pages plus one that asks for internships outright. Without
+  // the third, internships appear only by luck — page one of this board is
+  // whatever it happens to be, and a student filtering for an internship
+  // would get an empty screen most days.
+  const pages = [
+    "page=1",
+    "page=2",
+    "page=1&level=Internship",
+  ].map((p) =>
+    query.location ? `${p}&location=${encodeURIComponent(query.location)}` : p
+  );
+
+  try {
+    const bodies = await Promise.all(
+      pages.map((p) =>
+        getJson(`https://www.themuse.com/api/public/jobs?${p}`).catch(
+          () => ({}),
+        )
+      ),
+    ) as { results?: unknown[] }[];
+
+    const listings: Listing[] = [];
+    const seen = new Set<string>();
+
+    for (
+      const row of bodies.flatMap((b) =>
+        Array.isArray(b?.results) ? b.results : []
+      )
+    ) {
+      if (typeof row !== "object" || row === null) continue;
+      const r = row as Record<string, unknown>;
+      const title = str(r.name);
+      const refs = r.refs as Record<string, unknown> | undefined;
+      const url = str(refs?.landing_page);
+      if (!url || !title || seen.has(url)) continue;
+      seen.add(url);
+
+      const levels = Array.isArray(r.levels)
+        ? (r.levels as Record<string, unknown>[]).map((l) => str(l?.name))
+          .filter(Boolean)
+        : [];
+      const places = Array.isArray(r.locations)
+        ? (r.locations as Record<string, unknown>[]).map((l) => str(l?.name))
+          .filter(Boolean)
+        : [];
+      const company = (r.company as Record<string, unknown> | undefined)?.name;
+
+      listings.push({
+        source: "themuse",
+        externalId: str(r.id) ?? await hashUrl(url),
+        title,
+        company: str(company),
+        location: places[0] ?? null,
+        isRemote: places.some((p) => /flexible|remote/i.test(p ?? "")),
+        // The level is what carries "Internship" on this board, so it is what
+        // gets classified.
+        employmentType: levels.join(" ") || null,
+        description: description(r.contents),
+        url,
+        applyUrl: null,
+        salaryText: null,
+        category: Array.isArray(r.categories)
+          ? str((r.categories as Record<string, unknown>[])[0]?.name)
+          : null,
+        level: levels[0] ?? null,
+        postedAt: str(r.publication_date),
+      });
+      if (listings.length >= (query.limit ?? 60)) break;
+    }
+    return { source: "themuse", listings };
+  } catch (e) {
+    return {
+      source: "themuse",
+      listings: [],
+      problem: e instanceof Error ? e.message : "unreachable",
+    };
+  }
+}
+
+export const providers = [
+  aiJobs,
+  remotive,
+  arbeitnow,
+  themuse,
+  careerjet,
+];
 
 /**
  * Asks every board at once and keeps whatever answers in time.

@@ -13,13 +13,20 @@ const URL = process.env.SUPABASE_URL;
 const ANON = process.env.SUPABASE_ANON_KEY;
 const SVC = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const PASSWORD = 'Test-passw0rd!';
+/* Every seeded title carries this. The cache is shared and now runs to
+   hundreds of live listings, so a feed capped at 50 stopped containing the
+   rows these checks had just written — and the script dereferenced undefined
+   and skipped half its assertions without failing. Scoping every read to a
+   marker makes the checks independent of how much real data is cached. */
+const MARK = 'Zqmarker';
 
 let pass = 0, fail = 0;
 const ok = (n, c, extra = '') => { c ? (pass++, console.log(`  PASS  ${n}`)) : (fail++, console.log(`  FAIL  ${n} ${extra}`)); };
 
 const admin = (p, o = {}) => fetch(`${URL}${p}`, { ...o, headers: { apikey: SVC, Authorization: `Bearer ${SVC}`, 'Content-Type': 'application/json', ...(o.headers || {}) } });
 const asUser = (t, p, o = {}) => fetch(`${URL}${p}`, { ...o, headers: { apikey: ANON, Authorization: `Bearer ${t}`, 'Content-Type': 'application/json', ...(o.headers || {}) } });
-const feed = (t, body = {}) => asUser(t, '/rest/v1/rpc/radar_feed', { method: 'POST', body: JSON.stringify(body) }).then(r => r.json());
+const feed = (t, body = {}) => asUser(t, '/rest/v1/rpc/radar_feed',
+  { method: 'POST', body: JSON.stringify({ p_query: MARK, p_limit: 50, ...body }) }).then(r => r.json());
 
 async function makeStudent(label) {
   const email = `radar_${label}_${Date.now()}@tack.test`;
@@ -63,11 +70,11 @@ async function makeStudent(label) {
     }
 
     console.log('\n2. listings are shared, and read-only to a student');
-    const seed = async (external, title, body, remote = false, loc = 'Dhaka') => {
+    const seed = async (external, title, body, remote = false, loc = 'Dhaka', kind = null) => {
       const { rows: [l] } = await pg.query(
-        `insert into public.job_listings (source, external_id, title, company_name, location, is_remote, url, description, posted_at)
-         values ('aijobs', $1, $2, 'Acme', $3, $4, $5, $6, now()) returning id`,
-        [external, title, loc, remote, `https://example.test/${external}`, body]);
+        `insert into public.job_listings (source, external_id, title, company_name, location, is_remote, url, description, employment_type, posted_at)
+         values ('aijobs', $1, $2, 'Acme', $3, $4, $5, $6, $7, now()) returning id`,
+        [external, `${MARK} ${title}`, loc, remote, `https://example.test/${external}`, body, kind]);
       await pg.query('select public.reindex_listing_skills($1)', [l.id]);
       listingIds.push(l.id);
       return l.id;
@@ -127,9 +134,43 @@ async function makeStudent(label) {
     ok('remote only returns only remote roles',
       remoteOnly.length > 0 && remoteOnly.every(l => l.remote === true),
       JSON.stringify(remoteOnly.map(l => l.remote)));
-    const searched = await feed(a.token, { p_query: 'Backend', p_limit: 50 });
-    ok('a text search narrows the list',
-      searched.some(l => l.id === backend) && !searched.some(l => l.id === vague));
+    /* The bug this replaced: matching the whole search string as one phrase.
+       A student's target role reads "Backend developer" and no posting is
+       titled that, so the feed came back empty. Matching per word is what
+       fixed it, and this is the case that proves it — the phrase appears
+       nowhere in the title. */
+    const phrase = await seed(`v-ph-${Date.now()}`, 'Backend Software Engineer',
+      'Node.js and PostgreSQL.');
+    listingIds.push(phrase);
+    const perWord = await feed(a.token, { p_query: `${MARK} Backend developer` });
+    ok('a role name finds a posting that never uses that phrase',
+      perWord.some(l => l.id === phrase),
+      `${perWord.length} returned, none of them the phrase listing`);
+
+    const nonsense = await feed(a.token, { p_query: 'Zqnothingmatchesthis' });
+    ok('a query matching nothing returns nothing, not everything',
+      Array.isArray(nonsense) && nonsense.length === 0, `${nonsense.length} returned`);
+
+    console.log('\n4b. the employment kind filter');
+    const intern = await seed(`v-int-${Date.now()}`, 'Marketing role',
+      'Some marketing work.', false, 'Dhaka', 'Intern');
+    listingIds.push(intern);
+    const { rows: [k] } = await pg.query(
+      'select kind::text from public.job_listings where id = $1', [intern]);
+    ok('a board saying "Intern" is classified as an internship',
+      k.kind === 'internship', k.kind);
+
+    const internFeed = await feed(a.token, { p_kind: 'internship' });
+    ok('filtering by internship returns it',
+      internFeed.some(l => l.id === intern), `${internFeed.length} returned`);
+    ok('and excludes everything that is not one',
+      internFeed.every(l => l.kind === 'internship'),
+      JSON.stringify(internFeed.map(l => l.kind)));
+
+    const volunteerFeed = await feed(a.token, { p_kind: 'volunteer' });
+    ok('a kind with nothing behind it returns empty, not everything',
+      Array.isArray(volunteerFeed) && volunteerFeed.length === 0,
+      `${volunteerFeed.length} returned`);
 
     console.log('\n5. saving copies, it never shares');
     const appId = await asUser(a.token, '/rest/v1/rpc/save_listing', {
@@ -171,8 +212,9 @@ async function makeStudent(label) {
     if (listingIds.length) {
       await pg.query('delete from public.job_listings where id = any($1)', [listingIds]);
     }
+    await pg.query('delete from public.job_listings where title like $1', [`${MARK}%`]);
     const { rows: [left] } = await pg.query(
-      'select count(*)::int n from public.job_listings where external_id like $1', ['v-%']);
+      'select count(*)::int n from public.job_listings where title like $1', [`${MARK}%`]);
     ok('the seeded listings are cleaned up', left.n === 0, `${left.n} left`);
     await pg.end();
     console.log(`\n${pass} passed, ${fail} failed\n`);

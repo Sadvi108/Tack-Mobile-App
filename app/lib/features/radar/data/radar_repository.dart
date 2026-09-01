@@ -4,20 +4,25 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/failure.dart';
 import '../../../core/supabase/client.dart';
 import 'listing.dart';
+import 'radar_filter.dart';
 
 /// What Radar is looking for.
 class RadarQuery {
-  const RadarQuery({this.text = '', this.location = '', this.remoteOnly = false});
+  const RadarQuery({
+    this.text = '',
+    this.location = '',
+    this.filter = RadarFilter.all,
+  });
 
   final String text;
   final String location;
-  final bool remoteOnly;
+  final RadarFilter filter;
 
-  RadarQuery copyWith({String? text, String? location, bool? remoteOnly}) =>
+  RadarQuery copyWith({String? text, String? location, RadarFilter? filter}) =>
       RadarQuery(
         text: text ?? this.text,
         location: location ?? this.location,
-        remoteOnly: remoteOnly ?? this.remoteOnly,
+        filter: filter ?? this.filter,
       );
 
   @override
@@ -25,10 +30,10 @@ class RadarQuery {
       other is RadarQuery &&
       other.text == text &&
       other.location == location &&
-      other.remoteOnly == remoteOnly;
+      other.filter == filter;
 
   @override
-  int get hashCode => Object.hash(text, location, remoteOnly);
+  int get hashCode => Object.hash(text, location, filter);
 }
 
 /// The only thing that talks to the radar function.
@@ -47,7 +52,8 @@ class RadarRepository {
         body: {
           'query': query.text,
           'location': query.location,
-          'remote': query.remoteOnly,
+          'remote': ?query.filter.wantsRemote,
+          'kind': ?query.filter.kind,
           'offset': offset,
           'limit': 20,
         },
@@ -55,6 +61,18 @@ class RadarRepository {
       final data = res.data;
       if (data is! Map) return RadarResult.empty;
       return RadarResult.fromJson(data.cast<String, dynamic>());
+    } catch (e) {
+      throw Failure.from(e);
+    }
+  }
+
+  /// How many listings there are of each kind.
+  Future<Map<String, int>> kinds() async {
+    try {
+      final row = await _db.rpc<Map<String, dynamic>>('radar_kinds');
+      return {
+        for (final e in row.entries) e.key: (e.value as num?)?.toInt() ?? 0,
+      };
     } catch (e) {
       throw Failure.from(e);
     }
@@ -89,12 +107,18 @@ class RadarQueryController extends Notifier<RadarQuery> {
   RadarQuery build() => const RadarQuery();
 
   void submit(RadarQuery query) => state = query;
-  void setRemoteOnly({required bool value}) =>
-      state = state.copyWith(remoteOnly: value);
+  void setFilter(RadarFilter filter) => state = state.copyWith(filter: filter);
 }
 
 final radarQueryProvider =
     NotifierProvider<RadarQueryController, RadarQuery>(RadarQueryController.new);
+
+/// How many listings sit behind each chip, so a chip with nothing behind it
+/// can say so rather than looking broken when it is tapped.
+final radarKindsProvider = FutureProvider<Map<String, int>>((ref) async {
+  if (!ref.watch(isSignedInProvider)) return const {};
+  return ref.watch(radarRepositoryProvider).kinds();
+});
 
 final radarResultsProvider = FutureProvider<RadarResult>((ref) async {
   if (!ref.watch(isSignedInProvider)) return RadarResult.empty;

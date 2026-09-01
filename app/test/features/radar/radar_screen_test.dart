@@ -11,7 +11,9 @@ import 'package:tack/features/dashboard/data/dashboard_repository.dart';
 import 'package:tack/features/profile/data/profile.dart';
 import 'package:tack/features/profile/data/profile_repository.dart';
 import 'package:tack/features/radar/data/listing.dart';
+import 'package:tack/features/radar/data/radar_filter.dart';
 import 'package:tack/features/radar/data/radar_repository.dart';
+import 'package:tack/features/radar/presentation/listing_card.dart';
 import 'package:tack/features/radar/presentation/radar_screen.dart';
 
 import '../../helpers.dart';
@@ -23,6 +25,7 @@ Listing listing({
   int asks = 4,
   int have = 3,
   bool remote = false,
+  String kind = 'full_time',
   List<String> matched = const ['Node.js', 'PostgreSQL', 'Docker'],
   List<String> missing = const ['React'],
   String? saved,
@@ -35,6 +38,7 @@ Listing listing({
   company: 'Acme',
   location: 'Dhaka',
   isRemote: remote,
+  kind: kind,
   salary: 'BDT 60,000',
   fit: fit,
   asks: asks,
@@ -44,7 +48,18 @@ Listing listing({
   savedApplicationId: saved,
 );
 
-List<Override> overrides(RadarResult result, {int saved = 0}) => [
+List<Override> overrides(
+  RadarResult result, {
+  int saved = 0,
+  Map<String, int> counts = const {
+    'remote': 101,
+    'onsite': 227,
+    'internship': 10,
+    'part_time': 5,
+    'contract': 8,
+    'volunteer': 0,
+  },
+}) => [
   localDbProvider.overrideWith((ref) {
     final db = LocalDb(NativeDatabase.memory());
     ref.onDispose(db.close);
@@ -62,6 +77,7 @@ List<Override> overrides(RadarResult result, {int saved = 0}) => [
   ),
   dashboardFeedProvider.overrideWith((ref) async => null),
   radarResultsProvider.overrideWith((ref) async => result),
+  radarKindsProvider.overrideWith((ref) async => counts),
   applicationCountsProvider.overrideWith(
     (ref) async => saved == 0
         ? ApplicationCounts.empty
@@ -118,7 +134,11 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('0'), findsNothing);
+    // Scoped to the card: a filter chip may legitimately show a count of 0.
+    expect(
+      find.descendant(of: find.byType(ListingCard), matching: find.text('0')),
+      findsNothing,
+    );
     expect(find.text('–'), findsOneWidget);
     expect(
       find.text(
@@ -187,6 +207,99 @@ void main() {
     expect(find.text('No applications yet'), findsOneWidget);
     // Still Radar: the tab bar did not move.
     expect(find.text('Radar'), findsWidgets);
+  });
+
+  testWidgets('every kind of work is offered as a filter', (tester) async {
+    await pumpAt(
+      tester,
+      const RadarScreen(),
+      size: const Size(360, 900),
+      overrides: overrides(RadarResult(listings: [listing()])),
+    );
+    await tester.pumpAndSettle();
+
+    for (final f in RadarFilter.values) {
+      expect(
+        find.text(f.label),
+        findsOneWidget,
+        reason: '${f.label} should be offered as a filter',
+      );
+    }
+    // Counts come from what is actually cached, so a chip never promises
+    // listings that are not there.
+    expect(find.text('10'), findsOneWidget); // internships
+    expect(find.text('0'), findsOneWidget); // volunteer
+  });
+
+  testWidgets('an empty filter blames the boards, not the student', (
+    tester,
+  ) async {
+    // "No volunteer roles" must read as a fact about what Tack can see, or a
+    // student concludes there is no volunteering in the world.
+    await pumpAt(
+      tester,
+      const RadarScreen(),
+      size: const Size(360, 900),
+      overrides: overrides(const RadarResult(listings: [])),
+    );
+    await tester.pumpAndSettle();
+
+    // The chip row scrolls, and Volunteer sits off the right edge at 360px.
+    // Tapping without scrolling to it first lands outside the viewport.
+    await tester.ensureVisible(find.text('Volunteer'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Volunteer'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('No volunteer right now'), findsOneWidget);
+    expect(
+      bodyText(tester),
+      contains('No board Tack reads publishes volunteer roles'),
+    );
+  });
+
+  testWidgets('the kind of work is named on the card', (tester) async {
+    await pumpAt(
+      tester,
+      const RadarScreen(),
+      size: const Size(360, 900),
+      overrides: overrides(
+        RadarResult(listings: [listing(kind: 'internship')]),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.descendant(
+        of: find.byType(ListingCard),
+        matching: find.text('Internship'),
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('a kind the board never stated is not guessed at', (
+    tester,
+  ) async {
+    await pumpAt(
+      tester,
+      const RadarScreen(),
+      size: const Size(360, 900),
+      overrides: overrides(RadarResult(listings: [listing(kind: 'unknown')])),
+    );
+    await tester.pumpAndSettle();
+
+    // Scoped to the card: the filter chips legitimately carry these words.
+    for (final label in ['Full time', 'Internship', 'Contract', 'Part time']) {
+      expect(
+        find.descendant(
+          of: find.byType(ListingCard),
+          matching: find.text(label),
+        ),
+        findsNothing,
+        reason: 'must not invent "$label" for an unclassified listing',
+      );
+    }
   });
 
   testWidgets('it lays out at the 360px floor without overflow', (

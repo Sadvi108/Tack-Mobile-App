@@ -28,6 +28,7 @@ Deno.serve(async (req) => {
     query?: string;
     location?: string;
     remote?: boolean;
+    kind?: string;
     refresh?: boolean;
     limit?: number;
     offset?: number;
@@ -40,7 +41,8 @@ Deno.serve(async (req) => {
 
   const query = (body.query ?? "").trim().slice(0, 120);
   const location = (body.location ?? "").trim().slice(0, 80);
-  const remote = body.remote === true ? true : undefined;
+  const remote = typeof body.remote === "boolean" ? body.remote : undefined;
+  const kind = (body.kind ?? "").trim() || null;
   const limit = Math.min(Math.max(body.limit ?? 20, 1), 50);
   const offset = Math.max(body.offset ?? 0, 0);
 
@@ -69,6 +71,8 @@ Deno.serve(async (req) => {
             location: l.location,
             is_remote: l.isRemote,
             employment_type: l.employmentType,
+            // `kind` is stamped by a trigger from this plus the title, so the
+            // rule holds whoever writes the row.
             description: l.description,
             url: l.url,
             apply_url: l.applyUrl,
@@ -104,6 +108,7 @@ Deno.serve(async (req) => {
     p_remote: remote ?? null,
     p_limit: limit,
     p_offset: offset,
+    p_kind: kind,
   });
 
   if (feedError) {

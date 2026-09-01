@@ -95,6 +95,10 @@ class ListingCard extends StatelessWidget {
           const SizedBox(height: TackSpace.md),
           Row(
             children: [
+              if (listing.kindLabel case final kind?) ...[
+                _Tag(kind, emphasis: true),
+                const SizedBox(width: TackSpace.sm),
+              ],
               _Tag(listing.sourceLabel),
               if (posted != null) ...[
                 const SizedBox(width: TackSpace.sm),
@@ -191,16 +195,20 @@ class _Fit extends StatelessWidget {
 }
 
 class _Tag extends StatelessWidget {
-  const _Tag(this.label);
+  const _Tag(this.label, {this.emphasis = false});
 
   final String label;
+
+  /// The kind of work leads the row, because it is the thing a student is
+  /// filtering on.
+  final bool emphasis;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-      decoration: const BoxDecoration(
-        color: TackColors.sailWhite,
+      decoration: BoxDecoration(
+        color: emphasis ? TackColors.tealTint : TackColors.sailWhite,
         borderRadius: TackRadius.pillAll,
       ),
       child: Text(
@@ -208,7 +216,7 @@ class _Tag extends StatelessWidget {
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: TackText.pill.copyWith(
-          color: TackColors.muted,
+          color: emphasis ? TackColors.tealText : TackColors.muted,
           fontSize: 12.5,
         ),
       ),

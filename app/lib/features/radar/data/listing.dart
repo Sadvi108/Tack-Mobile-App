@@ -10,6 +10,7 @@ class Listing {
     required this.title,
     required this.url,
     required this.applyUrl,
+    this.kind = 'unknown',
     this.company,
     this.location,
     this.isRemote = false,
@@ -33,6 +34,11 @@ class Listing {
   final String title;
   final String url;
   final String applyUrl;
+
+  /// `full_time`, `part_time`, `internship`, `contract`, `volunteer` or
+  /// `unknown`, normalised server-side from whatever the board called it.
+  final String kind;
+
   final String? company;
   final String? location;
   final bool isRemote;
@@ -62,9 +68,24 @@ class Listing {
   bool get isSaved => savedApplicationId != null;
   bool get isScored => fit != null;
 
+  /// Shown on the card only when the board actually said so — a guess
+  /// presented as a fact is worse than saying nothing.
+  String? get kindLabel => switch (kind) {
+    'internship' => 'Internship',
+    'part_time' => 'Part time',
+    'contract' => 'Contract',
+    'volunteer' => 'Volunteer',
+    'full_time' => 'Full time',
+    _ => null,
+  };
+
   String get sourceLabel => switch (source) {
     'careerjet' => 'Careerjet',
     'aijobs' => 'AI jobs',
+    'remotive' => 'Remotive',
+    'arbeitnow' => 'Arbeitnow',
+    'themuse' => 'The Muse',
+    'jobicy' => 'Jobicy',
     _ => source,
   };
 
@@ -90,6 +111,7 @@ class Listing {
     url: (json['url'] as String?) ?? '',
     applyUrl:
         (json['apply_url'] as String?) ?? (json['url'] as String?) ?? '',
+    kind: (json['kind'] as String?) ?? 'unknown',
     company: _text(json['company']),
     location: _text(json['location']),
     isRemote: json['remote'] == true,

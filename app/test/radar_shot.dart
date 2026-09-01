@@ -32,7 +32,8 @@ void main() {
             ),
             fx.listing(
               id: 'l3',
-              title: 'Graduate trainee programme',
+              title: 'Marketing & Content Intern',
+              kind: 'internship',
               fit: null,
               asks: 0,
               have: 0,
@@ -40,7 +41,7 @@ void main() {
               missing: const [],
             ),
           ],
-          problems: {'careerjet': 'not configured'},
+          problems: const {},
         ),
       ),
       panels: const [0, 520],
