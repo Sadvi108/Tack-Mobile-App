@@ -215,39 +215,44 @@ class _RoadmapScreenState extends ConsumerState<RoadmapScreen> {
       scrollable: false,
       padBody: false,
       body: roadmapsAsync.when(
-        loading: () => const Padding(
-          padding: EdgeInsets.symmetric(horizontal: TackSpace.screen),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              TackSkeleton(height: 108, radius: 20),
-              SizedBox(height: TackSpace.stackLoose),
-              TackSkeleton(height: 140, radius: 20),
-              SizedBox(height: TackSpace.stack),
-              TackSkeleton(height: 96, radius: 20),
-            ],
-          ),
-        ),
-        error: (_, _) => Padding(
+        // Each of these is a ListView rather than a bare child. The shell no
+        // longer wraps the body in a scroll view, so anything handed to it
+        // directly is stretched to the full height — which turned the empty
+        // state into a white card running the length of the screen.
+        loading: () => ListView(
           padding: const EdgeInsets.symmetric(horizontal: TackSpace.screen),
-          child: TackErrorState(
-            body:
-                'Your roadmap did not load. Check your connection and try again.',
-            onRetry: () => ref.invalidate(roadmapsProvider),
-          ),
+          children: const [
+            TackSkeleton(height: 108, radius: 20),
+            SizedBox(height: TackSpace.stackLoose),
+            TackSkeleton(height: 140, radius: 20),
+            SizedBox(height: TackSpace.stack),
+            TackSkeleton(height: 96, radius: 20),
+          ],
+        ),
+        error: (_, _) => ListView(
+          padding: const EdgeInsets.symmetric(horizontal: TackSpace.screen),
+          children: [
+            TackErrorState(
+              body:
+                  'Your roadmap did not load. Check your connection and try again.',
+              onRetry: () => ref.invalidate(roadmapsProvider),
+            ),
+          ],
         ),
         data: (roadmaps) {
           if (roadmaps.isEmpty) {
-            return Padding(
+            return ListView(
               padding: const EdgeInsets.symmetric(horizontal: TackSpace.screen),
-              child: TackEmptyState(
-                title: 'No roadmap yet',
-                body:
-                    'Pick a career path and Tack turns it into a route you can '
-                    'actually follow, one step at a time.',
-                primaryLabel: 'Explore career paths',
-                onPrimary: () => context.push(Routes.paths),
-              ),
+              children: [
+                TackEmptyState(
+                  title: 'No roadmap yet',
+                  body:
+                      'Pick a career path and Tack turns it into a route you '
+                      'can actually follow, one step at a time.',
+                  primaryLabel: 'Explore career paths',
+                  onPrimary: () => context.push(Routes.paths),
+                ),
+              ],
             );
           }
 

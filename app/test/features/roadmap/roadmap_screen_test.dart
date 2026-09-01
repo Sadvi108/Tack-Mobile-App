@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tack/core/offline/local_db.dart';
 import 'package:tack/core/offline/sync.dart';
+import 'package:tack/design/tack.dart';
 import 'package:tack/features/roadmap/data/roadmap_models.dart';
 import 'package:tack/features/roadmap/data/roadmap_repository.dart';
 import 'package:tack/features/roadmap/presentation/journey_line.dart';
@@ -228,6 +229,17 @@ void main() {
 
     expect(find.text('No roadmap yet'), findsOneWidget);
     expect(find.text('Explore career paths'), findsOneWidget);
+
+    // It sizes to its content. The shell no longer wraps the body in a scroll
+    // view, so a bare child gets stretched to the full height — which turned
+    // this card into a white slab running the length of the screen.
+    //
+    // The bound is tight on purpose: the broken version measured about 490,
+    // so a looser assertion passed while the bug was on screen.
+    expect(
+      tester.getSize(find.byType(TackEmptyState)).height,
+      lessThan(400),
+    );
   });
 
   testWidgets('it lays out at the 360px floor without overflow', (
