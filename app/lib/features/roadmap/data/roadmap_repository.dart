@@ -11,7 +11,7 @@ class RoadmapRepository {
   final SupabaseClient _db;
 
   static const _select = '''
-    id, title, path_id,
+    id, title, path_id, skipped_count,
     career_paths(slug),
     roadmap_milestones(
       id, roadmap_id, order_index, title, description, unlock_text, typical_semester, state,
@@ -52,91 +52,27 @@ class RoadmapRepository {
     }
   }
 
-  /// Copies a career path template into a roadmap the student owns, so later
-  /// edits never mutate the shared template.
+  /// Builds a roadmap for this student from a career path template.
   ///
-  /// The first milestone opens as active and the rest stay locked; from then
-  /// on a database trigger advances them as tasks are ticked.
-  Future<String> generateFromPath(String pathId, String title) async {
+  /// One call. This used to be four sequential round trips with no transaction
+  /// around them — insert the roadmap, read the template milestones, insert
+  /// them, read the template tasks, insert those — and a phone that lost the
+  /// connection partway left a roadmaps row with nothing underneath it. The
+  /// idempotency guard then found that shell and returned it forever, so the
+  /// student could never generate the roadmap again and the screen read "0 of
+  /// 0 steps done" with no way back. One such roadmap was found in production.
+  ///
+  /// The database also does the part this could never do: it knows which
+  /// skills the student already has, and when they graduate, so the roadmap it
+  /// returns is shaped for them rather than being a copy of the template.
+  /// The title is no longer passed: the function reads it from the path row,
+  /// so the roadmap cannot be named something the path is not called.
+  Future<String> generateFromPath(String pathId) async {
     try {
-      final existing = await _db
-          .from('roadmaps')
-          .select('id')
-          .eq('user_id', _uid)
-          .eq('path_id', pathId)
-          .isFilter('deleted_at', null)
-          .maybeSingle();
-      if (existing != null) return existing['id'] as String;
-
-      final roadmap = await _db
-          .from('roadmaps')
-          .insert({
-            'user_id': _uid,
-            'path_id': pathId,
-            'title': title,
-            'origin': 'template',
-          })
-          .select('id')
-          .single();
-      final roadmapId = roadmap['id'] as String;
-
-      final templateMilestones = await _db
-          .from('career_path_milestones')
-          .select(
-            'id, order_index, title, description, unlock_text, typical_semester',
-          )
-          .eq('path_id', pathId)
-          .order('order_index');
-
-      final inserted = await _db
-          .from('roadmap_milestones')
-          .insert([
-            for (final m in templateMilestones)
-              {
-                'roadmap_id': roadmapId,
-                'user_id': _uid,
-                'source_milestone_id': m['id'],
-                'order_index': m['order_index'],
-                'title': m['title'],
-                'description': m['description'],
-                'unlock_text': m['unlock_text'],
-                'typical_semester': m['typical_semester'],
-                'state': (m['order_index'] as num) == 0 ? 'active' : 'locked',
-              },
-          ])
-          .select('id, source_milestone_id');
-
-      final templateTasks = await _db
-          .from('career_path_tasks')
-          .select(
-            'milestone_id, order_index, title, type, points, est_minutes, skill_id',
-          )
-          .inFilter('milestone_id', [
-            for (final m in templateMilestones) m['id'] as String,
-          ]);
-
-      final byTemplate = {
-        for (final m in inserted)
-          m['source_milestone_id'] as String: m['id'] as String,
-      };
-
-      await _db.from('roadmap_tasks').insert([
-        for (final t in templateTasks)
-          if (byTemplate[t['milestone_id'] as String] != null)
-            {
-              'milestone_id': byTemplate[t['milestone_id'] as String],
-              'user_id': _uid,
-              'order_index': t['order_index'],
-              'title': t['title'],
-              'type': t['type'],
-              'points': t['points'],
-              'est_minutes': t['est_minutes'],
-              'skill_id': t['skill_id'],
-              'shared_with_roadmaps': [roadmapId],
-            },
-      ]);
-
-      return roadmapId;
+      return await _db.rpc<String>(
+        'generate_roadmap',
+        params: {'p_path_id': pathId},
+      );
     } catch (e) {
       throw Failure.from(e);
     }

@@ -27,9 +27,7 @@ class _PathDetailScreenState extends ConsumerState<PathDetailScreen> {
     setState(() => _busy = true);
     try {
       await ref.read(pathRepositoryProvider).choose(match.path.id);
-      await ref
-          .read(roadmapRepositoryProvider)
-          .generateFromPath(match.path.id, match.path.title);
+      await ref.read(roadmapRepositoryProvider).generateFromPath(match.path.id);
       ref
         ..invalidate(chosenPathsProvider)
         ..invalidate(roadmapsProvider);

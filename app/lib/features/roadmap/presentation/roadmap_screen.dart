@@ -8,9 +8,11 @@ import '../../../core/failure.dart';
 import '../../../core/offline/sync.dart';
 import '../../../design/tack.dart';
 import '../../../routing/router.dart';
+import '../../dashboard/presentation/motion.dart';
 import '../../score/data/score_repository.dart';
 import '../data/roadmap_models.dart';
 import '../data/roadmap_repository.dart';
+import 'journey_line.dart';
 import 'task_tile.dart';
 import '../../../routing/tab_bar.dart';
 
@@ -78,6 +80,81 @@ class _RoadmapScreenState extends ConsumerState<RoadmapScreen> {
     }
   }
 
+  /// Long-pressing a step. Until now `setTaskDue` and `deleteTask` existed in
+  /// the repository and nothing could reach them — `onLongPress` was never
+  /// passed to the tile — so a student could neither move a date nor remove a
+  /// step they were never going to do.
+  Future<void> _editTask(RoadmapTask task) async {
+    final action = await showTackSheet<String>(
+      context: context,
+      title: task.title,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          TackSpace.screen,
+          0,
+          TackSpace.screen,
+          TackSpace.xl,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Builder(
+              builder: (sheetContext) => Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TackButton.secondary(
+                    task.dueDate == null ? 'Give it a date' : 'Move the date',
+                    onPressed: () => Navigator.of(sheetContext).pop('due'),
+                  ),
+                  const SizedBox(height: TackSpace.stack),
+                  TackButton.ghost(
+                    'Remove this step',
+                    onPressed: () => Navigator.of(sheetContext).pop('delete'),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (action == null || !mounted) return;
+
+    final repository = ref.read(roadmapRepositoryProvider);
+
+    if (action == 'due') {
+      final picked = await showDatePicker(
+        context: context,
+        initialDate: task.dueDate ?? DateTime.now().add(const Duration(days: 7)),
+        firstDate: DateTime.now().subtract(const Duration(days: 365)),
+        lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
+      );
+      if (picked == null || !mounted) return;
+      await repository.setTaskDue(task.id, picked);
+      ref.invalidate(roadmapsProvider);
+      if (mounted) TackToast.show(context, message: 'Date moved.');
+      return;
+    }
+
+    // Removing a step changes the score, because roadmap_progress is a
+    // fraction of the steps that exist. Worth confirming.
+    final sure = await confirmTackAction(
+      context,
+      title: 'Remove this step?',
+      body:
+          'It comes off your roadmap and stops counting toward your readiness '
+          'score. You can add your own step back later.',
+      confirmLabel: 'Remove it',
+    );
+    if (!sure || !mounted) return;
+    await repository.deleteTask(task.id);
+    ref
+      ..invalidate(roadmapsProvider)
+      ..invalidate(readinessProvider);
+    if (mounted) TackToast.show(context, message: 'Removed.');
+  }
+
   Future<void> _addTask(String milestoneId) async {
     final controller = TextEditingController();
     final title = await showTackSheet<String>(
@@ -132,37 +209,55 @@ class _RoadmapScreenState extends ConsumerState<RoadmapScreen> {
     return TackScaffold(
       bottomNav: const TackTabBar(current: Routes.roadmap),
       header: const TackHeader(title: 'Your roadmap'),
+      // The body brings its own ListView so the milestones build lazily; the
+      // whole roadmap used to be an eager Column inside the shell's scroll
+      // view, so every task of every milestone was laid out on every frame.
+      scrollable: false,
+      padBody: false,
       body: roadmapsAsync.when(
-        loading: () => const Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            TackSkeleton(height: 72, radius: 20),
-            SizedBox(height: TackSpace.stack),
-            TackSkeleton(height: 210, radius: 20),
-          ],
+        loading: () => const Padding(
+          padding: EdgeInsets.symmetric(horizontal: TackSpace.screen),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TackSkeleton(height: 108, radius: 20),
+              SizedBox(height: TackSpace.stackLoose),
+              TackSkeleton(height: 140, radius: 20),
+              SizedBox(height: TackSpace.stack),
+              TackSkeleton(height: 96, radius: 20),
+            ],
+          ),
         ),
-        error: (_, _) => TackErrorState(
-          body:
-              'Your roadmap did not load. Check your connection and try again.',
-          onRetry: () => ref.invalidate(roadmapsProvider),
+        error: (_, _) => Padding(
+          padding: const EdgeInsets.symmetric(horizontal: TackSpace.screen),
+          child: TackErrorState(
+            body:
+                'Your roadmap did not load. Check your connection and try again.',
+            onRetry: () => ref.invalidate(roadmapsProvider),
+          ),
         ),
         data: (roadmaps) {
           if (roadmaps.isEmpty) {
-            return TackEmptyState(
-              title: 'No roadmap yet',
-              body:
-                  'Pick a career path and Tack turns it into a route you can '
-                  'actually follow, one step at a time.',
-              primaryLabel: 'Explore career paths',
-              onPrimary: () => context.push(Routes.paths),
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: TackSpace.screen),
+              child: TackEmptyState(
+                title: 'No roadmap yet',
+                body:
+                    'Pick a career path and Tack turns it into a route you can '
+                    'actually follow, one step at a time.',
+                primaryLabel: 'Explore career paths',
+                onPrimary: () => context.push(Routes.paths),
+              ),
             );
           }
 
           final index = _selected.clamp(0, roadmaps.length - 1);
           final roadmap = roadmaps[index];
+          final milestones = roadmap.milestones;
+          var step = 0;
 
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          return ListView(
+            padding: const EdgeInsets.symmetric(horizontal: TackSpace.screen),
             children: [
               // Two paths at once get a switcher. One path gets no chrome it
               // does not need.
@@ -185,59 +280,65 @@ class _RoadmapScreenState extends ConsumerState<RoadmapScreen> {
                 const SizedBox(height: TackSpace.stack),
               ],
 
-              TackCard(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+              TackReveal(
+                index: step++,
+                child: _RoadmapSummary(roadmap: roadmap),
+              ),
+              const SizedBox(height: TackSpace.stackLoose),
+
+              // The journey. Each milestone sits beside its own segment of the
+              // spine, and the spine takes the card's height from the
+              // IntrinsicHeight row rather than being told what it is.
+              for (var i = 0; i < milestones.length; i++)
+                TackReveal(
+                  index: step++,
+                  child: IntrinsicHeight(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Expanded(
-                          child: Text(roadmap.title, style: TackText.cardTitle),
+                        JourneyLine(
+                          state: milestones[i].state,
+                          isFirst: i == 0,
+                          isLast: i == milestones.length - 1,
+                          progress: milestones[i].progress,
                         ),
-                        Text(
-                          '${(roadmap.progress * 100).round()}%',
-                          style: TackText.cardTitle.copyWith(
-                            color: TackColors.maroon,
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.only(
+                              bottom: TackSpace.stack,
+                            ),
+                            child: _MilestoneCard(
+                              milestone: milestones[i],
+                              expanded:
+                                  _expanded.contains(milestones[i].id) ||
+                                  (milestones[i].state ==
+                                          MilestoneState.active &&
+                                      !_expanded.contains(
+                                        'collapsed:${milestones[i].id}',
+                                      )),
+                              onToggleExpanded: () => setState(() {
+                                final m = milestones[i];
+                                if (m.state == MilestoneState.active) {
+                                  final key = 'collapsed:${m.id}';
+                                  _expanded.contains(key)
+                                      ? _expanded.remove(key)
+                                      : _expanded.add(key);
+                                } else {
+                                  _expanded.contains(m.id)
+                                      ? _expanded.remove(m.id)
+                                      : _expanded.add(m.id);
+                                }
+                              }),
+                              onToggleTask: _toggle,
+                              onEditTask: _editTask,
+                              onAddTask: () => _addTask(milestones[i].id),
+                            ),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: TackSpace.md),
-                    TackProgressBar(value: roadmap.progress, height: 8),
-                    const SizedBox(height: TackSpace.sm),
-                    Text(
-                      '${roadmap.doneCount} of ${roadmap.totalCount} steps done',
-                      style: TackText.meta,
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: TackSpace.stackLoose),
-
-              for (final milestone in roadmap.milestones) ...[
-                _MilestoneCard(
-                  milestone: milestone,
-                  expanded:
-                      _expanded.contains(milestone.id) ||
-                      (milestone.state == MilestoneState.active &&
-                          !_expanded.contains('collapsed:${milestone.id}')),
-                  onToggleExpanded: () => setState(() {
-                    if (milestone.state == MilestoneState.active) {
-                      final key = 'collapsed:${milestone.id}';
-                      _expanded.contains(key)
-                          ? _expanded.remove(key)
-                          : _expanded.add(key);
-                    } else {
-                      _expanded.contains(milestone.id)
-                          ? _expanded.remove(milestone.id)
-                          : _expanded.add(milestone.id);
-                    }
-                  }),
-                  onToggleTask: _toggle,
-                  onAddTask: () => _addTask(milestone.id),
-                ),
-                const SizedBox(height: TackSpace.stack),
-              ],
 
               const SizedBox(height: TackSpace.xl),
             ],
@@ -248,12 +349,97 @@ class _RoadmapScreenState extends ConsumerState<RoadmapScreen> {
   }
 }
 
+/// The figure at the top, and one sentence saying what it means.
+///
+/// A percentage on its own is a verdict. "23 steps left, about two a week
+/// before you graduate" is something a student can act on — and when the pace
+/// is impossible it says so rather than quietly dropping steps to make the
+/// number look achievable.
+class _RoadmapSummary extends StatelessWidget {
+  const _RoadmapSummary({required this.roadmap});
+
+  final Roadmap roadmap;
+
+  @override
+  Widget build(BuildContext context) {
+    final percent = (roadmap.progress * 100).round();
+    final pace = roadmap.pacePerWeek(DateTime.now());
+
+    return TackCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('YOUR ROUTE', style: TackText.monoLabelSmall),
+          const SizedBox(height: TackSpace.sm),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Expanded(
+                child: Text(
+                  roadmap.title,
+                  style: TackText.cardTitle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: TackSpace.sm),
+              TackCountUp(
+                percent,
+                suffix: '%',
+                style: TackText.cardTitle.copyWith(color: TackColors.maroon),
+                semanticsLabel: '$percent percent of your roadmap done',
+              ),
+            ],
+          ),
+          const SizedBox(height: TackSpace.md),
+          TackProgressBar(value: roadmap.progress, height: 8),
+          const SizedBox(height: TackSpace.sm),
+          Text(_sentence(pace), style: TackText.meta),
+          if (roadmap.skippedCount > 0) ...[
+            const SizedBox(height: TackSpace.sm),
+            Text(
+              roadmap.skippedCount == 1
+                  ? 'One step was left out because you already have that skill.'
+                  : '${roadmap.skippedCount} steps were left out because you '
+                        'already have those skills.',
+              style: TackText.meta.copyWith(color: TackColors.tealText),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  String _sentence(double? pace) {
+    final left = roadmap.totalCount - roadmap.doneCount;
+    if (roadmap.totalCount == 0) return 'This route has no steps on it yet.';
+    if (left == 0) return 'Every step done. That is the whole route.';
+
+    final base = '${roadmap.doneCount} of ${roadmap.totalCount} steps done';
+    if (pace == null) return '$base · $left to go';
+
+    // Rounded to a half so it reads as a rhythm rather than a measurement.
+    final weekly = (pace * 2).round() / 2;
+    if (weekly <= 1) return '$base · about one a week from here';
+    if (weekly > 6) {
+      // Said plainly rather than hidden. The alternative was quietly deleting
+      // steps until the arithmetic looked comfortable.
+      return '$base · that is $left steps in the time left, which is a lot. '
+          'Move a date, or start with the ones worth the most.';
+    }
+    return '$base · about ${weekly.toStringAsFixed(weekly % 1 == 0 ? 0 : 1)} '
+        'a week from here';
+  }
+}
+
 class _MilestoneCard extends StatelessWidget {
   const _MilestoneCard({
     required this.milestone,
     required this.expanded,
     required this.onToggleExpanded,
     required this.onToggleTask,
+    required this.onEditTask,
     required this.onAddTask,
   });
 
@@ -261,6 +447,7 @@ class _MilestoneCard extends StatelessWidget {
   final bool expanded;
   final VoidCallback onToggleExpanded;
   final Future<void> Function(RoadmapTask task) onToggleTask;
+  final Future<void> Function(RoadmapTask task) onEditTask;
   final VoidCallback onAddTask;
 
   @override
@@ -280,8 +467,9 @@ class _MilestoneCard extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _StateDot(state: milestone.state),
-                const SizedBox(width: TackSpace.md),
+                // No state dot here any more: the node on the spine to the
+                // left carries the state, and two markers for one fact read
+                // as two different facts.
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -355,6 +543,7 @@ class _MilestoneCard extends StatelessWidget {
                 task: task,
                 enabled: !locked,
                 onToggle: () => onToggleTask(task),
+                onLongPress: locked ? null : () => onEditTask(task),
               ),
             ],
             if (!locked) ...[
@@ -369,40 +558,6 @@ class _MilestoneCard extends StatelessWidget {
           ],
         ],
       ),
-    );
-  }
-}
-
-class _StateDot extends StatelessWidget {
-  const _StateDot({required this.state});
-
-  final MilestoneState state;
-
-  @override
-  Widget build(BuildContext context) {
-    final (colour, filled) = switch (state) {
-      MilestoneState.completed => (TackColors.teal, true),
-      MilestoneState.active => (TackColors.maroon, true),
-      MilestoneState.locked => (TackColors.line2, false),
-    };
-
-    return Container(
-      width: 22,
-      height: 22,
-      margin: const EdgeInsets.only(top: 1),
-      decoration: BoxDecoration(
-        color: filled ? colour : Colors.transparent,
-        shape: BoxShape.circle,
-        border: Border.all(color: colour, width: 1.5),
-      ),
-      child: state == MilestoneState.completed
-          ? const TackIcon(
-              TackIcons.check,
-              size: 14,
-              color: TackColors.white,
-              strokeWidth: 3,
-            )
-          : null,
     );
   }
 }
