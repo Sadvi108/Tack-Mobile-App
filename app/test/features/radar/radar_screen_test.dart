@@ -209,6 +209,31 @@ void main() {
     expect(find.text('Radar'), findsWidgets);
   });
 
+  testWidgets('the search field carries its own search button', (
+    tester,
+  ) async {
+    // The filter chips took the row that used to hold a Search button, which
+    // left the keyboard return key as the only way to run a search.
+    await pumpAt(
+      tester,
+      const RadarScreen(),
+      size: const Size(360, 900),
+      overrides: overrides(RadarResult(listings: [listing()])),
+    );
+    await tester.pumpAndSettle();
+
+    final button = find.bySemanticsLabel('Search');
+    expect(button, findsOneWidget);
+
+    // At the edge of the screen, so it has to be a full target, not a glyph.
+    expect(tester.getSize(button).width, greaterThanOrEqualTo(44));
+    expect(tester.getSize(button).height, greaterThanOrEqualTo(44));
+
+    await tester.tap(button);
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('every kind of work is offered as a filter', (tester) async {
     await pumpAt(
       tester,

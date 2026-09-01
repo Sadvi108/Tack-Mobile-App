@@ -200,7 +200,13 @@ class _Find extends ConsumerWidget {
         TackTextField(
           controller: controller,
           hint: 'Role, or a company',
+          textInputAction: TextInputAction.search,
           onSubmitted: (_) => submit(),
+          // Inside the field, not beside it. The chips took the row that used
+          // to hold a Search button, which left the keyboard's return key as
+          // the only way to run a search — invisible, and unreachable at all
+          // once the keyboard is dismissed.
+          suffix: _SearchButton(onTap: submit),
         ),
         const SizedBox(height: TackSpace.md),
         _FilterChips(
@@ -222,6 +228,40 @@ class _Find extends ConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// The search affordance, inside the field on the right.
+///
+/// A full 44px target rather than a bare 20px glyph: it sits at the very edge
+/// of the screen, which is the hardest place on a phone to hit accurately.
+class _SearchButton extends StatelessWidget {
+  const _SearchButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: 'Search',
+      excludeSemantics: true,
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: const SizedBox(
+          width: TackSpace.tapTarget,
+          height: TackSpace.tapTarget,
+          child: Center(
+            child: TackIcon(
+              TackIcons.search,
+              size: 20,
+              color: TackColors.maroon,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
