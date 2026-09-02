@@ -48,12 +48,12 @@ class SplashScreen extends ConsumerWidget {
                 ),
               )
             else
-              const SizedBox(
+              SizedBox(
                 width: 22,
                 height: 22,
                 child: CircularProgressIndicator(
                   strokeWidth: 2.2,
-                  valueColor: AlwaysStoppedAnimation(TackColors.maroon),
+                  valueColor: AlwaysStoppedAnimation(TackColors.maroonText),
                 ),
               ),
           ],

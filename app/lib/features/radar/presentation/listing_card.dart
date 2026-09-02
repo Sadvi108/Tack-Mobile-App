@@ -117,7 +117,10 @@ class ListingCard extends StatelessWidget {
               Expanded(
                 child: onSave != null
                     ? TackButton.secondary('Save it', onPressed: onSave)
-                    : TackButton.secondary('In your tracker', onPressed: onTrack),
+                    : TackButton.secondary(
+                        'In your tracker',
+                        onPressed: onTrack,
+                      ),
               ),
               const SizedBox(width: TackSpace.sm),
               Expanded(
@@ -160,13 +163,14 @@ class _Fit extends StatelessWidget {
           width: 46,
           height: 46,
           alignment: Alignment.center,
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             color: TackColors.sailWhite,
             shape: BoxShape.circle,
           ),
-          child: Text('–', style: TackText.cardTitle.copyWith(
-            color: TackColors.muted,
-          )),
+          child: Text(
+            '–',
+            style: TackText.cardTitle.copyWith(color: TackColors.muted),
+          ),
         ),
       );
     }

@@ -35,7 +35,7 @@ class WelcomeScreen extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const TackWordmark(color: TackColors.amber),
+                    TackWordmark(color: TackColors.amber),
                     GestureDetector(
                       onTap: () => context.go(Routes.login),
                       behavior: HitTestBehavior.opaque,
@@ -58,7 +58,7 @@ class WelcomeScreen extends StatelessWidget {
                 const SizedBox(height: TackSpace.xl),
                 Text(
                   'Your first job starts here',
-                  style: TackText.landingH1.copyWith(color: TackColors.white),
+                  style: TackText.landingH1.copyWith(color: TackColors.onBrand),
                 ),
                 const SizedBox(height: TackSpace.md),
                 Text(
@@ -94,7 +94,7 @@ class WelcomeScreen extends StatelessWidget {
               TackSpace.xl,
             ),
             child: Column(
-              children: const [
+              children: [
                 _FeatureRow(
                   icon: TackIcons.practice,
                   tint: TackColors.tealTint,
@@ -140,7 +140,7 @@ class _HeroPreview extends StatelessWidget {
       color: TackColors.maroon,
       padding: const EdgeInsets.symmetric(horizontal: 34),
       child: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           color: TackColors.sailWhite,
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
@@ -179,7 +179,7 @@ class _HeroPreview extends StatelessWidget {
             Container(
               width: double.infinity,
               padding: const EdgeInsets.fromLTRB(14, 12, 14, 16),
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: TackColors.white,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
               ),
@@ -233,7 +233,10 @@ class _PreviewAction extends StatelessWidget {
         ),
         Text(
           points,
-          style: TackText.pill.copyWith(color: TackColors.maroon, fontSize: 11),
+          style: TackText.pill.copyWith(
+            color: TackColors.maroonText,
+            fontSize: 11,
+          ),
         ),
       ],
     );

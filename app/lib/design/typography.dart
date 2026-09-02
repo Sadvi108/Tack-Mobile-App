@@ -4,6 +4,10 @@ import 'tokens.dart';
 
 /// The type scale from the design handoff.
 ///
+/// Getters rather than constants because every style carries a colour, and the
+/// colours now resolve against the current palette. A `static const` TextStyle
+/// would have frozen the light palette into the type scale itself.
+///
 /// Three families, all bundled as assets rather than fetched at runtime — a
 /// student on 3G should not wait on a font request to read their score.
 ///   - Outfit  headings, numbers, section titles
@@ -20,7 +24,7 @@ class TackText {
   static const _mono = 'IBMPlexMono';
 
   // ---------------------------------------------------------------- display
-  static const landingH1 = TextStyle(
+  static TextStyle get landingH1 => TextStyle(
     fontFamily: _outfit,
     fontSize: 34,
     height: 1.2,
@@ -29,7 +33,7 @@ class TackText {
     color: TackColors.ink,
   );
 
-  static const screenTitle = TextStyle(
+  static TextStyle get screenTitle => TextStyle(
     fontFamily: _outfit,
     fontSize: 25,
     height: 1.25,
@@ -38,7 +42,7 @@ class TackText {
     color: TackColors.ink,
   );
 
-  static const sectionHeader = TextStyle(
+  static TextStyle get sectionHeader => TextStyle(
     fontFamily: _outfit,
     fontSize: 19,
     height: 1.3,
@@ -47,7 +51,7 @@ class TackText {
     color: TackColors.ink,
   );
 
-  static const cardTitle = TextStyle(
+  static TextStyle get cardTitle => TextStyle(
     fontFamily: _outfit,
     fontSize: 16.5,
     height: 1.3,
@@ -56,17 +60,17 @@ class TackText {
   );
 
   /// The score ring. Size varies by context, so callers use `.copyWith`.
-  static const heroNumber = TextStyle(
+  static TextStyle get heroNumber => TextStyle(
     fontFamily: _outfit,
     fontSize: 54,
     height: 1,
     fontWeight: FontWeight.w600,
     letterSpacing: -1.08,
-    color: TackColors.maroon,
+    color: TackColors.maroonText,
   );
 
   // ------------------------------------------------------------------- body
-  static const body = TextStyle(
+  static TextStyle get body => TextStyle(
     fontFamily: _inter,
     fontSize: 16,
     height: 1.5,
@@ -74,7 +78,7 @@ class TackText {
     color: TackColors.ink,
   );
 
-  static const bodyLarge = TextStyle(
+  static TextStyle get bodyLarge => TextStyle(
     fontFamily: _inter,
     fontSize: 17,
     height: 1.55,
@@ -82,7 +86,7 @@ class TackText {
     color: TackColors.ink,
   );
 
-  static const bodyMuted = TextStyle(
+  static TextStyle get bodyMuted => TextStyle(
     fontFamily: _inter,
     fontSize: 15,
     height: 1.45,
@@ -90,7 +94,7 @@ class TackText {
     color: TackColors.muted,
   );
 
-  static const rowTitle = TextStyle(
+  static TextStyle get rowTitle => TextStyle(
     fontFamily: _inter,
     fontSize: 16,
     height: 1.35,
@@ -98,7 +102,7 @@ class TackText {
     color: TackColors.ink,
   );
 
-  static const meta = TextStyle(
+  static TextStyle get meta => TextStyle(
     fontFamily: _inter,
     fontSize: 14.5,
     height: 1.4,
@@ -107,23 +111,23 @@ class TackText {
   );
 
   // --------------------------------------------------------------- controls
-  static const button = TextStyle(
+  static TextStyle get button => TextStyle(
     fontFamily: _inter,
     fontSize: 17,
     height: 1.2,
     fontWeight: FontWeight.w600,
-    color: TackColors.white,
+    color: TackColors.onBrand,
   );
 
-  static const buttonSmall = TextStyle(
+  static TextStyle get buttonSmall => TextStyle(
     fontFamily: _inter,
     fontSize: 16,
     height: 1.2,
     fontWeight: FontWeight.w600,
-    color: TackColors.maroon,
+    color: TackColors.maroonText,
   );
 
-  static const fieldLabel = TextStyle(
+  static TextStyle get fieldLabel => TextStyle(
     fontFamily: _inter,
     fontSize: 13,
     height: 1.3,
@@ -131,15 +135,15 @@ class TackText {
     color: TackColors.ink,
   );
 
-  static const fieldError = TextStyle(
+  static TextStyle get fieldError => TextStyle(
     fontFamily: _inter,
     fontSize: 13.5,
     height: 1.35,
     fontWeight: FontWeight.w400,
-    color: TackColors.danger,
+    color: TackColors.dangerText,
   );
 
-  static const chip = TextStyle(
+  static TextStyle get chip => TextStyle(
     fontFamily: _inter,
     fontSize: 15,
     height: 1.2,
@@ -147,14 +151,14 @@ class TackText {
     color: TackColors.ink,
   );
 
-  static const pill = TextStyle(
+  static TextStyle get pill => TextStyle(
     fontFamily: _inter,
     fontSize: 13,
     height: 1.2,
     fontWeight: FontWeight.w600,
   );
 
-  static const tabLabel = TextStyle(
+  static TextStyle get tabLabel => TextStyle(
     fontFamily: _inter,
     fontSize: 11,
     height: 1.2,
@@ -162,17 +166,17 @@ class TackText {
     color: TackColors.muted,
   );
 
-  static const tabLabelActive = TextStyle(
+  static TextStyle get tabLabelActive => TextStyle(
     fontFamily: _inter,
     fontSize: 11,
     height: 1.2,
     fontWeight: FontWeight.w600,
-    color: TackColors.maroon,
+    color: TackColors.maroonText,
   );
 
   // -------------------------------------------------------------- mono chrome
   /// Small uppercase section labels and date stamps. Chrome only.
-  static const monoLabel = TextStyle(
+  static TextStyle get monoLabel => TextStyle(
     fontFamily: _mono,
     fontSize: 11,
     height: 1.2,
@@ -181,7 +185,7 @@ class TackText {
     color: TackColors.muted,
   );
 
-  static const monoLabelSmall = TextStyle(
+  static TextStyle get monoLabelSmall => TextStyle(
     fontFamily: _mono,
     fontSize: 10.5,
     height: 1.2,

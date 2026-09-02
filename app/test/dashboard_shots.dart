@@ -37,7 +37,10 @@ Future<void> render(
   String name,
   Size size, {
   List<double> panels = const [],
+  Brightness brightness = Brightness.light,
 }) async {
+  TackBrightness.set(brightness);
+  addTearDown(() => TackBrightness.set(Brightness.light));
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.reset);
@@ -47,8 +50,16 @@ Future<void> render(
     initialLocation: '/',
     routes: [
       GoRoute(path: '/', builder: (_, _) => const DashboardScreen()),
-      for (final r in ['/home', '/roadmap', '/applications', '/vault',
-                       '/profile', '/paths', '/score', '/notifications'])
+      for (final r in [
+        '/home',
+        '/roadmap',
+        '/applications',
+        '/vault',
+        '/profile',
+        '/paths',
+        '/score',
+        '/notifications',
+      ])
         GoRoute(path: r, builder: (_, _) => const SizedBox.shrink()),
     ],
   );
@@ -69,7 +80,7 @@ Future<void> render(
       child: RepaintBoundary(
         key: key,
         child: MaterialApp.router(
-          theme: buildTackTheme(),
+          theme: buildTackTheme(brightness),
           routerConfig: router,
           debugShowCheckedModeBanner: false,
         ),
@@ -114,18 +125,43 @@ Future<void> render(
 void main() {
   setUpAll(loadTackFonts);
 
-  final raw = jsonDecode(
-    File('test/fixtures/dashboard_feed_demo.json').readAsStringSync(),
-  ) as Map<String, dynamic>;
+  final raw =
+      jsonDecode(
+            File('test/fixtures/dashboard_feed_demo.json').readAsStringSync(),
+          )
+          as Map<String, dynamic>;
 
-  testWidgets('the whole dashboard, one phone screen at a time', (tester) async {
-    await render(tester, DashboardFeed.fromJson(raw), 'launch',
-        const Size(390, 844), panels: const [0, 620, 1240, 1860, 2480]);
+  testWidgets('the whole dashboard, one phone screen at a time', (
+    tester,
+  ) async {
+    await render(
+      tester,
+      DashboardFeed.fromJson(raw),
+      'launch',
+      const Size(390, 844),
+      panels: const [0, 620, 1240, 1860, 2480],
+    );
   });
 
   testWidgets('and at the 360px floor, where it is tightest', (tester) async {
-    await render(tester, DashboardFeed.fromJson(raw), 'launch-360',
-        const Size(360, 640), panels: const [0, 520, 1040, 1560, 2080]);
+    await render(
+      tester,
+      DashboardFeed.fromJson(raw),
+      'launch-360',
+      const Size(360, 640),
+      panels: const [0, 520, 1040, 1560, 2080],
+    );
+  });
+
+  testWidgets('the whole dashboard again, in the dark', (tester) async {
+    await render(
+      tester,
+      DashboardFeed.fromJson(raw),
+      'launch-dark',
+      const Size(390, 844),
+      panels: const [0, 620, 1240, 1860, 2480],
+      brightness: Brightness.dark,
+    );
   });
 
   for (final mode in [YearMode.explore, YearMode.build, YearMode.prove]) {
@@ -140,8 +176,13 @@ void main() {
             _ => 3,
           },
         };
-      await render(tester, DashboardFeed.fromJson(patched), mode.name,
-          const Size(390, 844), panels: const [0, 620, 1240, 1860]);
+      await render(
+        tester,
+        DashboardFeed.fromJson(patched),
+        mode.name,
+        const Size(390, 844),
+        panels: const [0, 620, 1240, 1860],
+      );
     });
   }
 }

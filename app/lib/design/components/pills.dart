@@ -30,11 +30,11 @@ extension TackStatusStyle on TackStatus {
 
   Color get foreground => switch (this) {
     TackStatus.saved => TackColors.muted,
-    TackStatus.applied => TackColors.maroon,
+    TackStatus.applied => TackColors.maroonText,
     TackStatus.assessment => TackColors.blueText,
     TackStatus.interview => TackColors.amberText,
     TackStatus.offer => TackColors.tealText,
-    TackStatus.rejected => TackColors.danger,
+    TackStatus.rejected => TackColors.dangerText,
   };
 
   static TackStatus fromWire(String value) => TackStatus.values.firstWhere(
@@ -69,12 +69,12 @@ class TackPill extends StatelessWidget {
   const TackPill(
     this.label, {
     super.key,
-    this.background = TackColors.maroonTint,
-    this.foreground = TackColors.maroon,
+    this.background,
+    this.foreground,
     this.icon,
   });
 
-  const TackPill.teal(String label, {Key? key})
+  TackPill.teal(String label, {Key? key})
     : this(
         label,
         key: key,
@@ -82,7 +82,7 @@ class TackPill extends StatelessWidget {
         foreground: TackColors.tealText,
       );
 
-  const TackPill.amber(String label, {Key? key})
+  TackPill.amber(String label, {Key? key})
     : this(
         label,
         key: key,
@@ -91,8 +91,8 @@ class TackPill extends StatelessWidget {
       );
 
   final String label;
-  final Color background;
-  final Color foreground;
+  final Color? background;
+  final Color? foreground;
   final String? icon;
 
   @override
@@ -152,7 +152,7 @@ class TackChip extends StatelessWidget {
             color: TackColors.white,
             borderRadius: TackRadius.pillAll,
             border: Border.all(
-              color: selected ? TackColors.maroon : TackColors.line2,
+              color: selected ? TackColors.maroonText : TackColors.line2,
               width: 1.5,
             ),
           ),
@@ -160,10 +160,10 @@ class TackChip extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               if (selected) ...[
-                const TackIcon(
+                TackIcon(
                   TackIcons.check,
                   size: 15,
-                  color: TackColors.maroon,
+                  color: TackColors.maroonText,
                   strokeWidth: 2.6,
                 ),
                 const SizedBox(width: 7),
@@ -171,7 +171,7 @@ class TackChip extends StatelessWidget {
               Text(
                 label,
                 style: TackText.chip.copyWith(
-                  color: selected ? TackColors.maroon : TackColors.ink,
+                  color: selected ? TackColors.maroonText : TackColors.ink,
                   fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
                 ),
               ),
@@ -223,7 +223,7 @@ class CountFilterChip extends StatelessWidget {
           child: Text(
             '$label $count',
             style: TackText.pill.copyWith(
-              color: selected ? TackColors.white : TackColors.muted,
+              color: selected ? TackColors.onBrand : TackColors.muted,
               fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
             ),
           ),

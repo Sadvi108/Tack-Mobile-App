@@ -15,10 +15,10 @@ class ScoreRing extends StatelessWidget {
     this.size = 104,
     this.strokeWidth = 11,
     this.caption,
-    this.fill = TackColors.teal,
-    this.track = TackColors.line,
-    this.numberColor = TackColors.maroon,
-    this.background = TackColors.white,
+    this.fill,
+    this.track,
+    this.numberColor,
+    this.background,
   });
 
   final int score;
@@ -26,10 +26,10 @@ class ScoreRing extends StatelessWidget {
   final double size;
   final double strokeWidth;
   final String? caption;
-  final Color fill;
-  final Color track;
-  final Color numberColor;
-  final Color background;
+  final Color? fill;
+  final Color? track;
+  final Color? numberColor;
+  final Color? background;
 
   @override
   Widget build(BuildContext context) {
@@ -44,9 +44,9 @@ class ScoreRing extends StatelessWidget {
           painter: _RingPainter(
             ratio: ratio,
             strokeWidth: strokeWidth,
-            fill: fill,
-            track: track,
-            background: background,
+            fill: fill ?? TackColors.teal,
+            track: track ?? TackColors.line,
+            background: background ?? TackColors.white,
           ),
           child: Center(
             child: Column(
@@ -56,7 +56,7 @@ class ScoreRing extends StatelessWidget {
                   '$score',
                   style: TackText.heroNumber.copyWith(
                     fontSize: size * 0.29,
-                    color: numberColor,
+                    color: numberColor ?? TackColors.maroonText,
                   ),
                 ),
                 if (caption != null)
@@ -137,8 +137,8 @@ class TackProgressBar extends StatelessWidget {
     super.key,
     required this.value,
     this.height = 6,
-    this.color = TackColors.teal,
-    this.track = TackColors.line,
+    this.color,
+    this.track,
     this.width,
     this.animate = true,
   });
@@ -167,8 +167,8 @@ class TackProgressBar extends StatelessWidget {
 
   final double value;
   final double height;
-  final Color color;
-  final Color track;
+  final Color? color;
+  final Color? track;
   final double? width;
   final bool animate;
 
@@ -180,7 +180,7 @@ class TackProgressBar extends StatelessWidget {
       height: height,
       child: DecoratedBox(
         decoration: BoxDecoration(
-          color: track,
+          color: track ?? TackColors.line,
           borderRadius: BorderRadius.circular(height / 2),
         ),
         child: Align(
@@ -191,7 +191,9 @@ class TackProgressBar extends StatelessWidget {
               duration: animate ? TackMotion.normal : Duration.zero,
               curve: TackMotion.curve,
               decoration: BoxDecoration(
-                color: v == 0 ? const Color(0x00000000) : color,
+                color: v == 0
+                    ? const Color(0x00000000)
+                    : (color ?? TackColors.teal),
                 borderRadius: BorderRadius.circular(height / 2),
               ),
             ),
@@ -230,7 +232,7 @@ class SegmentedProgress extends StatelessWidget {
                 duration: TackMotion.normal,
                 height: height,
                 decoration: BoxDecoration(
-                  color: i < current ? TackColors.maroon : TackColors.line2,
+                  color: i < current ? TackColors.maroonText : TackColors.line2,
                   borderRadius: BorderRadius.circular(height / 2),
                 ),
               ),

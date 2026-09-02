@@ -124,7 +124,7 @@ class _InsightCard extends StatelessWidget {
     final (background, accent) = switch (insight.tone) {
       // Every one of these foregrounds is the audited text colour for its
       // family, never the fill. #C9B6BC and the raw teal and amber are strokes.
-      InsightTone.urgent => (TackColors.maroonTint, TackColors.maroon),
+      InsightTone.urgent => (TackColors.maroonTint, TackColors.maroonText),
       InsightTone.positive => (TackColors.tealTint, TackColors.tealText),
       InsightTone.opportunity => (TackColors.amberTint, TackColors.amberText),
       InsightTone.neutral => (TackColors.white, TackColors.muted),
@@ -233,7 +233,7 @@ class _Dots extends StatelessWidget {
               width: i == current ? 18 : 6,
               height: 6,
               decoration: BoxDecoration(
-                color: i == current ? TackColors.maroon : TackColors.line2,
+                color: i == current ? TackColors.maroonText : TackColors.line2,
                 borderRadius: BorderRadius.circular(3),
               ),
             ),

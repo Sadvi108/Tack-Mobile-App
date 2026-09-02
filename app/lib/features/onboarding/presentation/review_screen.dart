@@ -39,11 +39,7 @@ class ReviewBody extends ConsumerWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const TackIcon(
-                TackIcons.info,
-                size: 20,
-                color: TackColors.maroon,
-              ),
+              TackIcon(TackIcons.info, size: 20, color: TackColors.maroonText),
               const SizedBox(width: TackSpace.md),
               Expanded(
                 child: Text(
@@ -98,7 +94,7 @@ class _Section extends StatelessWidget {
                     child: Text(
                       'Edit',
                       style: TackText.pill.copyWith(
-                        color: TackColors.maroon,
+                        color: TackColors.maroonText,
                         fontSize: 14,
                       ),
                     ),

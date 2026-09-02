@@ -13,7 +13,7 @@ import '../data/roadmap_models.dart';
       ),
       TaskType.project => (
         background: TackColors.maroonTint,
-        foreground: TackColors.maroon,
+        foreground: TackColors.maroonText,
       ),
       TaskType.certificate => (
         background: TackColors.amberTint,
@@ -86,10 +86,10 @@ class TaskTile extends StatelessWidget {
                     ),
                   ),
                   child: task.isDone
-                      ? const TackIcon(
+                      ? TackIcon(
                           TackIcons.check,
                           size: 15,
-                          color: TackColors.white,
+                          color: TackColors.onBrand,
                           strokeWidth: 3,
                         )
                       : null,
@@ -127,11 +127,11 @@ class TaskTile extends StatelessWidget {
                                   ? TackColors.maroonTint
                                   : TackColors.line,
                               foreground: task.isOverdue
-                                  ? TackColors.danger
+                                  ? TackColors.dangerText
                                   : TackColors.muted,
                             ),
                           if (task.isShared)
-                            const TackPill(
+                            TackPill(
                               'Counts twice',
                               background: TackColors.amberTint,
                               foreground: TackColors.amberText,
@@ -147,7 +147,9 @@ class TaskTile extends StatelessWidget {
                   child: Text(
                     '+${task.points}',
                     style: TackText.pill.copyWith(
-                      color: task.isDone ? TackColors.muted : TackColors.maroon,
+                      color: task.isDone
+                          ? TackColors.muted
+                          : TackColors.maroonText,
                     ),
                   ),
                 ),

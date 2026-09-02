@@ -154,7 +154,7 @@ class _WaitlistScreenState extends ConsumerState<WaitlistScreen> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Padding(
+              Padding(
                 padding: EdgeInsets.only(top: 1),
                 child: TackIcon(
                   TackIcons.shield,

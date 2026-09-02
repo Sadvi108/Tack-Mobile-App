@@ -57,12 +57,14 @@ ProviderContainer _containerWith(_FakeRepository repository) {
 }
 
 Future<bool> _upload(ProviderContainer container, DocumentType type) =>
-    container.read(uploadControllerProvider.notifier).upload(
-      type: type,
-      title: 'My CV',
-      bytes: Uint8List.fromList([1, 2, 3]),
-      mimeType: 'application/pdf',
-    );
+    container
+        .read(uploadControllerProvider.notifier)
+        .upload(
+          type: type,
+          title: 'My CV',
+          bytes: Uint8List.fromList([1, 2, 3]),
+          mimeType: 'application/pdf',
+        );
 
 void main() {
   group('uploading a CV', () {
@@ -121,8 +123,11 @@ void main() {
       final container = _containerWith(repository);
 
       await _upload(container, DocumentType.cv);
-      final message =
-          container.read(uploadControllerProvider).failure!.message.toLowerCase();
+      final message = container
+          .read(uploadControllerProvider)
+          .failure!
+          .message
+          .toLowerCase();
       for (final blame in ['you failed', 'invalid', 'error', 'you did']) {
         expect(message, isNot(contains(blame)));
       }

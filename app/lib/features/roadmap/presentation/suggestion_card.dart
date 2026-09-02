@@ -70,7 +70,7 @@ class SuggestionCard extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.only(top: 3),
                     child: TackIcon(
                       TackIcons.check,
@@ -91,7 +91,8 @@ class SuggestionCard extends StatelessWidget {
             runSpacing: TackSpace.sm,
             children: [
               if (suggestion.salaryRange case final pay?) _Fact(pay),
-              if (suggestion.months case final m?) _Fact('$m months to hireable'),
+              if (suggestion.months case final m?)
+                _Fact('$m months to hireable'),
               if (suggestion.demand case final d?) _Fact('$d demand'),
             ],
           ),
@@ -110,16 +111,13 @@ class _Fact extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: TackColors.sailWhite,
         borderRadius: TackRadius.pillAll,
       ),
       child: Text(
         label,
-        style: TackText.pill.copyWith(
-          color: TackColors.muted,
-          fontSize: 12.5,
-        ),
+        style: TackText.pill.copyWith(color: TackColors.muted, fontSize: 12.5),
       ),
     );
   }

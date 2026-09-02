@@ -77,11 +77,12 @@ final coachRepositoryProvider = Provider<CoachRepository>(
   (ref) => CoachRepository(ref.watch(supabaseProvider)),
 );
 
-final coachHistoryProvider =
-    FutureProvider<(String?, List<ChatMessage>)>((ref) async {
-      if (!ref.watch(isSignedInProvider)) return (null, <ChatMessage>[]);
-      return ref.watch(coachRepositoryProvider).latestThread();
-    });
+final coachHistoryProvider = FutureProvider<(String?, List<ChatMessage>)>((
+  ref,
+) async {
+  if (!ref.watch(isSignedInProvider)) return (null, <ChatMessage>[]);
+  return ref.watch(coachRepositoryProvider).latestThread();
+});
 
 final coachRemainingProvider = FutureProvider<int>((ref) async {
   if (!ref.watch(isSignedInProvider)) return 0;

@@ -70,7 +70,8 @@ WeekSummary week({
   int? moves,
   int activeDays = 0,
 }) {
-  final counted = tasksDone +
+  final counted =
+      tasksDone +
       applicationsAdded +
       interviewsPractised +
       documentsAdded +
@@ -234,9 +235,7 @@ void main() {
 
     test('a quiet week is only mentioned when the last one was not', () {
       final afterABusyWeek = buildInsights(
-        feed(
-          lastWeek: week(tasksDone: 4, taskPoints: 10, scoreGained: 3),
-        ),
+        feed(lastWeek: week(tasksDone: 4, taskPoints: 10, scoreGained: 3)),
       );
       expect(idsOf(afterABusyWeek), contains('momentum-quiet'));
 

@@ -471,7 +471,7 @@ class _WorthKeeping extends StatelessWidget {
             width: 8,
             height: 8,
             margin: const EdgeInsets.only(top: 7, right: 12),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               color: TackColors.amber,
               shape: BoxShape.circle,
             ),
@@ -501,11 +501,7 @@ class _PrivacyNote extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const TackIcon(
-            TackIcons.shield,
-            size: 20,
-            color: TackColors.tealText,
-          ),
+          TackIcon(TackIcons.shield, size: 20, color: TackColors.tealText),
           const SizedBox(width: TackSpace.md),
           Expanded(
             child: Text(
@@ -547,7 +543,7 @@ class _UploadCard extends ConsumerWidget {
           ),
           const SizedBox(height: TackSpace.md),
           if (state.parsing)
-            const LinearProgressIndicator(
+            LinearProgressIndicator(
               minHeight: 6,
               backgroundColor: TackColors.line,
               color: TackColors.teal,
@@ -594,7 +590,7 @@ class _SheetOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colour = danger ? TackColors.danger : TackColors.ink;
+    final colour = danger ? TackColors.dangerText : TackColors.ink;
     return TackTapRow(
       onTap: onTap,
       padding: const EdgeInsets.symmetric(
@@ -646,10 +642,10 @@ class _DocumentRow extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
             ),
             alignment: Alignment.center,
-            child: const TackIcon(
+            child: TackIcon(
               TackIcons.file,
               size: 20,
-              color: TackColors.maroon,
+              color: TackColors.maroonText,
             ),
           ),
           const SizedBox(width: TackSpace.md),
@@ -687,7 +683,7 @@ class _DocumentRow extends StatelessWidget {
               ],
             ),
           ),
-          const TackIcon(TackIcons.more, size: 20, color: TackColors.muted),
+          TackIcon(TackIcons.more, size: 20, color: TackColors.muted),
         ],
       ),
     );

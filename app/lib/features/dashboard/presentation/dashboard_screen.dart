@@ -111,9 +111,7 @@ class _Dashboard extends ConsumerWidget {
       // The coach floats over the dashboard rather than taking a tab: the five
       // destinations are full at 360px, and asking a question is something a
       // student does *about* what they are looking at, not instead of it.
-      floatingAction: _CoachButton(
-        onTap: () => context.push(Routes.coach),
-      ),
+      floatingAction: _CoachButton(onTap: () => context.push(Routes.coach)),
       header: TackHomeHeader(
         initials: profile.initials,
         unread: feed.unreadNotifications,
@@ -350,10 +348,12 @@ class _Dashboard extends ConsumerWidget {
   void _openInsight(BuildContext context, WidgetRef ref, Insight insight) {
     final route = insight.route;
     if (route == null) return;
-    ref.read(analyticsProvider).track('insight_opened', properties: {
-      'insight': insight.id,
-      'tone': insight.tone.name,
-    });
+    ref
+        .read(analyticsProvider)
+        .track(
+          'insight_opened',
+          properties: {'insight': insight.id, 'tone': insight.tone.name},
+        );
     context.push(route);
   }
 
@@ -388,7 +388,7 @@ class _ExploreCta extends StatelessWidget {
         children: [
           Text(
             'Explore career paths',
-            style: TackText.sectionHeader.copyWith(color: TackColors.white),
+            style: TackText.sectionHeader.copyWith(color: TackColors.onBrand),
           ),
           const SizedBox(height: TackSpace.sm),
           Text(
@@ -444,7 +444,7 @@ class _NextSevenDays extends StatelessWidget {
               Expanded(
                 child: Text(
                   'Next seven days',
-                  style: TackText.cardTitle.copyWith(color: TackColors.white),
+                  style: TackText.cardTitle.copyWith(color: TackColors.onBrand),
                 ),
               ),
               if (overdue.isNotEmpty)
@@ -453,13 +453,13 @@ class _NextSevenDays extends StatelessWidget {
                     horizontal: 10,
                     vertical: 4,
                   ),
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     color: TackColors.amber,
                     borderRadius: TackRadius.pillAll,
                   ),
                   child: Text(
                     '${overdue.length} late',
-                    style: TackText.pill.copyWith(color: TackColors.amberText),
+                    style: TackText.pill.copyWith(color: TackColors.onAccent),
                   ),
                 ),
             ],
@@ -497,8 +497,8 @@ class _NextSevenDays extends StatelessWidget {
                             entry.relativeTo(today),
                             style: TackText.pill.copyWith(
                               color: entry.isOverdue
-                                  ? TackColors.amber
-                                  : TackColors.white,
+                                  ? TackColors.warnOnBrand
+                                  : TackColors.onBrand,
                             ),
                           ),
                         ),
@@ -508,7 +508,7 @@ class _NextSevenDays extends StatelessWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TackText.body.copyWith(
-                              color: TackColors.white,
+                              color: TackColors.onBrand,
                               fontSize: 15,
                             ),
                           ),
@@ -543,7 +543,9 @@ class _RoadmapProgressCard extends StatelessWidget {
               TackCountUp(
                 roadmap.percent,
                 suffix: '%',
-                style: TackText.cardTitle.copyWith(color: TackColors.maroon),
+                style: TackText.cardTitle.copyWith(
+                  color: TackColors.maroonText,
+                ),
                 semanticsLabel: '${roadmap.percent} percent of your roadmap',
               ),
             ],
@@ -601,7 +603,7 @@ class _CoachButton extends StatelessWidget {
         child: Container(
           height: 52,
           padding: const EdgeInsets.symmetric(horizontal: 18),
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             color: TackColors.maroon,
             borderRadius: BorderRadius.all(TackRadius.buttonRound),
             boxShadow: TackShadow.fab,
@@ -609,16 +611,9 @@ class _CoachButton extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const TackIcon(
-                TackIcons.coach,
-                size: 21,
-                color: TackColors.white,
-              ),
+              TackIcon(TackIcons.coach, size: 21, color: TackColors.onBrand),
               const SizedBox(width: TackSpace.sm),
-              Text(
-                'Ask',
-                style: TackText.button.copyWith(fontSize: 16),
-              ),
+              Text('Ask', style: TackText.button.copyWith(fontSize: 16)),
             ],
           ),
         ),

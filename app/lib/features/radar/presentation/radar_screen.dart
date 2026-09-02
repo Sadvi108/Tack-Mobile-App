@@ -170,7 +170,7 @@ class _Segment extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: TackText.pill.copyWith(
                 fontSize: 14.5,
-                color: selected ? TackColors.white : TackColors.muted,
+                color: selected ? TackColors.onBrand : TackColors.muted,
               ),
             ),
           ),
@@ -250,14 +250,14 @@ class _SearchButton extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap,
         behavior: HitTestBehavior.opaque,
-        child: const SizedBox(
+        child: SizedBox(
           width: TackSpace.tapTarget,
           height: TackSpace.tapTarget,
           child: Center(
             child: TackIcon(
               TackIcons.search,
               size: 20,
-              color: TackColors.maroon,
+              color: TackColors.maroonText,
             ),
           ),
         ),
@@ -359,7 +359,7 @@ class _Chip extends StatelessWidget {
                 style: TackText.chip.copyWith(
                   fontSize: 14.5,
                   color: selected
-                      ? TackColors.white
+                      ? TackColors.onBrand
                       : empty
                       ? TackColors.muted
                       : TackColors.ink,
@@ -482,7 +482,7 @@ class _BoardNotice extends StatelessWidget {
         horizontal: TackSpace.cardCompactX,
         vertical: TackSpace.cardCompactY,
       ),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: TackColors.amberTint,
         borderRadius: BorderRadius.all(TackRadius.listCard),
       ),

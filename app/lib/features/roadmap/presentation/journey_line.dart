@@ -123,7 +123,7 @@ class _JourneyPainter extends CustomPainter {
             canvas.drawLine(
               Offset(x, top),
               Offset(x, split),
-              line(TackColors.maroon),
+              line(TackColors.maroonText),
             );
           }
         case MilestoneState.locked:
@@ -164,7 +164,7 @@ class _JourneyPainter extends CustomPainter {
         canvas.drawPath(
           tick,
           Paint()
-            ..color = TackColors.white
+            ..color = TackColors.onAccent
             ..style = PaintingStyle.stroke
             ..strokeWidth = 2.2
             ..strokeCap = StrokeCap.round
@@ -183,15 +183,11 @@ class _JourneyPainter extends CustomPainter {
           centre,
           _nodeRadius,
           Paint()
-            ..color = TackColors.maroon
+            ..color = TackColors.maroonText
             ..style = PaintingStyle.stroke
             ..strokeWidth = 2.5,
         );
-        canvas.drawCircle(
-          centre,
-          3.4,
-          Paint()..color = TackColors.maroon,
-        );
+        canvas.drawCircle(centre, 3.4, Paint()..color = TackColors.maroonText);
 
       case MilestoneState.locked:
         canvas.drawCircle(

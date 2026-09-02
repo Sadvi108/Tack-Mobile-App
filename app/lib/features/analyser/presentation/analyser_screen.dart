@@ -207,7 +207,7 @@ class _Processing extends StatelessWidget {
             children: [
               Text('Reading the description', style: TackText.cardTitle),
               const SizedBox(height: TackSpace.md),
-              const LinearProgressIndicator(
+              LinearProgressIndicator(
                 minHeight: 6,
                 backgroundColor: TackColors.line,
                 color: TackColors.teal,
@@ -260,7 +260,7 @@ class _Result extends StatelessWidget {
                   Text(
                     '${match.matchPercent}%',
                     style: TackText.heroNumber.copyWith(
-                      color: TackColors.white,
+                      color: TackColors.onBrand,
                     ),
                   ),
                   const SizedBox(width: TackSpace.md),
@@ -377,7 +377,7 @@ class _ListCard extends StatelessWidget {
                       width: 5,
                       height: 5,
                       margin: const EdgeInsets.only(top: 9, right: 10),
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         color: TackColors.maroon,
                         shape: BoxShape.circle,
                       ),

@@ -47,79 +47,79 @@ class _ApplicationsBodyState extends ConsumerState<ApplicationsBody> {
         ref.watch(applicationCountsProvider).value ?? ApplicationCounts.empty;
     final listAsync = ref.watch(applicationsProvider(_filter));
     return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            height: 44,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              padding: EdgeInsets.zero,
-              children: [
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          height: 44,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            padding: EdgeInsets.zero,
+            children: [
+              CountFilterChip(
+                label: 'All',
+                count: counts.total,
+                selected: _filter == null,
+                onTap: () => setState(() => _filter = null),
+              ),
+              for (final status in TackStatus.values) ...[
+                const SizedBox(width: TackSpace.sm),
                 CountFilterChip(
-                  label: 'All',
-                  count: counts.total,
-                  selected: _filter == null,
-                  onTap: () => setState(() => _filter = null),
+                  label: status.label,
+                  count: counts[status],
+                  selected: _filter == status,
+                  onTap: () => setState(() => _filter = status),
                 ),
-                for (final status in TackStatus.values) ...[
-                  const SizedBox(width: TackSpace.sm),
-                  CountFilterChip(
-                    label: status.label,
-                    count: counts[status],
-                    selected: _filter == status,
-                    onTap: () => setState(() => _filter = status),
-                  ),
-                ],
               ],
-            ),
+            ],
           ),
-          const SizedBox(height: TackSpace.lg),
-          listAsync.when(
-            loading: () => const Column(
-              children: [
-                TackSkeleton(height: 110, radius: 18),
-                SizedBox(height: TackSpace.stack),
-                TackSkeleton(height: 110, radius: 18),
-              ],
-            ),
-            error: (_, _) => TackErrorState(
-              body:
-                  'Your applications did not load. Check your connection and try again.',
-              onRetry: () => ref.invalidate(applicationsProvider(_filter)),
-            ),
-            data: (applications) {
-              if (applications.isEmpty) {
-                return TackEmptyState(
-                  title: _filter == null
-                      ? 'No applications yet'
-                      : 'Nothing at ${_filter!.label.toLowerCase()}',
-                  body: _filter == null
-                      ? 'Track every job you apply to in one place. You will start to see '
-                            'what is working and what is not.'
-                      : 'Applications you move to this stage will show up here.',
-                  primaryLabel: _filter == null
-                      ? 'Add your first application'
-                      : null,
-                  onPrimary: _filter == null ? () => _add(context) : null,
-                );
-              }
-
-              return Column(
-                children: [
-                  for (final application in applications) ...[
-                    _ApplicationCard(
-                      application: application,
-                      onTap: () =>
-                          context.push(Routes.application(application.id)),
-                    ),
-                    const SizedBox(height: TackSpace.stack),
-                  ],
-                  const SizedBox(height: 90),
-                ],
+        ),
+        const SizedBox(height: TackSpace.lg),
+        listAsync.when(
+          loading: () => const Column(
+            children: [
+              TackSkeleton(height: 110, radius: 18),
+              SizedBox(height: TackSpace.stack),
+              TackSkeleton(height: 110, radius: 18),
+            ],
+          ),
+          error: (_, _) => TackErrorState(
+            body:
+                'Your applications did not load. Check your connection and try again.',
+            onRetry: () => ref.invalidate(applicationsProvider(_filter)),
+          ),
+          data: (applications) {
+            if (applications.isEmpty) {
+              return TackEmptyState(
+                title: _filter == null
+                    ? 'No applications yet'
+                    : 'Nothing at ${_filter!.label.toLowerCase()}',
+                body: _filter == null
+                    ? 'Track every job you apply to in one place. You will start to see '
+                          'what is working and what is not.'
+                    : 'Applications you move to this stage will show up here.',
+                primaryLabel: _filter == null
+                    ? 'Add your first application'
+                    : null,
+                onPrimary: _filter == null ? () => _add(context) : null,
               );
-            },
-          ),
-        ],
+            }
+
+            return Column(
+              children: [
+                for (final application in applications) ...[
+                  _ApplicationCard(
+                    application: application,
+                    onTap: () =>
+                        context.push(Routes.application(application.id)),
+                  ),
+                  const SizedBox(height: TackSpace.stack),
+                ],
+                const SizedBox(height: 90),
+              ],
+            );
+          },
+        ),
+      ],
     );
   }
 
@@ -158,8 +158,8 @@ class _ApplicationCard extends StatelessWidget {
                   TackIcons.calendar,
                   size: 15,
                   color: (days ?? 1) < 0
-                      ? TackColors.danger
-                      : TackColors.maroon,
+                      ? TackColors.dangerText
+                      : TackColors.maroonText,
                 ),
                 const SizedBox(width: 6),
                 Expanded(
@@ -169,8 +169,8 @@ class _ApplicationCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: TackText.pill.copyWith(
                       color: (days ?? 1) < 0
-                          ? TackColors.danger
-                          : TackColors.maroon,
+                          ? TackColors.dangerText
+                          : TackColors.maroonText,
                     ),
                   ),
                 ),

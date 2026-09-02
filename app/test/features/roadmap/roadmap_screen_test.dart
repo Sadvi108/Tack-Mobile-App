@@ -168,9 +168,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-      find.text(
-        '4 steps were left out because you already have those skills.',
-      ),
+      find.text('4 steps were left out because you already have those skills.'),
       findsOneWidget,
     );
   });
@@ -219,9 +217,7 @@ void main() {
               'A lot to do',
               state: MilestoneState.active,
               order: 0,
-              tasks: [
-                for (var i = 0; i < 20; i++) task('Step $i', due: soon),
-              ],
+              tasks: [for (var i = 0; i < 20; i++) task('Step $i', due: soon)],
             ),
           ],
         ),
@@ -264,10 +260,7 @@ void main() {
     //
     // The bound is tight on purpose: the broken version measured about 490,
     // so a looser assertion passed while the bug was on screen.
-    expect(
-      tester.getSize(find.byType(TackEmptyState)).height,
-      lessThan(400),
-    );
+    expect(tester.getSize(find.byType(TackEmptyState)).height, lessThan(400));
   });
 
   testWidgets('it lays out at the 360px floor without overflow', (
@@ -503,10 +496,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Stop following Frontend developer?'), findsOneWidget);
-      expect(
-        bodyText(tester),
-        contains('Your 2 finished steps are kept'),
-      );
+      expect(bodyText(tester), contains('Your 2 finished steps are kept'));
       expect(bodyText(tester), contains('comes back exactly as it is now'));
     });
 

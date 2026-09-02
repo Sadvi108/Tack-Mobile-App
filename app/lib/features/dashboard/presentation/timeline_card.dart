@@ -134,7 +134,7 @@ class _Row extends StatelessWidget {
               ),
             ),
             const SizedBox(width: TackSpace.sm),
-            const Padding(
+            Padding(
               padding: EdgeInsets.only(top: 2),
               child: TackIcon(
                 TackIcons.chevronRight,

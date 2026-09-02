@@ -93,9 +93,11 @@ class Listing {
   String? postedRelativeTo(DateTime now) {
     final at = postedAt;
     if (at == null) return null;
-    final days = DateTime(now.year, now.month, now.day)
-        .difference(DateTime(at.year, at.month, at.day))
-        .inDays;
+    final days = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    ).difference(DateTime(at.year, at.month, at.day)).inDays;
     if (days <= 0) return 'Today';
     if (days == 1) return 'Yesterday';
     if (days < 7) return '$days days ago';
@@ -109,8 +111,7 @@ class Listing {
     source: (json['source'] as String?) ?? 'aijobs',
     title: (json['title'] as String?) ?? '',
     url: (json['url'] as String?) ?? '',
-    applyUrl:
-        (json['apply_url'] as String?) ?? (json['url'] as String?) ?? '',
+    applyUrl: (json['apply_url'] as String?) ?? (json['url'] as String?) ?? '',
     kind: (json['kind'] as String?) ?? 'unknown',
     company: _text(json['company']),
     location: _text(json['location']),
@@ -157,8 +158,10 @@ class RadarResult {
         if (row is Map) Listing.fromJson(row.cast<String, dynamic>()),
     ],
     problems: {
-      for (final e in
-          ((json['problems'] as Map?) ?? const {}).cast<String, dynamic>().entries)
+      for (final e
+          in ((json['problems'] as Map?) ?? const {})
+              .cast<String, dynamic>()
+              .entries)
         e.key: '${e.value}',
     },
   );

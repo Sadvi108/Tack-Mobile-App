@@ -108,7 +108,7 @@ class _ChangePill extends StatelessWidget {
         prefix: up ? '+' : '−',
         suffix: ' this week',
         style: TackText.pill.copyWith(
-          color: up ? TackColors.tealText : TackColors.maroon,
+          color: up ? TackColors.tealText : TackColors.maroonText,
         ),
         semanticsLabel: up
             ? 'Up $change points this week'

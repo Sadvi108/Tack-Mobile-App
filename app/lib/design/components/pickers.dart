@@ -179,7 +179,7 @@ class _SearchPickerBodyState<T> extends State<_SearchPickerBody<T>> {
                             option.label,
                             style: TackText.rowTitle.copyWith(
                               color: isSelected || option.highlighted
-                                  ? TackColors.maroon
+                                  ? TackColors.maroonText
                                   : TackColors.ink,
                               fontWeight: isSelected
                                   ? FontWeight.w600
@@ -193,10 +193,10 @@ class _SearchPickerBodyState<T> extends State<_SearchPickerBody<T>> {
                         ],
                         if (isSelected) ...[
                           const SizedBox(width: TackSpace.sm),
-                          const TackIcon(
+                          TackIcon(
                             TackIcons.check,
                             size: 20,
-                            color: TackColors.maroon,
+                            color: TackColors.maroonText,
                           ),
                         ],
                       ],
@@ -256,7 +256,7 @@ class TackRadioCards<T> extends StatelessWidget {
                   borderRadius: TackRadius.listCardAll,
                   border: Border.all(
                     color: option.value == selected
-                        ? TackColors.maroon
+                        ? TackColors.maroonText
                         : TackColors.line2,
                     width: option.value == selected ? 1.5 : 1,
                   ),
@@ -273,7 +273,7 @@ class TackRadioCards<T> extends StatelessWidget {
                             option.label,
                             style: TackText.rowTitle.copyWith(
                               color: option.value == selected
-                                  ? TackColors.maroon
+                                  ? TackColors.maroonText
                                   : TackColors.ink,
                               fontWeight: option.value == selected
                                   ? FontWeight.w600
@@ -311,7 +311,7 @@ class _RadioDot extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.all(
-          color: selected ? TackColors.maroon : TackColors.line2,
+          color: selected ? TackColors.maroonText : TackColors.line2,
           width: selected ? 6.5 : 1.5,
         ),
       ),
@@ -412,7 +412,7 @@ class _RankChip extends StatelessWidget {
             color: TackColors.white,
             borderRadius: TackRadius.pillAll,
             border: Border.all(
-              color: picked ? TackColors.maroon : TackColors.line2,
+              color: picked ? TackColors.maroonText : TackColors.line2,
               width: 1.5,
             ),
           ),
@@ -423,7 +423,7 @@ class _RankChip extends StatelessWidget {
                 Container(
                   width: 20,
                   height: 20,
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     color: TackColors.maroon,
                     shape: BoxShape.circle,
                   ),
@@ -441,7 +441,7 @@ class _RankChip extends StatelessWidget {
               Text(
                 label,
                 style: TackText.chip.copyWith(
-                  color: picked ? TackColors.maroon : TackColors.ink,
+                  color: picked ? TackColors.maroonText : TackColors.ink,
                   fontWeight: picked ? FontWeight.w600 : FontWeight.w500,
                 ),
               ),
@@ -500,7 +500,7 @@ class TackRepeatableRows extends StatelessWidget {
                   GestureDetector(
                     onTap: () => onRemove(i),
                     behavior: HitTestBehavior.opaque,
-                    child: const SizedBox(
+                    child: SizedBox(
                       width: TackSpace.tapTarget,
                       height: TackSpace.tapTarget,
                       child: Center(
@@ -764,7 +764,7 @@ class _NotSureChip extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               if (selected) ...[
-                const TackIcon(
+                TackIcon(
                   TackIcons.check,
                   size: 15,
                   color: TackColors.amberText,

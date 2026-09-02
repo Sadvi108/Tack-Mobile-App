@@ -122,6 +122,29 @@ class AuthRepository {
     }
   }
 
+  /// Proves the person holding the phone is the account owner.
+  ///
+  /// Supabase will change a password on any live session, so without this an
+  /// unlocked borrowed phone is enough to lock the owner out of their own
+  /// account. Signing in again with the current password costs one round trip
+  /// and closes that.
+  Future<void> reauthenticate(String currentPassword) async {
+    final email = _db.auth.currentUser?.email;
+    if (email == null) {
+      throw const Failure('You are signed out. Log in and try again.');
+    }
+    try {
+      await _db.auth.signInWithPassword(
+        email: email,
+        password: currentPassword,
+      );
+    } on AuthException {
+      throw const Failure('That is not your current password.');
+    } catch (e) {
+      throw Failure.from(e);
+    }
+  }
+
   Future<void> updatePassword(String newPassword) async {
     try {
       await _db.auth.updateUser(UserAttributes(password: newPassword));

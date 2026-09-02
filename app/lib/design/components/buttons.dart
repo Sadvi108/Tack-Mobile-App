@@ -115,10 +115,10 @@ class _TackButtonState extends State<TackButton> {
             : _pressed
             ? TackColors.maroonDeep
             : TackColors.maroon;
-        foreground = enabled ? TackColors.white : TackColors.muted;
+        foreground = enabled ? TackColors.onBrand : TackColors.muted;
       case TackButtonVariant.secondary:
         background = TackColors.white;
-        foreground = enabled ? TackColors.maroon : TackColors.muted;
+        foreground = enabled ? TackColors.maroonText : TackColors.muted;
         border = Border.all(
           color: !enabled
               ? TackColors.line2
@@ -131,7 +131,7 @@ class _TackButtonState extends State<TackButton> {
         background = _pressed && enabled
             ? TackColors.maroonTint
             : Colors.transparent;
-        foreground = enabled ? TackColors.maroon : TackColors.muted;
+        foreground = enabled ? TackColors.maroonText : TackColors.muted;
       case TackButtonVariant.amber:
         background = !enabled
             ? TackColors.line2
@@ -226,7 +226,7 @@ class TackFab extends StatelessWidget {
         child: Container(
           height: 58,
           width: 58,
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             color: TackColors.maroon,
             shape: BoxShape.circle,
             boxShadow: TackShadow.fab,
