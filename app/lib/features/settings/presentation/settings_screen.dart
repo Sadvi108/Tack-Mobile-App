@@ -5,6 +5,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../../core/failure.dart';
 import '../../../core/offline/sync.dart';
+import '../../../core/policy_links.dart';
 import '../../../core/supabase/client.dart';
 import '../../../design/tack.dart';
 import '../../../routing/router.dart';
@@ -29,6 +30,7 @@ class SettingsScreen extends ConsumerStatefulWidget {
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   String? _version;
+  bool _deleting = false;
 
   @override
   void initState() {
@@ -281,16 +283,135 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   const TackDivider(),
                 ],
                 _Row(label: 'Made for', value: 'Bangladeshi students'),
+                const TackDivider(),
+                _Tap(
+                  label: 'Privacy policy',
+                  hint: 'What we hold, and what leaves our database',
+                  onTap: () => PolicyLinks.open(context, PolicyLinks.privacy),
+                ),
+                const TackDivider(),
+                _Tap(
+                  label: 'Terms of use',
+                  hint: 'What Tack promises, and what it does not',
+                  onTap: () => PolicyLinks.open(context, PolicyLinks.terms),
+                ),
               ],
             ),
           ),
           const SizedBox(height: TackSpace.stackLoose),
 
           TackButton.ghost('Log out', onPressed: _signOut),
+          const SizedBox(height: TackSpace.stackLoose),
+
+          // Last, and visually quiet. It has to be findable — Play requires a
+          // route to it, and a student who wants out should not have to email
+          // anybody — but it should not sit next to Log out looking like a
+          // neighbour of it.
+          _Section('DELETE YOUR ACCOUNT'),
+          TackCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'This removes your profile, your roadmap, your applications '
+                  'and every document you have uploaded. It cannot be undone '
+                  'and there is no way to get any of it back.',
+                  style: TackText.bodyMuted,
+                ),
+                const SizedBox(height: TackSpace.md),
+                TackButton.secondary(
+                  'Delete my account',
+                  loading: _deleting,
+                  onPressed: _deleteAccount,
+                ),
+              ],
+            ),
+          ),
           const SizedBox(height: TackSpace.xl),
         ],
       ),
     );
+  }
+
+  /// Typed, not tapped.
+  ///
+  /// Everything else in this app is reversible — a cancelled roadmap comes
+  /// back with its ticks intact — and this is the one thing that is not. A
+  /// single confirm button next to a "Log out" the student has pressed a dozen
+  /// times is not enough friction for an action with no undo, so they write
+  /// the word out.
+  Future<void> _deleteAccount() async {
+    final typed = TextEditingController();
+    var armed = false;
+
+    final go = await showTackSheet<bool>(
+      context: context,
+      title: 'Delete your account?',
+      child: StatefulBuilder(
+        builder: (sheetContext, setSheetState) => Padding(
+          padding: EdgeInsets.only(
+            left: TackSpace.screen,
+            right: TackSpace.screen,
+            bottom: MediaQuery.viewInsetsOf(sheetContext).bottom + TackSpace.xl,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Your profile, roadmap, applications, saved openings and every '
+                'document you have uploaded will be deleted from our servers. '
+                'This is permanent — we cannot restore it, even if you ask.',
+                style: TackText.bodyMuted,
+              ),
+              const SizedBox(height: TackSpace.lg),
+              TackTextField(
+                label: 'Type DELETE to confirm',
+                controller: typed,
+                // Compared case-insensitively: the point is the deliberate act
+                // of writing the word, not fighting a phone keyboard that
+                // helpfully lower-cases it.
+                onChanged: (v) {
+                  final next = v.trim().toUpperCase() == 'DELETE';
+                  if (next != armed) setSheetState(() => armed = next);
+                },
+              ),
+              const SizedBox(height: TackSpace.lg),
+              TackButton(
+                'Delete my account',
+                onPressed: armed
+                    ? () => Navigator.of(sheetContext).pop(true)
+                    : null,
+              ),
+              const SizedBox(height: TackSpace.row),
+              TackButton.ghost(
+                'Keep my account',
+                onPressed: () => Navigator.of(sheetContext).pop(false),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    typed.dispose();
+    if (go != true || !mounted) return;
+
+    setState(() => _deleting = true);
+    try {
+      await ref.read(authRepositoryProvider).deleteAccount();
+      // No toast. The router sends them to the welcome screen the moment the
+      // session clears, and a "deleted" message on a screen for signed-out
+      // people would be talking to somebody who is no longer there.
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _deleting = false);
+      TackToast.show(
+        context,
+        message: Failure.from(e).message,
+        kind: TackToastKind.error,
+      );
+    }
   }
 
   Future<void> _signOut() async {

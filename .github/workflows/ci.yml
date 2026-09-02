@@ -75,8 +75,12 @@ jobs:
       - name: Lint
         run: deno lint
 
+      # All six, not the three that happened to exist when this was written.
+      # coach, radar and score-cv shipped without ever being type-checked here.
       - name: Type check
-        run: deno check analyze-jd/index.ts worker/index.ts interview/index.ts
+        run: |
+          deno check analyze-jd/index.ts coach/index.ts interview/index.ts \
+                     radar/index.ts score-cv/index.ts worker/index.ts
 
       - name: Test
         run: deno test _shared/

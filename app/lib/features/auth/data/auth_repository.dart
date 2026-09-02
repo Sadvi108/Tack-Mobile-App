@@ -172,6 +172,41 @@ class AuthRepository {
       throw Failure.from(e);
     }
   }
+
+  /// Deletes the account and everything under it, permanently.
+  ///
+  /// The server takes no user id: `delete-account` reads the caller from their
+  /// own token, so there is nothing to pass and nothing to get wrong. It
+  /// removes the files from storage first — `storage.objects` has no foreign
+  /// key to `auth.users`, so the database cascade would leave every CV behind
+  /// with no owner left to attribute it to.
+  ///
+  /// Signs out afterwards so the app cannot sit holding a session for a user
+  /// that no longer exists.
+  Future<void> deleteAccount() async {
+    try {
+      final res = await _db.functions.invoke('delete-account');
+      final body = (res.data as Map?)?.cast<String, dynamic>() ?? const {};
+      if (body['deleted'] != true) {
+        final message = (body['error'] as Map?)?['message'] as String?;
+        throw Failure(
+          message ??
+              'Your account could not be deleted. Try again in a moment.',
+        );
+      }
+    } on Failure {
+      rethrow;
+    } catch (e) {
+      throw Failure.from(e);
+    }
+
+    // Best effort: the session is already invalid server-side, and refusing to
+    // clear it locally would strand the student on a signed-in shell for an
+    // account that is gone.
+    try {
+      await _db.auth.signOut();
+    } catch (_) {}
+  }
 }
 
 final authRepositoryProvider = Provider<AuthRepository>(

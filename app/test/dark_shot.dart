@@ -27,7 +27,7 @@ void main() {
         const Size(360, 640),
         brightness: brightness,
         overrides: settings.overrides(queued: 2),
-        panels: const [0, 420],
+        panels: const [0, 420, 980],
       );
     });
 

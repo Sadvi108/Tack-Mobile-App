@@ -19,6 +19,29 @@ move.
 
 ## Authentication
 
+**EXECUTE is deny-by-default.** A function in `public` is reachable from the app
+only once it is granted to `authenticated` by name. The list in this document
+*is* that allowlist — migration `0063` builds the grants from it.
+
+Getting there took two goes, and the second is worth knowing about before you
+add a function:
+
+- Postgres grants `EXECUTE` on every new function to `PUBLIC`, and `PUBLIC`
+  includes `anon`. Supabase separately pre-configures default privileges that
+  grant `anon` and `authenticated` as well. A new function therefore arrives
+  reachable by anyone holding the publishable key, which ships in every copy of
+  the app.
+- `ALTER DEFAULT PRIVILEGES … REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC` **does
+  not fix this.** It cannot suppress Postgres's built-in default; measured, a
+  function created after that statement has the identical ACL. It does work for
+  Supabase's `anon` and `authenticated` grants, and `0065` uses it for those.
+- What actually holds is an event trigger (`0065`): `tack_revoke_public_execute`
+  fires on `CREATE FUNCTION` and strips `PUBLIC` and `anon` immediately.
+
+So: **write the function, then grant it here explicitly**, and run
+`node tool/verify_rpc_surface.js`. That check caught a real regression the same
+day it was written — `0064` added two helpers and both came out anon-callable.
+
 Every RPC and every edge function reads the caller's identity from the JWT.
 
 - **RPCs** derive the user from `auth.uid()`. No function takes a user id as an
@@ -85,7 +108,9 @@ Called by `coach/data/coach_repository.dart`.
 | Function | Returns | Notes |
 |---|---|---|
 | `submit_onboarding(p_answers jsonb)` | `readiness_scores` | Writes the answers and returns the first score in one call. |
-| `write_onboarding(p_answers jsonb)` | `void` | The write half, without scoring. |
+| `write_onboarding(p_answers jsonb)` | `void` | The write half, without scoring. `SECURITY INVOKER`, so RLS applies to every statement inside it. |
+| `onboarding_intended_field_slug(p_answers jsonb)` | `text` | The chosen field slug, whether the answer is an array or a string. Called from inside `write_onboarding`, which is why `authenticated` needs it. |
+| `onboarding_intended_field(p_answers jsonb)` | `text` | The field's display name, resolved through `career_fields`. |
 | `recompute_my_readiness(p_reason text = 'app')` | `readiness_scores` | Recomputes the caller's own score. |
 | `current_readiness()` | `readiness_scores` | The latest score row. |
 | `recompute_my_cv_score(p_document_id uuid)` | `cv_scores` | Rescores the caller's CV. |
@@ -286,5 +311,9 @@ and check the grants, which are what actually decide whether the client can
 reach a function:
 
 ```bash
-grep -rn "grant execute\|revoke execute" supabase/migrations/
+node tool/verify_rpc_surface.js
 ```
+
+That asserts the invariant in two layers: the catalogue is the whole truth, but
+PostgREST is what is exposed to the internet, so it also calls two functions
+over HTTP with the publishable key and asserts they are refused.

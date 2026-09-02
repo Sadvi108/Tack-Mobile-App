@@ -202,8 +202,17 @@ const stampOffset = (n) => `${dayOffset(n)}T09:00:00+06:00`;
     const weekMoves = (feed.this_week?.moves ?? 0) + (feed.last_week?.moves ?? 0);
     ok('a week with an active day never reports zero activity',
       !(streakDays > 0 && weekMoves === 0), `${streakDays} active days but ${weekMoves} moves`);
+    /* The skill was seeded yesterday, which falls in *this* week six days out
+       of seven and in last week only when the script runs on a Monday. Pinning
+       the assertion to last_week made this pass on Mondays and fail the rest of
+       the week, which says nothing about the code under test. What 0048
+       actually promises is that a skill counts as activity in whichever week
+       contains the day it was added. */
+    const addedOn = dayOffset(-1);
+    const bucket = addedOn >= feed.this_week?.from ? feed.this_week : feed.last_week;
     ok('a skill added is activity, not nothing',
-      (feed.last_week?.skills_added ?? 0) === 1, JSON.stringify(feed.last_week));
+      (bucket?.skills_added ?? 0) === 1,
+      `added ${addedOn}, looked in ${bucket?.from}..${bucket?.to}: ${JSON.stringify(bucket)}`);
 
     ok('the path count is read from the database, not written into the copy',
       (feed.paths?.available ?? 0) > 0, JSON.stringify(feed.paths));
