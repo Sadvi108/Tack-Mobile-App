@@ -128,7 +128,8 @@ class _RoadmapScreenState extends ConsumerState<RoadmapScreen> {
     if (action == 'due') {
       final picked = await showDatePicker(
         context: context,
-        initialDate: task.dueDate ?? DateTime.now().add(const Duration(days: 7)),
+        initialDate:
+            task.dueDate ?? DateTime.now().add(const Duration(days: 7)),
         firstDate: DateTime.now().subtract(const Duration(days: 365)),
         lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
       );
@@ -186,10 +187,7 @@ class _RoadmapScreenState extends ConsumerState<RoadmapScreen> {
         ..invalidate(readinessProvider);
       if (!mounted) return;
       setState(() => _selected = 0);
-      TackToast.show(
-        context,
-        message: 'Stopped. Here are some other paths.',
-      );
+      TackToast.show(context, message: 'Stopped. Here are some other paths.');
     } catch (e) {
       if (!mounted) return;
       TackToast.show(
@@ -438,7 +436,9 @@ class _RoadmapSummary extends StatelessWidget {
               TackCountUp(
                 percent,
                 suffix: '%',
-                style: TackText.cardTitle.copyWith(color: TackColors.maroon),
+                style: TackText.cardTitle.copyWith(
+                  color: TackColors.maroonText,
+                ),
                 semanticsLabel: '$percent percent of your roadmap done',
               ),
             ],
@@ -703,7 +703,7 @@ class _NoRoadmapYet extends StatelessWidget {
                           ? 'Here is where you could go'
                           : data.field!,
                       style: TackText.sectionHeader.copyWith(
-                        color: TackColors.white,
+                        color: TackColors.onBrand,
                       ),
                     ),
                     const SizedBox(height: TackSpace.sm),

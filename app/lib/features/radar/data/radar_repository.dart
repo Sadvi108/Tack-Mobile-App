@@ -110,8 +110,9 @@ class RadarQueryController extends Notifier<RadarQuery> {
   void setFilter(RadarFilter filter) => state = state.copyWith(filter: filter);
 }
 
-final radarQueryProvider =
-    NotifierProvider<RadarQueryController, RadarQuery>(RadarQueryController.new);
+final radarQueryProvider = NotifierProvider<RadarQueryController, RadarQuery>(
+  RadarQueryController.new,
+);
 
 /// How many listings sit behind each chip, so a chip with nothing behind it
 /// can say so rather than looking broken when it is tapped.

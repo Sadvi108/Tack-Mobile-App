@@ -120,10 +120,10 @@ class _PickerBodyState<T> extends State<_PickerBody<T>> {
                             ),
                           ),
                           if (isSelected)
-                            const TackIcon(
+                            TackIcon(
                               TackIcons.check,
                               size: 20,
-                              color: TackColors.maroon,
+                              color: TackColors.maroonText,
                             ),
                         ],
                       ),

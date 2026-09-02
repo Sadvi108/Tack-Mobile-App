@@ -690,7 +690,7 @@ class _Summary extends StatelessWidget {
                     ),
                     const SizedBox(width: TackSpace.sm),
                     if (question.skipped)
-                      const TackPill(
+                      TackPill(
                         'Skipped',
                         background: TackColors.line,
                         foreground: TackColors.muted,

@@ -256,7 +256,7 @@ class _Suggestion extends StatelessWidget {
           child: Row(
             children: [
               Expanded(child: Text(question, style: TackText.rowTitle)),
-              const TackIcon(
+              TackIcon(
                 TackIcons.arrowRight,
                 size: 16,
                 color: TackColors.strokeFaint,
@@ -297,14 +297,12 @@ class _Bubble extends StatelessWidget {
               decoration: BoxDecoration(
                 color: student ? TackColors.maroon : TackColors.white,
                 borderRadius: TackRadius.cardAll,
-                border: student
-                    ? null
-                    : Border.all(color: TackColors.line),
+                border: student ? null : Border.all(color: TackColors.line),
               ),
               child: Text(
                 message.body,
                 style: TackText.body.copyWith(
-                  color: student ? TackColors.white : TackColors.ink,
+                  color: student ? TackColors.onBrand : TackColors.ink,
                   fontSize: 15.5,
                 ),
               ),
@@ -349,7 +347,7 @@ class _Thinking extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const SizedBox(
+            SizedBox(
               width: 14,
               height: 14,
               child: CircularProgressIndicator(
@@ -379,7 +377,7 @@ class _Notice extends StatelessWidget {
         horizontal: TackSpace.cardCompactX,
         vertical: TackSpace.cardCompactY,
       ),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: TackColors.amberTint,
         borderRadius: BorderRadius.all(TackRadius.listCard),
       ),
@@ -425,11 +423,11 @@ class _Composer extends StatelessWidget {
                 color: sending ? TackColors.strokeFaint : TackColors.maroon,
                 borderRadius: TackRadius.buttonAll,
               ),
-              child: const Center(
+              child: Center(
                 child: TackIcon(
                   TackIcons.arrowRight,
                   size: 22,
-                  color: TackColors.white,
+                  color: TackColors.onBrand,
                 ),
               ),
             ),

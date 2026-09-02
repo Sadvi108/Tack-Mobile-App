@@ -19,6 +19,7 @@ Future<void> shoot(
   Size size, {
   List<Override> overrides = const [],
   List<double> panels = const [0],
+  Brightness brightness = Brightness.light,
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1.0;
@@ -29,8 +30,17 @@ Future<void> shoot(
     initialLocation: '/',
     routes: [
       GoRoute(path: '/', builder: (_, _) => screen),
-      for (final r in ['/home', '/roadmap', '/radar', '/vault', '/profile',
-                       '/applications', '/paths', '/score', '/notifications'])
+      for (final r in [
+        '/home',
+        '/roadmap',
+        '/radar',
+        '/vault',
+        '/profile',
+        '/applications',
+        '/paths',
+        '/score',
+        '/notifications',
+      ])
         GoRoute(path: r, builder: (_, _) => const SizedBox.shrink()),
     ],
   );
@@ -42,7 +52,7 @@ Future<void> shoot(
       child: RepaintBoundary(
         key: key,
         child: MaterialApp.router(
-          theme: buildTackTheme(),
+          theme: buildTackTheme(brightness),
           routerConfig: router,
           debugShowCheckedModeBanner: false,
         ),
@@ -68,8 +78,11 @@ Future<void> shoot(
   var at = 0.0;
   for (var i = 0; i < panels.length; i++) {
     if (panels[i] > at && scrollable.evaluate().isNotEmpty) {
-      await tester.drag(scrollable.last, Offset(0, -(panels[i] - at)),
-          warnIfMissed: false);
+      await tester.drag(
+        scrollable.last,
+        Offset(0, -(panels[i] - at)),
+        warnIfMissed: false,
+      );
       await tester.pumpAndSettle();
       at = panels[i];
     }

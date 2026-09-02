@@ -175,7 +175,7 @@ Future<bool> confirmTackAction(
           _SheetButton(
             label: confirmLabel,
             background: destructive ? TackColors.danger : TackColors.maroon,
-            foreground: TackColors.white,
+            foreground: TackColors.onBrand,
             onTap: () => Navigator.of(context).pop(true),
           ),
           const SizedBox(height: TackSpace.row),

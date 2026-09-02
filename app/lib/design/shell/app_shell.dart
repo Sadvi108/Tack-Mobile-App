@@ -23,7 +23,7 @@ class TackScaffold extends StatelessWidget {
     this.header,
     this.pinnedCta,
     this.bottomNav,
-    this.background = TackColors.sailWhite,
+    this.background,
     this.padBody = true,
     this.scrollable = true,
     this.onMaroonHeader = false,
@@ -34,7 +34,9 @@ class TackScaffold extends StatelessWidget {
   final Widget? header;
   final Widget? pinnedCta;
   final Widget? bottomNav;
-  final Color background;
+
+  /// Defaults to the page ground for the current palette.
+  final Color? background;
   final bool padBody;
 
   /// Whether the shell wraps [body] in its own scroll view.
@@ -58,7 +60,7 @@ class TackScaffold extends StatelessWidget {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: onMaroonHeader ? tackSystemOverlayOnMaroon : tackSystemOverlay,
       child: Scaffold(
-        backgroundColor: background,
+        backgroundColor: background ?? TackColors.sailWhite,
         resizeToAvoidBottomInset: true,
         body: SafeArea(
           bottom: false,
@@ -92,7 +94,7 @@ class TackScaffold extends StatelessWidget {
               if (pinnedCta != null)
                 Container(
                   width: double.infinity,
-                  color: background,
+                  color: background ?? TackColors.sailWhite,
                   padding: const EdgeInsets.fromLTRB(
                     TackSpace.screen,
                     TackSpace.md,
@@ -155,7 +157,7 @@ class TackHeader extends StatelessWidget {
                   child: GestureDetector(
                     onTap: onBack,
                     behavior: HitTestBehavior.opaque,
-                    child: const SizedBox(
+                    child: SizedBox(
                       width: TackSpace.tapTarget,
                       height: TackSpace.tapTarget,
                       child: Center(
@@ -234,11 +236,7 @@ class TackHomeHeader extends StatelessWidget {
                   child: Stack(
                     alignment: Alignment.center,
                     children: [
-                      const TackIcon(
-                        TackIcons.bell,
-                        size: 22,
-                        color: TackColors.ink,
-                      ),
+                      TackIcon(TackIcons.bell, size: 22, color: TackColors.ink),
                       if (unread > 0)
                         Positioned(
                           top: 8,
@@ -246,7 +244,7 @@ class TackHomeHeader extends StatelessWidget {
                           child: Container(
                             width: 8,
                             height: 8,
-                            decoration: const BoxDecoration(
+                            decoration: BoxDecoration(
                               color: TackColors.maroon,
                               shape: BoxShape.circle,
                             ),
@@ -266,7 +264,7 @@ class TackHomeHeader extends StatelessWidget {
               child: Container(
                 width: 36,
                 height: 36,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   color: TackColors.maroon,
                   shape: BoxShape.circle,
                 ),
@@ -361,7 +359,7 @@ class TackBottomNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: TackColors.white,
         border: Border(top: BorderSide(color: Color(0x1423181C))),
       ),

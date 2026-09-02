@@ -71,7 +71,7 @@ class _TackTextFieldState extends State<TackTextField> {
     final borderColor = hasError
         ? TackColors.danger
         : _focus.hasFocus
-        ? TackColors.maroon
+        ? TackColors.maroonText
         : TackColors.line2;
 
     return Column(
@@ -120,7 +120,7 @@ class _TackTextFieldState extends State<TackTextField> {
                   onChanged: widget.onChanged,
                   onSubmitted: widget.onSubmitted,
                   autofillHints: widget.autofillHints,
-                  cursorColor: TackColors.maroon,
+                  cursorColor: TackColors.maroonText,
                   style: TackText.body,
                   decoration: InputDecoration(
                     isCollapsed: true,
@@ -146,7 +146,9 @@ class _TackTextFieldState extends State<TackTextField> {
                     child: Center(
                       child: Text(
                         _obscured ? 'Show' : 'Hide',
-                        style: TackText.pill.copyWith(color: TackColors.maroon),
+                        style: TackText.pill.copyWith(
+                          color: TackColors.maroonText,
+                        ),
                       ),
                     ),
                   ),
@@ -235,7 +237,7 @@ class TackSelectField<T> extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const TackIcon(
+                  TackIcon(
                     TackIcons.chevronDown,
                     size: 20,
                     color: TackColors.muted,
@@ -277,11 +279,7 @@ class TackSearchField extends StatelessWidget {
       onChanged: onChanged,
       autofocus: autofocus,
       textInputAction: TextInputAction.search,
-      prefix: const TackIcon(
-        TackIcons.search,
-        size: 20,
-        color: TackColors.muted,
-      ),
+      prefix: TackIcon(TackIcons.search, size: 20, color: TackColors.muted),
     );
   }
 }

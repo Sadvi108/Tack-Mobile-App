@@ -132,7 +132,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             text: 'Create an account',
                             style: TackText.meta.copyWith(
                               fontSize: 15,
-                              color: TackColors.maroon,
+                              color: TackColors.maroonText,
                               fontWeight: FontWeight.w600,
                             ),
                           ),

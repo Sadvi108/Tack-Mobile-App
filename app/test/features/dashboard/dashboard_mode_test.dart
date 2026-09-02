@@ -107,7 +107,9 @@ List<Override> overridesFor(YearMode mode, int year, {DashboardFeed? feed}) => [
   }),
   connectivityProvider.overrideWith((ref) => Stream.value(true)),
   pendingChangesProvider.overrideWith((ref) => Stream.value(0)),
-  dashboardFeedProvider.overrideWith((ref) async => feed ?? feedFor(mode, year)),
+  dashboardFeedProvider.overrideWith(
+    (ref) async => feed ?? feedFor(mode, year),
+  ),
 ];
 
 TimelineEntry entry({
@@ -264,19 +266,20 @@ void main() {
   });
 
   group('layout', () {
-    testWidgets('the dashboard lays out at the 360px minimum without overflow', (
-      tester,
-    ) async {
-      await pumpAt(
-        tester,
-        const DashboardScreen(),
-        size: const Size(360, 640),
-        overrides: overridesFor(YearMode.launch, 4),
-      );
-      await tester.pumpAndSettle();
+    testWidgets(
+      'the dashboard lays out at the 360px minimum without overflow',
+      (tester) async {
+        await pumpAt(
+          tester,
+          const DashboardScreen(),
+          size: const Size(360, 640),
+          overrides: overridesFor(YearMode.launch, 4),
+        );
+        await tester.pumpAndSettle();
 
-      expect(tester.takeException(), isNull);
-    });
+        expect(tester.takeException(), isNull);
+      },
+    );
 
     testWidgets('a full dashboard still fits at 360px', (tester) async {
       // Every card at once, each with content: this is the widest any of them
@@ -302,7 +305,9 @@ void main() {
             streak: Streak(
               current: 4,
               longest: 9,
-              days: [for (var i = 0; i < 4; i++) today.subtract(Duration(days: i))],
+              days: [
+                for (var i = 0; i < 4; i++) today.subtract(Duration(days: i)),
+              ],
             ),
             timeline: [
               entry(title: 'Finish the SQL course', inDays: -2),
@@ -371,13 +376,7 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        for (final label in [
-          'Home',
-          'Roadmap',
-          'Radar',
-          'Vault',
-          'Profile',
-        ]) {
+        for (final label in ['Home', 'Roadmap', 'Radar', 'Vault', 'Profile']) {
           expect(
             find.text(label),
             findsOneWidget,
@@ -425,13 +424,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
-      for (final label in [
-        'Home',
-        'Roadmap',
-        'Radar',
-        'Vault',
-        'Profile',
-      ]) {
+      for (final label in ['Home', 'Roadmap', 'Radar', 'Vault', 'Profile']) {
         final size = tester.getSize(find.text(label));
         expect(
           size.width,
@@ -525,7 +518,10 @@ void main() {
     });
 
     testWidgets('every mode says the score is private', (tester) async {
-      for (final (mode, year) in [(YearMode.explore, 1), (YearMode.launch, 4)]) {
+      for (final (mode, year) in [
+        (YearMode.explore, 1),
+        (YearMode.launch, 4),
+      ]) {
         await pumpAt(
           tester,
           const DashboardScreen(),
@@ -570,7 +566,10 @@ void main() {
       expect(find.byType(PathFitCard), findsOneWidget);
       expect(find.text('Data analyst'), findsWidgets);
       expect(find.text('SQL'), findsOneWidget);
-      expect(find.text('You have 3 of the 8 skills it asks for.'), findsOneWidget);
+      expect(
+        find.text('You have 3 of the 8 skills it asks for.'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('no chosen path means no target card', (tester) async {
@@ -605,7 +604,11 @@ void main() {
             hasCv: true,
             chosenPaths: 1,
             following: const [
-              FollowedPath(id: 'p-cw', title: 'Content writer', slug: 'content-writer'),
+              FollowedPath(
+                id: 'p-cw',
+                title: 'Content writer',
+                slug: 'content-writer',
+              ),
             ],
           ),
         ),
@@ -635,7 +638,11 @@ void main() {
             chosenPaths: 1,
             targetRole: 'Backend developer',
             following: const [
-              FollowedPath(id: 'p-cw', title: 'Content writer', slug: 'content-writer'),
+              FollowedPath(
+                id: 'p-cw',
+                title: 'Content writer',
+                slug: 'content-writer',
+              ),
             ],
           ),
         ),

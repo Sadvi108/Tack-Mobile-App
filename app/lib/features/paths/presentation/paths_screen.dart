@@ -182,7 +182,7 @@ class _PathCard extends StatelessWidget {
           const SizedBox(height: TackSpace.md),
           Row(
             children: [
-              const TackIcon(TackIcons.star, size: 16, color: TackColors.muted),
+              TackIcon(TackIcons.star, size: 16, color: TackColors.muted),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
@@ -197,11 +197,7 @@ class _PathCard extends StatelessWidget {
           const SizedBox(height: 4),
           Row(
             children: [
-              const TackIcon(
-                TackIcons.clock,
-                size: 16,
-                color: TackColors.muted,
-              ),
+              TackIcon(TackIcons.clock, size: 16, color: TackColors.muted),
               const SizedBox(width: 6),
               Text(
                 '${path.timeLabel} to job-ready',

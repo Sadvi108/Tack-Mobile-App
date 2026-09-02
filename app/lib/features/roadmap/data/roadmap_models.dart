@@ -199,7 +199,9 @@ class Roadmap {
     final open = openTasks.length;
     final end = finishBy;
     if (open == 0 || end == null) return null;
-    final days = end.difference(DateTime(today.year, today.month, today.day)).inDays;
+    final days = end
+        .difference(DateTime(today.year, today.month, today.day))
+        .inDays;
     if (days <= 0) return null;
     return open / (days / 7);
   }

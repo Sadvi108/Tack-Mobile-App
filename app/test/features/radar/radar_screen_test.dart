@@ -209,9 +209,7 @@ void main() {
     expect(find.text('Radar'), findsWidgets);
   });
 
-  testWidgets('the search field carries its own search button', (
-    tester,
-  ) async {
+  testWidgets('the search field carries its own search button', (tester) async {
     // The filter chips took the row that used to hold a Search button, which
     // left the keyboard return key as the only way to run a search.
     await pumpAt(

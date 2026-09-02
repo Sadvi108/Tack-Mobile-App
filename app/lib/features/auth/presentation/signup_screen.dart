@@ -160,7 +160,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Padding(
+                Padding(
                   padding: EdgeInsets.only(top: 1),
                   child: TackIcon(
                     TackIcons.shield,
@@ -198,7 +198,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                               text: 'Log in',
                               style: TackText.meta.copyWith(
                                 fontSize: 15,
-                                color: TackColors.maroon,
+                                color: TackColors.maroonText,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),

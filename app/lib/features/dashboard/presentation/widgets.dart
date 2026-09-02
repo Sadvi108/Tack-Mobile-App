@@ -217,7 +217,7 @@ class SectionHeading extends StatelessWidget {
                   child: Text(
                     actionLabel!,
                     style: TackText.pill.copyWith(
-                      color: TackColors.maroon,
+                      color: TackColors.maroonText,
                       fontSize: 14,
                     ),
                   ),
@@ -288,7 +288,7 @@ class ReadinessBlock extends StatelessWidget {
                         // sentence where "See the 9" reads as a label.
                         'See the ${_word(areasCounted).toLowerCase()}  →',
                         style: TackText.rowTitle.copyWith(
-                          color: TackColors.maroon,
+                          color: TackColors.maroonText,
                           decoration: TextDecoration.underline,
                           decorationColor: TackColors.amber,
                           decorationThickness: 2,
@@ -400,7 +400,9 @@ class _StartHereRow extends StatelessWidget {
                 child: Text(
                   index.toString().padLeft(2, '0'),
                   style: TackText.monoLabel.copyWith(
-                    color: index == 1 ? TackColors.maroon : TackColors.muted,
+                    color: index == 1
+                        ? TackColors.maroonText
+                        : TackColors.muted,
                   ),
                 ),
               ),
@@ -415,11 +417,7 @@ class _StartHereRow extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: TackSpace.sm),
-              const TackIcon(
-                TackIcons.arrowRight,
-                size: 18,
-                color: TackColors.muted,
-              ),
+              TackIcon(TackIcons.arrowRight, size: 18, color: TackColors.muted),
             ],
           ),
         ),
@@ -440,7 +438,7 @@ class PrivacyNote extends StatelessWidget {
         horizontal: TackSpace.cardCompactX,
         vertical: TackSpace.cardCompactY,
       ),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: TackColors.sailWhite,
         borderRadius: BorderRadius.all(TackRadius.listCard),
       ),

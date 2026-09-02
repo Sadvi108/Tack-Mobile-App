@@ -74,11 +74,7 @@ class PathSuggestion {
 
 /// What Tack worked out about the student, and what it suggests as a result.
 class PathAdvice {
-  const PathAdvice({
-    required this.suggestions,
-    this.field,
-    this.unsure = true,
-  });
+  const PathAdvice({required this.suggestions, this.field, this.unsure = true});
 
   final List<PathSuggestion> suggestions;
 

@@ -199,7 +199,7 @@ class _PathDetailScreenState extends ConsumerState<PathDetailScreen> {
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Padding(
+                              Padding(
                                 padding: EdgeInsets.only(top: 2),
                                 child: TackIcon(
                                   TackIcons.check,

@@ -73,7 +73,7 @@ class ApplicationDetailScreen extends ConsumerWidget {
             trailing: GestureDetector(
               onTap: () => _showMenu(context, ref, application),
               behavior: HitTestBehavior.opaque,
-              child: const SizedBox(
+              child: SizedBox(
                 width: TackSpace.tapTarget,
                 height: TackSpace.tapTarget,
                 child: Center(
@@ -140,10 +140,10 @@ class ApplicationDetailScreen extends ConsumerWidget {
                       TackButton.ghost(
                         'Open the listing',
                         fullWidth: false,
-                        icon: const TackIcon(
+                        icon: TackIcon(
                           TackIcons.externalLink,
                           size: 17,
-                          color: TackColors.maroon,
+                          color: TackColors.maroonText,
                         ),
                         onPressed: () => launchUrl(
                           Uri.parse(application.sourceUrl!),
@@ -407,15 +407,17 @@ class ApplicationDetailScreen extends ConsumerWidget {
             ),
             child: Row(
               children: [
-                const TackIcon(
+                TackIcon(
                   TackIcons.trash,
                   size: 20,
-                  color: TackColors.danger,
+                  color: TackColors.dangerText,
                 ),
                 const SizedBox(width: TackSpace.md),
                 Text(
                   'Remove this application',
-                  style: TackText.rowTitle.copyWith(color: TackColors.danger),
+                  style: TackText.rowTitle.copyWith(
+                    color: TackColors.dangerText,
+                  ),
                 ),
               ],
             ),
@@ -494,7 +496,7 @@ class _NextActionCard extends StatelessWidget {
                   ? TackColors.maroonTint
                   : TackColors.amberTint,
               foreground: (application.daysUntilNextAction ?? 1) < 0
-                  ? TackColors.danger
+                  ? TackColors.dangerText
                   : TackColors.amberText,
             ),
           ],
@@ -520,7 +522,7 @@ class _NotesCard extends StatelessWidget {
           Row(
             children: [
               Expanded(child: Text('Notes', style: TackText.cardTitle)),
-              const TackIcon(TackIcons.edit, size: 18, color: TackColors.muted),
+              TackIcon(TackIcons.edit, size: 18, color: TackColors.muted),
             ],
           ),
           const SizedBox(height: TackSpace.sm),
@@ -562,12 +564,12 @@ class _TimelineRow extends StatelessWidget {
                 height: 10,
                 margin: const EdgeInsets.only(top: 5),
                 decoration: BoxDecoration(
-                  color: isLast ? TackColors.maroon : TackColors.line2,
+                  color: isLast ? TackColors.maroonText : TackColors.line2,
                   shape: BoxShape.circle,
                 ),
               ),
               if (!isLast)
-                const Expanded(
+                Expanded(
                   child: SizedBox(
                     width: 2,
                     child: DecoratedBox(

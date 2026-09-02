@@ -112,9 +112,22 @@ Rules:
 - 360px minimum width. Test at that width.
 - Body text never below 16px. WCAG AA contrast. 44px minimum tap targets.
 - The pinned CTA sits outside the scroll region. This is load-bearing.
-- `#C9B6BC` is never used for text. Teal and amber as text use `#1A6B50` and
-  `#8A6415`.
-- `#6E5B61` is the only secondary text colour.
+- Colours come from `TackColors` by name, never as a hex. Every token resolves
+  against the current palette, so a literal is right in one mode and wrong in
+  the other.
+- A **fill** and the same brand as **text** are different tokens. `maroon`,
+  `teal`, `amber` and `danger` are fills; `maroonText`, `tealText`,
+  `amberText` and `dangerText` are what you write *on* a surface. Strokes,
+  dots, focus rings and selection borders count as text, not fill.
+- What sits on a fill never flips: `onBrand` (white) on the dark fills,
+  `onAccent` (near-black) on the light ones — amber and teal are mid-tones in
+  both palettes and never take white. `warnOnBrand` is the one warning colour
+  that reads on maroon in both.
+- `strokeFaint` is never used for text. `muted` is the only secondary text
+  colour.
+- Any new foreground/background pairing gets a row in
+  `test/design/contrast_test.dart`, which holds every pair to AA in both
+  palettes. Dark mode broke contrast in ways no widget test could see.
 - Animations are 150–200ms colour and transform only. Nothing that costs a
   repaint per frame on a mid-range Android.
 - No photography, no illustration, no icon font. Icons are inline SVG on a

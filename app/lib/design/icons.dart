@@ -18,6 +18,7 @@ class TackIcons {
       '<rect x="4" y="3.5" width="16" height="17" rx="2.5"/><path d="M8 9h8M8 13h5"/>';
   static const practice =
       '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="2.5"/>';
+
   /// A sweep, not a magnifying glass: Radar keeps watching, it is not a
   /// search box you have to remember to visit.
   static const radar =
@@ -78,6 +79,9 @@ class TackIcons {
       '<path d="M20 12a8 8 0 1 1-2.4-5.7"/><polyline points="20,4 20,9 15,9"/>';
   static const externalLink =
       '<path d="M14 4h6v6"/><path d="M20 4 11 13"/><path d="M18 14v5.5A1.5 1.5 0 0 1 16.5 21h-11A1.5 1.5 0 0 1 4 19.5v-11A1.5 1.5 0 0 1 5.5 7H11"/>';
+  static const settings =
+      '<circle cx="12" cy="12" r="3.4"/><path d="M12 2.5v2.6M12 18.9v2.6M21.5 12h-2.6M5.1 12H2.5M18.7 5.3l-1.8 1.8M7.1 16.9l-1.8 1.8M18.7 18.7l-1.8-1.8M7.1 7.1 5.3 5.3"/>';
+
   static const logout =
       '<path d="M15 4h3.5A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5H15"/><path d="M11 16l4-4-4-4"/><path d="M15 12H4"/>';
   static const star =
@@ -90,21 +94,21 @@ class TackIcon extends StatelessWidget {
     this.path, {
     super.key,
     this.size = 24,
-    this.color = TackColors.ink,
+    this.color,
     this.strokeWidth = 2,
     this.semanticLabel,
   });
 
   final String path;
   final double size;
-  final Color color;
+  final Color? color;
   final double strokeWidth;
   final String? semanticLabel;
 
   @override
   Widget build(BuildContext context) {
     final hex =
-        '#${(color.toARGB32() & 0xFFFFFF).toRadixString(16).padLeft(6, '0')}';
+        '#${((color ?? TackColors.ink).toARGB32() & 0xFFFFFF).toRadixString(16).padLeft(6, '0')}';
     final svg =
         '<svg xmlns="http://www.w3.org/2000/svg" width="$size" height="$size" viewBox="0 0 24 24" '
         'fill="none" stroke="$hex" stroke-width="$strokeWidth" '
@@ -123,16 +127,16 @@ class TackIcon extends StatelessWidget {
 /// the end. Tacking is how you make progress toward somewhere you cannot sail
 /// at directly — the shape is the product's whole argument.
 class TackLogo extends StatelessWidget {
-  const TackLogo({super.key, this.width = 34, this.color = TackColors.maroon});
+  const TackLogo({super.key, this.width = 34, this.color});
 
   final double width;
-  final Color color;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
       size: Size(width, width * 21 / 34),
-      painter: _LogoPainter(color),
+      painter: _LogoPainter(color ?? TackColors.maroon),
       isComplex: false,
     );
   }
@@ -169,13 +173,9 @@ class _LogoPainter extends CustomPainter {
 
 /// Wordmark plus logo, used in the app header and on auth screens.
 class TackWordmark extends StatelessWidget {
-  const TackWordmark({
-    super.key,
-    this.color = TackColors.maroon,
-    this.fontSize = 18,
-  });
+  const TackWordmark({super.key, this.color, this.fontSize = 18});
 
-  final Color color;
+  final Color? color;
   final double fontSize;
 
   @override
@@ -192,7 +192,7 @@ class TackWordmark extends StatelessWidget {
             fontSize: fontSize,
             fontWeight: FontWeight.w600,
             letterSpacing: -fontSize * 0.01,
-            color: color,
+            color: color ?? TackColors.maroonText,
           ),
         ),
       ],

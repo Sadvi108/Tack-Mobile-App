@@ -73,7 +73,9 @@ class PathFitCard extends StatelessWidget {
                 TackCountUp(
                   (fraction * 100).round(),
                   suffix: '%',
-                  style: TackText.cardTitle.copyWith(color: TackColors.maroon),
+                  style: TackText.cardTitle.copyWith(
+                    color: TackColors.maroonText,
+                  ),
                   semanticsLabel:
                       'You have $held of the $asked skills this path asks for',
                 ),
@@ -141,7 +143,7 @@ class _SkillChip extends StatelessWidget {
         skill.name,
         style: TackText.chip.copyWith(
           fontSize: 14,
-          color: skill.isCore ? TackColors.maroon : TackColors.ink,
+          color: skill.isCore ? TackColors.maroonText : TackColors.ink,
         ),
       ),
     );

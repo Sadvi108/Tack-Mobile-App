@@ -4,9 +4,7 @@ import 'package:tack/features/dashboard/data/dashboard_feed.dart';
 import 'package:tack/features/profile/data/profile.dart';
 
 /// A complete payload, shaped exactly as `public.dashboard_feed()` returns it.
-Map<String, dynamic> payload({
-  Map<String, dynamic>? overrides,
-}) => {
+Map<String, dynamic> payload({Map<String, dynamic>? overrides}) => {
   'generated_at': '2026-08-26T09:00:00+00:00',
   'today': '2026-08-26',
   'profile': {
@@ -153,18 +151,21 @@ void main() {
   });
 
   group('reading a feed that is missing things', () {
-    test('an empty object parses into an empty dashboard, not an exception', () {
-      // This is a real state: a student whose profile row exists but who has
-      // done nothing yet. It must render, not throw.
-      final feed = DashboardFeed.fromJson({});
+    test(
+      'an empty object parses into an empty dashboard, not an exception',
+      () {
+        // This is a real state: a student whose profile row exists but who has
+        // done nothing yet. It must render, not throw.
+        final feed = DashboardFeed.fromJson({});
 
-      expect(feed.score.total, 0);
-      expect(feed.streak.current, 0);
-      expect(feed.timeline, isEmpty);
-      expect(feed.counts.total, 0);
-      expect(feed.cohortAverage, isNull);
-      expect(feed.skillFit, 0);
-    });
+        expect(feed.score.total, 0);
+        expect(feed.streak.current, 0);
+        expect(feed.timeline, isEmpty);
+        expect(feed.counts.total, 0);
+        expect(feed.cohortAverage, isNull);
+        expect(feed.skillFit, 0);
+      },
+    );
 
     test('nulls where objects are expected are survivable', () {
       final feed = DashboardFeed.fromJson(

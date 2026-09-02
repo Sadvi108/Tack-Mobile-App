@@ -222,9 +222,7 @@ class Streak {
   factory Streak.fromJson(Map<String, dynamic> json) => Streak(
     current: _int(json['current']),
     longest: _int(json['longest']),
-    days: [
-      for (final day in (json['days'] as List?) ?? const []) ?_date(day),
-    ],
+    days: [for (final day in (json['days'] as List?) ?? const []) ?_date(day)],
   );
 }
 

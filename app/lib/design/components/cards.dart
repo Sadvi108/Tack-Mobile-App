@@ -13,7 +13,7 @@ class TackCard extends StatelessWidget {
     this.compact = false,
     this.raised = false,
     this.padding,
-    this.background = TackColors.white,
+    this.background,
     this.onTap,
   });
 
@@ -22,7 +22,9 @@ class TackCard extends StatelessWidget {
   final bool compact;
   final bool raised;
   final EdgeInsets? padding;
-  final Color background;
+
+  /// Defaults to the card surface for the current palette.
+  final Color? background;
   final VoidCallback? onTap;
 
   @override
@@ -36,10 +38,10 @@ class TackCard extends StatelessWidget {
             vertical: compact ? TackSpace.cardCompactY : TackSpace.cardY,
           ),
       decoration: BoxDecoration(
-        color: background,
+        color: background ?? TackColors.white,
         borderRadius: compact ? TackRadius.listCardAll : TackRadius.cardAll,
         border: emphasised
-            ? Border.all(color: TackColors.maroon, width: 1.5)
+            ? Border.all(color: TackColors.maroonText, width: 1.5)
             : null,
         boxShadow: emphasised
             ? null
@@ -68,7 +70,7 @@ class TackDivider extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
     padding: EdgeInsets.only(left: indent),
-    child: const SizedBox(
+    child: SizedBox(
       height: 1,
       width: double.infinity,
       child: DecoratedBox(decoration: BoxDecoration(color: TackColors.line)),

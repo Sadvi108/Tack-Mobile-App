@@ -115,11 +115,7 @@ class TackOfflineState extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const TackIcon(
-            TackIcons.offline,
-            size: 22,
-            color: TackColors.amberText,
-          ),
+          TackIcon(TackIcons.offline, size: 22, color: TackColors.amberText),
           const SizedBox(width: TackSpace.md),
           Expanded(
             child: Column(
@@ -173,11 +169,7 @@ class TackErrorState extends StatelessWidget {
         children: [
           Row(
             children: [
-              const TackIcon(
-                TackIcons.alert,
-                size: 22,
-                color: TackColors.danger,
-              ),
+              TackIcon(TackIcons.alert, size: 22, color: TackColors.dangerText),
               const SizedBox(width: TackSpace.sm),
               Expanded(child: Text(title, style: TackText.cardTitle)),
             ],

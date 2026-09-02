@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import '../../../core/failure.dart';
 import '../../../design/tack.dart';
 import '../../../routing/router.dart';
-import '../../auth/application/auth_controller.dart';
 import '../application/completeness.dart';
 import '../data/profile.dart';
 import '../data/profile_repository.dart';
@@ -33,14 +32,25 @@ class ProfileScreen extends ConsumerWidget {
       bottomNav: const TackTabBar(current: Routes.profile),
       header: TackHeader(
         title: 'Your profile',
-        trailing: GestureDetector(
-          onTap: () => _menu(context, ref),
-          behavior: HitTestBehavior.opaque,
-          child: const SizedBox(
-            width: TackSpace.tapTarget,
-            height: TackSpace.tapTarget,
-            child: Center(
-              child: TackIcon(TackIcons.more, size: 22, color: TackColors.ink),
+        // Settings rather than a sheet of two items. Documents and logging
+        // out both live in there now, so keeping a second menu here would be
+        // two places to look for the same things.
+        trailing: Semantics(
+          button: true,
+          label: 'Settings',
+          child: GestureDetector(
+            onTap: () => context.push(Routes.settings),
+            behavior: HitTestBehavior.opaque,
+            child: SizedBox(
+              width: TackSpace.tapTarget,
+              height: TackSpace.tapTarget,
+              child: Center(
+                child: TackIcon(
+                  TackIcons.settings,
+                  size: 22,
+                  color: TackColors.ink,
+                ),
+              ),
             ),
           ),
         ),
@@ -196,65 +206,6 @@ class ProfileScreen extends ConsumerWidget {
       ..invalidate(completenessProvider);
   }
 
-  Future<void> _menu(BuildContext context, WidgetRef ref) async {
-    final action = await showTackSheet<String>(
-      context: context,
-      title: 'Account',
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TackTapRow(
-            onTap: () => Navigator.of(context).pop('documents'),
-            padding: const EdgeInsets.symmetric(
-              horizontal: TackSpace.screen,
-              vertical: 14,
-            ),
-            child: Row(
-              children: [
-                const TackIcon(
-                  TackIcons.vault,
-                  size: 20,
-                  color: TackColors.ink,
-                ),
-                const SizedBox(width: TackSpace.md),
-                Text('Your documents', style: TackText.rowTitle),
-              ],
-            ),
-          ),
-          const TackDivider(indent: TackSpace.screen),
-          TackTapRow(
-            onTap: () => Navigator.of(context).pop('signout'),
-            padding: const EdgeInsets.symmetric(
-              horizontal: TackSpace.screen,
-              vertical: 14,
-            ),
-            child: Row(
-              children: [
-                const TackIcon(
-                  TackIcons.logout,
-                  size: 20,
-                  color: TackColors.danger,
-                ),
-                const SizedBox(width: TackSpace.md),
-                Text(
-                  'Log out',
-                  style: TackText.rowTitle.copyWith(color: TackColors.danger),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: TackSpace.lg),
-        ],
-      ),
-    );
-
-    if (!context.mounted) return;
-    if (action == 'documents') context.go(Routes.vault);
-    if (action == 'signout') {
-      await ref.read(authControllerProvider.notifier).signOut();
-    }
-  }
-
   static List<_Field> _fieldsFor(ProfileSection section) => switch (section) {
     // Subjects and hobbies are one word each; the add sheet is a single field.
     ProfileSection.favourites => const [
@@ -338,7 +289,7 @@ class _PersonalCard extends StatelessWidget {
           Container(
             width: 56,
             height: 56,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               color: TackColors.maroon,
               shape: BoxShape.circle,
             ),
@@ -346,7 +297,7 @@ class _PersonalCard extends StatelessWidget {
             child: Text(
               profile.initials,
               style: TackText.cardTitle.copyWith(
-                color: TackColors.white,
+                color: TackColors.onBrand,
                 fontSize: 20,
               ),
             ),
@@ -477,14 +428,14 @@ class _SectionCard extends StatelessWidget {
                 child: GestureDetector(
                   onTap: onAdd,
                   behavior: HitTestBehavior.opaque,
-                  child: const SizedBox(
+                  child: SizedBox(
                     width: TackSpace.tapTarget,
                     height: TackSpace.tapTarget,
                     child: Center(
                       child: TackIcon(
                         TackIcons.plus,
                         size: 20,
-                        color: TackColors.maroon,
+                        color: TackColors.maroonText,
                       ),
                     ),
                   ),

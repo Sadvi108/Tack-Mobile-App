@@ -77,7 +77,7 @@ class StreakCard extends StatelessWidget {
                     horizontal: 10,
                     vertical: 5,
                   ),
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     color: TackColors.tealTint,
                     borderRadius: TackRadius.pillAll,
                   ),
@@ -100,9 +100,7 @@ class StreakCard extends StatelessWidget {
                   if (i > 0) const SizedBox(width: 4),
                   Expanded(
                     child: _Day(
-                      active: streak.wasActiveOn(
-                        start.add(Duration(days: i)),
-                      ),
+                      active: streak.wasActiveOn(start.add(Duration(days: i))),
                       isToday: i == days - 1,
                       index: i,
                     ),

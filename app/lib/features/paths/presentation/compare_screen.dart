@@ -160,7 +160,7 @@ class _CompareRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final style = highlight
-        ? TackText.cardTitle.copyWith(color: TackColors.maroon)
+        ? TackText.cardTitle.copyWith(color: TackColors.maroonText)
         : TackText.rowTitle;
 
     return ConstrainedBox(
@@ -210,7 +210,7 @@ class _DayToDay extends StatelessWidget {
                     width: 5,
                     height: 5,
                     margin: const EdgeInsets.only(top: 9, right: 10),
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       color: TackColors.maroon,
                       shape: BoxShape.circle,
                     ),

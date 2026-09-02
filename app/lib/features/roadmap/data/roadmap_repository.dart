@@ -86,10 +86,7 @@ class RoadmapRepository {
   /// it was. That is what makes this safe to offer as a button.
   Future<void> stopFollowing(String pathId) async {
     try {
-      await _db.rpc<bool>(
-        'stop_following_path',
-        params: {'p_path_id': pathId},
-      );
+      await _db.rpc<bool>('stop_following_path', params: {'p_path_id': pathId});
     } catch (e) {
       throw Failure.from(e);
     }
