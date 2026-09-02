@@ -64,6 +64,8 @@ a policy or a migration.
 ## Where the rules live
 
 - `AGENTS.md` — stack, architecture, security and copy rules
+- `docs/API.md` — every call the app can make: the RPCs, the edge
+  functions, what is deliberately not reachable, and the boards Tack calls out to
 - `docs/DATA_MODEL.md` — every table and column
 - `docs/DASHBOARD_FEED.md` — the home screen's one RPC, its shape, and the two
   places it used to contradict itself
