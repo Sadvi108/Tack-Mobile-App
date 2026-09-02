@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/failure.dart';
 import '../../../core/supabase/client.dart';
+import 'path_suggestion.dart';
 import 'roadmap_models.dart';
 
 class RoadmapRepository {
@@ -78,6 +79,16 @@ class RoadmapRepository {
     }
   }
 
+  /// Reads the student and ranks the paths that fit them.
+  Future<PathAdvice> advice() async {
+    try {
+      final row = await _db.rpc<Map<String, dynamic>>('path_suggestions');
+      return PathAdvice.fromJson(row);
+    } catch (e) {
+      throw Failure.from(e);
+    }
+  }
+
   /// Ticks or un-ticks a task. `done_at` and the milestone state are both set
   /// by database triggers, so this only writes the flag and refetches.
   Future<void> setTaskDone(String taskId, {required bool done}) async {
@@ -143,6 +154,13 @@ class RoadmapRepository {
     }
   }
 }
+
+/// What Tack reads out of the student's own answers, and where it thinks they
+/// could go as a result.
+final pathAdviceProvider = FutureProvider<PathAdvice>((ref) async {
+  if (!ref.watch(isSignedInProvider)) return PathAdvice.empty;
+  return ref.watch(roadmapRepositoryProvider).advice();
+});
 
 final roadmapRepositoryProvider = Provider<RoadmapRepository>(
   (ref) => RoadmapRepository(ref.watch(supabaseProvider)),

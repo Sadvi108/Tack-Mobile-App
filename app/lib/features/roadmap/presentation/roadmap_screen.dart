@@ -12,7 +12,9 @@ import '../../dashboard/presentation/motion.dart';
 import '../../score/data/score_repository.dart';
 import '../data/roadmap_models.dart';
 import '../data/roadmap_repository.dart';
+import '../data/path_suggestion.dart';
 import 'journey_line.dart';
+import 'suggestion_card.dart';
 import 'task_tile.dart';
 import '../../../routing/tab_bar.dart';
 
@@ -241,18 +243,10 @@ class _RoadmapScreenState extends ConsumerState<RoadmapScreen> {
         ),
         data: (roadmaps) {
           if (roadmaps.isEmpty) {
-            return ListView(
-              padding: const EdgeInsets.symmetric(horizontal: TackSpace.screen),
-              children: [
-                TackEmptyState(
-                  title: 'No roadmap yet',
-                  body:
-                      'Pick a career path and Tack turns it into a route you '
-                      'can actually follow, one step at a time.',
-                  primaryLabel: 'Explore career paths',
-                  onPrimary: () => context.push(Routes.paths),
-                ),
-              ],
+            return _NoRoadmapYet(
+              advice: ref.watch(pathAdviceProvider),
+              onOpenPath: (slug) => context.push(Routes.path(slug)),
+              onBrowse: () => context.push(Routes.paths),
             );
           }
 
@@ -563,6 +557,138 @@ class _MilestoneCard extends StatelessWidget {
           ],
         ],
       ),
+    );
+  }
+}
+
+/// The roadmap screen before there is a roadmap.
+///
+/// This used to be one empty card saying "pick a career path", which asked a
+/// student who has just answered eight screens of questions to go and work out
+/// the answer themselves. Everything needed to make a suggestion was already
+/// in the database and nothing read it.
+///
+/// Now it leads with what Tack worked out about them and ranks the paths that
+/// fit, each saying why. The browse button stays: a suggestion is an opinion,
+/// not a decision, and a student who disagrees needs somewhere to go.
+class _NoRoadmapYet extends StatelessWidget {
+  const _NoRoadmapYet({
+    required this.advice,
+    required this.onOpenPath,
+    required this.onBrowse,
+  });
+
+  final AsyncValue<PathAdvice> advice;
+  final void Function(String slug) onOpenPath;
+  final VoidCallback onBrowse;
+
+  @override
+  Widget build(BuildContext context) {
+    return advice.when(
+      loading: () => ListView(
+        padding: const EdgeInsets.symmetric(horizontal: TackSpace.screen),
+        children: const [
+          TackSkeleton(height: 74, radius: 20),
+          SizedBox(height: TackSpace.stackLoose),
+          TackSkeleton(height: 168, radius: 20),
+          SizedBox(height: TackSpace.stack),
+          TackSkeleton(height: 168, radius: 20),
+        ],
+      ),
+      error: (_, _) => ListView(
+        padding: const EdgeInsets.symmetric(horizontal: TackSpace.screen),
+        children: [
+          TackEmptyState(
+            title: 'No roadmap yet',
+            body:
+                'Pick a career path and Tack turns it into a route you can '
+                'actually follow, one step at a time.',
+            primaryLabel: 'Explore career paths',
+            onPrimary: onBrowse,
+          ),
+        ],
+      ),
+      data: (data) {
+        // Nothing to go on. Said plainly rather than dressed up as a
+        // suggestion — a student who has told us nothing should not be handed
+        // a confident ranking built out of nothing.
+        if (!data.hasAnything) {
+          return ListView(
+            padding: const EdgeInsets.symmetric(horizontal: TackSpace.screen),
+            children: [
+              TackEmptyState(
+                title: 'No roadmap yet',
+                body:
+                    'Pick a career path and Tack turns it into a route you can '
+                    'actually follow, one step at a time.',
+                primaryLabel: 'Explore career paths',
+                onPrimary: onBrowse,
+              ),
+            ],
+          );
+        }
+
+        var step = 0;
+        return ListView(
+          padding: const EdgeInsets.symmetric(horizontal: TackSpace.screen),
+          children: [
+            TackReveal(
+              index: step++,
+              child: TackCard(
+                background: TackColors.maroon,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'FROM WHAT YOU TOLD US',
+                      style: TackText.monoLabelSmall.copyWith(
+                        color: const Color(0xB3FFFFFF),
+                      ),
+                    ),
+                    const SizedBox(height: TackSpace.sm),
+                    Text(
+                      data.field == null
+                          ? 'Here is where you could go'
+                          : data.field!,
+                      style: TackText.sectionHeader.copyWith(
+                        color: TackColors.white,
+                      ),
+                    ),
+                    const SizedBox(height: TackSpace.sm),
+                    Text(
+                      data.unsure
+                          ? 'You said you were not sure yet, so this is a wider '
+                                'list than usual. Nothing here commits you to '
+                                'anything.'
+                          : 'Ranked by how well each one fits what you have '
+                                'already told us.',
+                      style: TackText.bodyMuted.copyWith(
+                        color: const Color(0xD1FFFFFF),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: TackSpace.stackLoose),
+
+            for (final suggestion in data.suggestions) ...[
+              TackReveal(
+                index: step++,
+                child: SuggestionCard(
+                  suggestion: suggestion,
+                  onOpen: () => onOpenPath(suggestion.slug),
+                ),
+              ),
+              const SizedBox(height: TackSpace.stack),
+            ],
+
+            const SizedBox(height: TackSpace.sm),
+            TackButton.ghost('See all career paths', onPressed: onBrowse),
+            const SizedBox(height: TackSpace.xl),
+          ],
+        );
+      },
     );
   }
 }
