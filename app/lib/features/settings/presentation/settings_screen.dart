@@ -5,6 +5,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../../core/failure.dart';
 import '../../../core/offline/sync.dart';
+import '../../../core/policy_links.dart';
 import '../../../core/supabase/client.dart';
 import '../../../design/tack.dart';
 import '../../../routing/router.dart';
@@ -282,6 +283,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   const TackDivider(),
                 ],
                 _Row(label: 'Made for', value: 'Bangladeshi students'),
+                const TackDivider(),
+                _Tap(
+                  label: 'Privacy policy',
+                  hint: 'What we hold, and what leaves our database',
+                  onTap: () => PolicyLinks.open(context, PolicyLinks.privacy),
+                ),
+                const TackDivider(),
+                _Tap(
+                  label: 'Terms of use',
+                  hint: 'What Tack promises, and what it does not',
+                  onTap: () => PolicyLinks.open(context, PolicyLinks.terms),
+                ),
               ],
             ),
           ),

@@ -70,4 +70,6 @@ a policy or a migration.
 - `docs/DASHBOARD_FEED.md` — the home screen's one RPC, its shape, and the two
   places it used to contradict itself
 - `docs/DEPLOY.md` — what is live and what still needs a human
+- `PRIVACY.md` and `TERMS.md` — what Tack holds, what leaves the database,
+  and what the app does and does not promise
 - `design/DESIGN_HANDOFF.md` — colours, type, spacing and every screen's intent

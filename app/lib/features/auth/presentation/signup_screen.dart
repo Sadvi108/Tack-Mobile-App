@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/policy_links.dart';
 import '../../../design/tack.dart';
 import '../../../routing/router.dart';
 import '../application/auth_controller.dart';
@@ -169,12 +170,12 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                   ),
                 ),
                 const SizedBox(width: TackSpace.sm),
-                Expanded(
-                  child: Text(
-                    'Your CV and certificates stay private. Only you can see them.',
-                    style: TackText.meta.copyWith(fontSize: 13.5),
-                  ),
-                ),
+                // Consent belongs at the moment of consent, but this screen
+                // must fit 360x640 with no scrolling and has no spare height —
+                // a separate line overflowed it by 35px. So the links join the
+                // privacy promise that was already here, which is the same
+                // subject anyway.
+                const Expanded(child: PolicyNote()),
               ],
             ),
             const SizedBox(height: TackSpace.xs),

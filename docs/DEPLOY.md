@@ -8,64 +8,86 @@ edited to contain one.
 
 ## What is already live
 
-The database is fully migrated against the project in `supabase/.env`:
-44 migrations, Row Level Security forced on every table, reference data
-seeded, and two cron jobs scheduled (`tack-worker` every two minutes,
-`tack-nightly` at 18:20 UTC — just after midnight in Dhaka).
+Checked against the project rather than remembered, on 3 September 2026.
 
-The cron bearer secret and the functions base URL are in Supabase Vault under
-`tack_cron_secret` and `tack_functions_url`. They are read at call time, so
-rotating the secret is a Vault update and needs no code change:
+- **65 migrations applied.** Row Level Security forced on every table,
+  reference data seeded.
+- **All seven Edge Functions deployed and `ACTIVE`**: `analyze-jd`, `coach`,
+  `delete-account`, `interview`, `radar`, `score-cv`, and `worker`.
+- **Three cron jobs**, all active: `tack-worker` every two minutes,
+  `tack-score-drain` every minute, `tack-nightly` at 18:20 UTC — just after
+  midnight in Dhaka.
+- **Region `ap-northeast-2` (Seoul).** Worth knowing: student data is stored
+  outside Bangladesh, and [PRIVACY.md](../PRIVACY.md) says so.
+
+The cron bearer secret and the functions base URL live in Supabase Vault under
+`tack_cron_secret` and `tack_functions_url`, read at call time — so rotating
+the secret is a Vault update and needs no code change:
 
 ```bash
 node tool/set_vault_secrets.js
 ```
 
+## EXECUTE is deny-by-default
+
+Since `0063`–`0065`, a function in `public` is **not** reachable from the app
+until it is granted to `authenticated` by name.
+
+This matters when you add one. Postgres grants `EXECUTE` on every new function
+to `PUBLIC`, and Supabase separately pre-grants `anon` and `authenticated`;
+an event trigger (`tack_revoke_public_execute`) now strips `PUBLIC` and `anon`
+as each function is created. `ALTER DEFAULT PRIVILEGES` cannot do this — it
+does not suppress Postgres's built-in default, which was measured, not assumed.
+
+So: write the function, add an explicit `grant execute … to authenticated` if
+the client needs it, list it in [API.md](API.md), and run:
+
+```bash
+node tool/verify_rpc_surface.js
+```
+
+That check caught a real regression the day it was written.
+
 ## Still to do by a human
 
-**Edge Functions are written and type-checked but not yet deployed.** They
-need the Supabase CLI authenticated against the project, which requires a
-personal access token that only you can create.
+These need credentials or a dashboard, and cannot be done from the repository.
 
-```bash
-brew install supabase/tap/supabase
-```
-
-```bash
-supabase login
-```
-
-```bash
-supabase link --project-ref uvwmjeqymychlsybekxz
-```
-
-Set the function secrets. These are names only — take the values from your own
+**Secrets that are not set yet.** Names only — take the values from your own
 `supabase/.env`, and do not paste them into a chat, a commit, or a ticket:
-
-```bash
-supabase secrets set GEMINI_API_KEY AI_PROVIDER CRON_SECRET
-```
-
-Radar needs one more, and works without it in a reduced form:
 
 ```bash
 supabase secrets set CAREERJET_API_KEY CAREERJET_LOCALE
 ```
 
-`CAREERJET_LOCALE` defaults to `en_BD`. Without the key, Radar still runs on
-the free AI jobs board and says so on screen — "one board is off" — rather than
+`CAREERJET_LOCALE` should be `en_BD`. Without the key, Radar still runs on the
+four free boards and says so on screen — "one board is off" — rather than
 showing an empty list as though there were no work in the world. Careerjet is
 the one that actually covers Bangladesh, so until it is set the feed is mostly
 senior roles abroad.
 
-Then deploy:
+**`AI_PROVIDER` must be decided before a beta.** It should stay `mock` for
+development. If it is still `mock` when real students arrive, the coach, CV
+scoring, JD analysis and interview practice will all answer with fixtures.
+
+**Crash reporting is off until a DSN is set.** A beta with no crash reports
+wastes the beta. See [SENTRY.md](SENTRY.md) for what it sends.
+
+**Leaked-password protection** is disabled. One toggle in Authentication →
+Settings; it checks new passwords against HaveIBeenPwned.
+
+**Google sign-in** needs enabling in Authentication → Providers → Google, with
+`com.tack.app://auth-callback` in the allowed redirect URLs.
+
+## Deploying a function
+
+The CLI needs a personal access token and the project ref. The import map is
+not optional — without it the bundler cannot resolve `@supabase/supabase-js`
+and the deploy fails with a confusing relative-import error:
 
 ```bash
-supabase functions deploy analyze-jd interview score-cv radar
-```
-
-```bash
-supabase functions deploy worker --no-verify-jwt
+supabase functions deploy <name> \
+  --project-ref uvwmjeqymychlsybekxz \
+  --import-map supabase/functions/deno.json
 ```
 
 **The worker is deployed separately and without JWT verification, on purpose.**
@@ -73,54 +95,61 @@ supabase functions deploy worker --no-verify-jwt
 <CRON_SECRET>`, which is a shared secret and not a JWT. With verification on,
 Supabase's gateway answers 401 before the function runs, the queue silently
 never drains, and every CV sits in `processing` until the nightly sweep fails
-it. The function is not unprotected — `isWorkerAuthorised` does a
-constant-time compare of that same secret as its first act.
+it. The function is not unprotected — `isWorkerAuthorised` does a constant-time
+compare of that same secret as its first act.
 
-`score-cv` is new and the CV score does not work without it. Until it is
-deployed, uploading a CV saves the file and then tells the student Tack could
-not start reading it — which is honest, but it is not the feature.
+```bash
+supabase functions deploy worker --no-verify-jwt \
+  --project-ref uvwmjeqymychlsybekxz \
+  --import-map supabase/functions/deno.json
+```
 
-Then check it actually works, rather than assuming:
+## Checks before shipping
+
+Run these, do not assume them.
+
+```bash
+cd app && flutter analyze && flutter test
+```
+
+```bash
+cd supabase/functions && deno fmt --check && deno lint \
+  && deno check analyze-jd/index.ts coach/index.ts delete-account/index.ts \
+       interview/index.ts radar/index.ts score-cv/index.ts worker/index.ts
+```
+
+Live checks against real throwaway accounts, each of which cleans up after
+itself:
+
+```bash
+node tool/verify_rpc_surface.js      # nothing reachable without signing in
+node tool/verify_db.js               # RLS: one student cannot read another
+node tool/verify_storage.js          # documents, signed URLs, orphaned objects
+node tool/verify_onboarding.js       # the school-student branch end to end
+node tool/verify_delete_account.js   # deletion really deletes, files included
+node tool/verify_dashboard.js
+node tool/verify_roadmap.js
+node tool/verify_radar.js
+```
+
+Run `verify_db` and `verify_rpc_surface` after **any** migration that touches a
+policy, a grant, or a function.
+
+The one that exercises Supabase's Edge Runtime rather than plain Deno — which
+matters because the OCR engine wants Node worker threads:
 
 ```bash
 deno run --allow-all --config supabase/functions/deno.json tool/verify_deployed.ts
 ```
 
-That creates a throwaway student, uploads a photograph of a CV through the real
-endpoint, waits for the cron worker, and asserts a score came back — then
-deletes the account. It is the only check that exercises Supabase's Edge
-Runtime rather than plain Deno, which matters because the OCR engine wants Node
-worker threads and whether it gets them there has never been tested. If it
-cannot start, the run says so specifically instead of leaving you to guess.
-
-The `worker` function must be redeployed at the same time: the CV parsing and
-rescoring handlers live in it, and it now sweeps jobs abandoned by a killed
-worker before each drain.
-
-`AI_PROVIDER` should stay `mock` until you deliberately want live model calls.
-Flip it to `gemini` for a single test, then set it back.
-
-Crash reporting is optional and off until a DSN is set — see
-[SENTRY.md](SENTRY.md) for what it sends and how to switch it on.
-
-Google sign-in also needs enabling in the Supabase dashboard under
-Authentication → Providers → Google, with `com.tack.app://auth-callback` added
-to the allowed redirect URLs.
-
-## Putting a build on a phone
-
-TestFlight, signing, and the QR for the install link are in
-[TESTFLIGHT.md](TESTFLIGHT.md). The Edge Functions above have to be deployed
-first, or a CV uploads and then cannot be read.
+Do not run the live scripts back to back in a tight loop: they each create
+throwaway auth users, and Supabase rate-limits that. A failure that disappears
+on a re-run is usually this, not a regression.
 
 ## The app
 
 Build configuration comes from `--dart-define-from-file`, so no key is ever
 read from a file on the device.
-
-```bash
-cd app && flutter build apk --release --dart-define-from-file=env/prod.json
-```
 
 ```bash
 cd app && flutter build appbundle --release --dart-define-from-file=env/prod.json
@@ -130,25 +159,10 @@ cd app && flutter build appbundle --release --dart-define-from-file=env/prod.jso
 keep it off version control.
 
 Android release signing needs `android/key.properties` and a keystore, both
-gitignored. iOS needs a team id in Xcode.
+gitignored. **Back the keystore up somewhere you will still have in two
+years** — losing it means never being able to update this app again.
 
-## Checks before shipping
-
-```bash
-cd app && flutter analyze && flutter test
-```
-
-```bash
-cd supabase/functions && deno check analyze-jd/index.ts worker/index.ts interview/index.ts && deno test _shared/
-```
-
-```bash
-node tool/verify_db.js && node tool/verify_storage.js
-```
-
-The last one creates two throwaway users, tries to make one read the other's
-data, and deletes them again. Run it after any migration that touches a
-policy.
+TestFlight, signing and the install QR are in [TESTFLIGHT.md](TESTFLIGHT.md).
 
 ## Rolling back
 
