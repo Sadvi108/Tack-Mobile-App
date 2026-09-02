@@ -7,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:tack/core/offline/local_db.dart';
 import 'package:tack/core/offline/sync.dart';
 import 'package:tack/core/supabase/client.dart';
+import 'package:tack/design/tack.dart';
 import 'package:tack/features/profile/data/education_stage.dart';
 import 'package:tack/features/profile/data/profile.dart';
 import 'package:tack/features/profile/data/profile_repository.dart';
@@ -105,6 +106,58 @@ void main() {
 
     expect(hasOverflow(tester), isFalse);
     expect(tester.getSize(find.byType(SettingsScreen)).width, 360);
+  });
+
+  testWidgets('deleting an account takes more than one tap', (tester) async {
+    await pumpAt(tester, const SettingsScreen(), overrides: overrides());
+    await tester.pumpAndSettle();
+
+    final list = find.byType(Scrollable).first;
+    await tester.scrollUntilVisible(
+      find.text('Delete my account'),
+      200,
+      scrollable: list,
+    );
+    await tester.tap(find.text('Delete my account'));
+    await tester.pumpAndSettle();
+
+    // The sheet's own button carries the same label, so there are two now.
+    expect(find.text('Type DELETE to confirm'), findsOneWidget);
+
+    final confirm = find.widgetWithText(TackButton, 'Delete my account').last;
+    expect(
+      tester.widget<TackButton>(confirm).onPressed,
+      isNull,
+      reason: 'the confirm button must be dead until the word is typed',
+    );
+
+    await tester.enterText(find.byType(TackTextField), 'delete');
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<TackButton>(confirm).onPressed,
+      isNotNull,
+      reason: 'typing the word arms it, whatever case the keyboard used',
+    );
+  });
+
+  testWidgets('a near miss does not arm the button', (tester) async {
+    await pumpAt(tester, const SettingsScreen(), overrides: overrides());
+    await tester.pumpAndSettle();
+
+    final list = find.byType(Scrollable).first;
+    await tester.scrollUntilVisible(
+      find.text('Delete my account'),
+      200,
+      scrollable: list,
+    );
+    await tester.tap(find.text('Delete my account'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TackTextField), 'delet');
+    await tester.pumpAndSettle();
+
+    final confirm = find.widgetWithText(TackButton, 'Delete my account').last;
+    expect(tester.widget<TackButton>(confirm).onPressed, isNull);
   });
 
   testWidgets('the whole screen scrolls, so nothing is stranded off-screen', (
