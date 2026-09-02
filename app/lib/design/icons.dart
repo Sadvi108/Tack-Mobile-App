@@ -79,8 +79,27 @@ class TackIcons {
       '<path d="M20 12a8 8 0 1 1-2.4-5.7"/><polyline points="20,4 20,9 15,9"/>';
   static const externalLink =
       '<path d="M14 4h6v6"/><path d="M20 4 11 13"/><path d="M18 14v5.5A1.5 1.5 0 0 1 16.5 21h-11A1.5 1.5 0 0 1 4 19.5v-11A1.5 1.5 0 0 1 5.5 7H11"/>';
+
+  /// A six-toothed cog.
+  ///
+  /// The first attempt was a ring with eight radial spokes, which is the
+  /// universal drawing of *brightness*, not settings — a button that opened
+  /// settings looked like it toggled the theme. The teeth here are joined to
+  /// the body by straight flanks rather than floating off it, which is the
+  /// whole difference between a gear and a sun.
+  ///
+  /// Six teeth on an 8.8 radius rather than eight on 9.6: the denser version
+  /// carried more stroke than the bell and shield it sits beside and read a
+  /// weight heavier than the rest of the set.
   static const settings =
-      '<circle cx="12" cy="12" r="3.4"/><path d="M12 2.5v2.6M12 18.9v2.6M21.5 12h-2.6M5.1 12H2.5M18.7 5.3l-1.8 1.8M7.1 16.9l-1.8 1.8M18.7 18.7l-1.8-1.8M7.1 7.1 5.3 5.3"/>';
+      '<path d="M10.32 3.36A8.8 8.8 0 0 1 13.68 3.36L13.55 6.2A6.0 6.0 0 0 1 '
+      '16.24 7.76L18.64 6.23A8.8 8.8 0 0 1 20.32 9.14L17.8 10.45A6.0 6.0 0 0 '
+      '1 17.8 13.55L20.32 14.86A8.8 8.8 0 0 1 18.64 17.77L16.24 16.24A6.0 6.0 '
+      '0 0 1 13.55 17.8L13.68 20.64A8.8 8.8 0 0 1 10.32 20.64L10.45 17.8A6.0 '
+      '6.0 0 0 1 7.76 16.24L5.36 17.77A8.8 8.8 0 0 1 3.68 14.86L6.2 13.55A6.0 '
+      '6.0 0 0 1 6.2 10.45L3.68 9.14A8.8 8.8 0 0 1 5.36 6.23L7.76 7.76A6.0 '
+      '6.0 0 0 1 10.45 6.2L10.32 3.36Z"/>'
+      '<circle cx="12" cy="12" r="3"/>';
 
   static const logout =
       '<path d="M15 4h3.5A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5H15"/><path d="M11 16l4-4-4-4"/><path d="M15 12H4"/>';
