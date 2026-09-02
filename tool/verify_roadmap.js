@@ -184,6 +184,58 @@ const states = async (pg, roadmapId) =>
     ok('and the score returned to where it was',
       Math.abs(back - before) < 1e-9, `${before} -> ${back}`);
 
+    console.log('\n7b. changing your mind keeps the work');
+    // Re-follow the path so there is something to cancel, with progress on it.
+    await pg.query(
+      `insert into public.user_career_paths (user_id, path_id, is_primary) values ($1,$2,false)
+       on conflict (user_id, path_id) do update set deleted_at = null`, [a.id, qa.id]);
+    const qaRoadmap = await asUser(a.token, '/rest/v1/rpc/generate_roadmap', {
+      method: 'POST', body: JSON.stringify({ p_path_id: qa.id }),
+    }).then(r => r.json());
+    await pg.query(
+      `update public.roadmap_tasks set is_done = true where id in (
+         select t.id from public.roadmap_tasks t
+           join public.roadmap_milestones m on m.id = t.milestone_id
+          where m.roadmap_id = $1 and t.deleted_at is null limit 4)`, [qaRoadmap]);
+
+    const stopped = await asUser(a.token, '/rest/v1/rpc/stop_following_path', {
+      method: 'POST', body: JSON.stringify({ p_path_id: qa.id }),
+    });
+    ok('a student can stop following from the app', stopped.status === 200,
+      `status ${stopped.status}`);
+
+    const { rows: [gone2] } = await pg.query(
+      `select count(*)::int n from public.roadmaps
+        where id = $1 and deleted_at is not null`, [qaRoadmap]);
+    ok('the roadmap is retired with it', gone2.n === 1, `${gone2.n}`);
+
+    const { rows: [kept] } = await pg.query(
+      `select count(*) filter (where t.is_done)::int done from public.roadmap_tasks t
+         join public.roadmap_milestones m on m.id = t.milestone_id
+        where m.roadmap_id = $1`, [qaRoadmap]);
+    ok('the finished steps are kept, not deleted', kept.done === 4, `${kept.done}`);
+
+    // Following it again has to bring the same roadmap back, not build a
+    // second one, or the promise the confirm dialog makes is a lie.
+    await pg.query(
+      `update public.user_career_paths set deleted_at = null
+        where user_id = $1 and path_id = $2`, [a.id, qa.id]);
+    const again = await asUser(a.token, '/rest/v1/rpc/generate_roadmap', {
+      method: 'POST', body: JSON.stringify({ p_path_id: qa.id }),
+    }).then(r => r.json());
+    ok('following again restores the same roadmap', again === qaRoadmap,
+      `${again} vs ${qaRoadmap}`);
+    const { rows: [still] } = await pg.query(
+      `select count(*) filter (where t.is_done)::int done from public.roadmap_tasks t
+         join public.roadmap_milestones m on m.id = t.milestone_id
+        where m.roadmap_id = $1 and t.deleted_at is null`, [qaRoadmap]);
+    ok('with the progress still on it', still.done === 4, `${still.done}`);
+
+    // Tidy up so section 8 starts from a known state.
+    await asUser(a.token, '/rest/v1/rpc/stop_following_path', {
+      method: 'POST', body: JSON.stringify({ p_path_id: qa.id }),
+    });
+
     console.log('\n8. a half-built roadmap cannot be handed back forever');
     // The wreckage the old four-round-trip generator left: a roadmaps row with
     // nothing underneath it, cached by the idempotency guard.

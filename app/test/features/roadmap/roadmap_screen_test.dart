@@ -52,6 +52,7 @@ Roadmap roadmap({
 }) => Roadmap(
   id: 'r1',
   title: title,
+  pathId: 'path-1',
   skippedCount: skipped,
   milestones:
       milestones ??
@@ -464,6 +465,103 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('changing your mind', () {
+    testWidgets('there is a way out from the roadmap itself', (tester) async {
+      // Until now unfollowing lived only on the path detail screen, several
+      // taps away, and the roadmap tab had no exit at all.
+      await pumpAt(
+        tester,
+        const RoadmapScreen(),
+        size: const Size(360, 2000),
+        overrides: overrides([roadmap()]),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Stop following this path'), findsOneWidget);
+    });
+
+    testWidgets('it promises the progress is kept, and names how much', (
+      tester,
+    ) async {
+      // Measured against the live database: cancelling and re-following
+      // restores roadmap_progress to exactly what it was, so the copy can
+      // say so rather than hedging.
+      await pumpAt(
+        tester,
+        const RoadmapScreen(),
+        size: const Size(360, 2000),
+        overrides: overrides([roadmap()]),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Stop following this path'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Stop following this path'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Stop following Frontend developer?'), findsOneWidget);
+      expect(
+        bodyText(tester),
+        contains('Your 2 finished steps are kept'),
+      );
+      expect(bodyText(tester), contains('comes back exactly as it is now'));
+    });
+
+    testWidgets('with nothing done it does not promise kept progress', (
+      tester,
+    ) async {
+      await pumpAt(
+        tester,
+        const RoadmapScreen(),
+        size: const Size(360, 2000),
+        overrides: overrides([
+          roadmap(
+            milestones: [
+              milestone(
+                'Not started',
+                state: MilestoneState.active,
+                order: 0,
+                tasks: [task('Something')],
+              ),
+            ],
+          ),
+        ]),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Stop following this path'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Stop following this path'));
+      await tester.pumpAndSettle();
+
+      final text = bodyText(tester);
+      expect(text, contains('back to suggesting paths'));
+      expect(text, isNot(contains('finished steps are kept')));
+    });
+
+    testWidgets('the confirm can be backed out of', (tester) async {
+      await pumpAt(
+        tester,
+        const RoadmapScreen(),
+        size: const Size(360, 2000),
+        overrides: overrides([roadmap()]),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Stop following this path'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Stop following this path'));
+      await tester.pumpAndSettle();
+      expect(find.text('Cancel'), findsOneWidget);
+
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+
+      // Still on the roadmap, nothing changed.
+      expect(find.byType(JourneyLine), findsNWidgets(3));
     });
   });
 }

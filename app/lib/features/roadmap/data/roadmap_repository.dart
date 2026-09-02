@@ -79,6 +79,22 @@ class RoadmapRepository {
     }
   }
 
+  /// Stops following a path, retiring its roadmap with it.
+  ///
+  /// Nothing is destroyed. The roadmap is soft-deleted by a trigger and every
+  /// ticked step survives, so following the path again restores it exactly as
+  /// it was. That is what makes this safe to offer as a button.
+  Future<void> stopFollowing(String pathId) async {
+    try {
+      await _db.rpc<bool>(
+        'stop_following_path',
+        params: {'p_path_id': pathId},
+      );
+    } catch (e) {
+      throw Failure.from(e);
+    }
+  }
+
   /// Reads the student and ranks the paths that fit them.
   Future<PathAdvice> advice() async {
     try {

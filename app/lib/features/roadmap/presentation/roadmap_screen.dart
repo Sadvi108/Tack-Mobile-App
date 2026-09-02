@@ -157,6 +157,49 @@ class _RoadmapScreenState extends ConsumerState<RoadmapScreen> {
     if (mounted) TackToast.show(context, message: 'Removed.');
   }
 
+  /// Changing your mind. Nothing is destroyed — the roadmap is retired and
+  /// every ticked step survives, so following the path again brings it all
+  /// back. The copy says so, because a button that sounds like it deletes
+  /// three weeks of work is one nobody presses even when they should.
+  Future<void> _stopFollowing(Roadmap roadmap) async {
+    final pathId = roadmap.pathId;
+    if (pathId == null) return;
+
+    final sure = await confirmTackAction(
+      context,
+      title: 'Stop following ${roadmap.title}?',
+      body: roadmap.doneCount == 0
+          ? 'It comes off your roadmap and Tack goes back to suggesting paths. '
+                'You can pick it up again at any time.'
+          : 'Your ${roadmap.doneCount} finished '
+                '${roadmap.doneCount == 1 ? 'step is' : 'steps are'} kept. If '
+                'you follow it again later it comes back exactly as it is now.',
+      confirmLabel: 'Stop following it',
+    );
+    if (!sure || !mounted) return;
+
+    try {
+      await ref.read(roadmapRepositoryProvider).stopFollowing(pathId);
+      ref
+        ..invalidate(roadmapsProvider)
+        ..invalidate(pathAdviceProvider)
+        ..invalidate(readinessProvider);
+      if (!mounted) return;
+      setState(() => _selected = 0);
+      TackToast.show(
+        context,
+        message: 'Stopped. Here are some other paths.',
+      );
+    } catch (e) {
+      if (!mounted) return;
+      TackToast.show(
+        context,
+        message: Failure.from(e).message,
+        kind: TackToastKind.error,
+      );
+    }
+  }
+
   Future<void> _addTask(String milestoneId) async {
     final controller = TextEditingController();
     final title = await showTackSheet<String>(
@@ -339,6 +382,15 @@ class _RoadmapScreenState extends ConsumerState<RoadmapScreen> {
                   ),
                 ),
 
+              // At the end of the route rather than beside the progress
+              // figure: leaving is a decision somebody arrives at after
+              // reading what is left, not a control to put next to the number
+              // that is meant to encourage them.
+              const SizedBox(height: TackSpace.sm),
+              TackButton.ghost(
+                'Stop following this path',
+                onPressed: () => _stopFollowing(roadmap),
+              ),
               const SizedBox(height: TackSpace.xl),
             ],
           );
