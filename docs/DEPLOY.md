@@ -65,6 +65,23 @@ showing an empty list as though there were no work in the world. Careerjet is
 the one that actually covers Bangladesh, so until it is set the feed is mostly
 senior roles abroad.
 
+**Push notifications need a Firebase project.** Nothing about push works
+until then, and nothing breaks either: `send_push` jobs finish with
+`{"skipped":"fcm not configured"}` rather than dead-lettering, and the in-app
+inbox fills normally. To switch it on:
+
+1. Create a Firebase project and add an Android app with the applicationId
+   `com.tack.tack`.
+2. Put `google-services.json` in `app/android/app/`, and add
+   `firebase_messaging` plus the `com.google.gms.google-services` Gradle plugin.
+   **Until that file exists the Android build fails**, which is why the client
+   half is not wired yet.
+3. Give the server the service account, whole:
+
+```bash
+supabase secrets set FCM_SERVICE_ACCOUNT
+```
+
 **`AI_PROVIDER` must be decided before a beta.** It should stay `mock` for
 development. If it is still `mock` when real students arrive, the coach, CV
 scoring, JD analysis and interview practice will all answer with fixtures.
@@ -127,6 +144,7 @@ node tool/verify_db.js               # RLS: one student cannot read another
 node tool/verify_storage.js          # documents, signed URLs, orphaned objects
 node tool/verify_onboarding.js       # the school-student branch end to end
 node tool/verify_delete_account.js   # deletion really deletes, files included
+node tool/verify_notifications.js    # the inbox, the digest and its daily cap
 node tool/verify_dashboard.js
 node tool/verify_roadmap.js
 node tool/verify_radar.js
