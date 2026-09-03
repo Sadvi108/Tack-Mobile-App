@@ -24,11 +24,16 @@ class TackNotification {
   bool get isUnread => readAt == null;
 
   /// Where tapping it should take the student.
+  ///
+  /// Every `type` written by `public.notify()` needs a case here. A missing one
+  /// is not an error — it lands on the dashboard — but it wastes the tap, which
+  /// for a reminder is the whole point of sending it.
   String get route => switch (type) {
     'analysis_ready' => '/analyser',
     'cv_parsed' => '/vault',
     'deadline' => '/applications',
     'score_changed' => '/score',
+    'step_due' => '/roadmap',
     _ => '/home',
   };
 

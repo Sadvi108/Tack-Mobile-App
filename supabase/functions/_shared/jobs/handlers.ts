@@ -18,6 +18,7 @@ import {
   jdAnalysisShape,
 } from "../ai/schemas.ts";
 import { extractDocument, UnreadableDocument } from "../cv/extract.ts";
+import { isConfigured, sendTo } from "../push/fcm.ts";
 import { measure } from "../cv/metrics.ts";
 
 export type Handler = (
@@ -120,12 +121,14 @@ export const handlers: Record<string, Handler> = {
       { onConflict: "user_id,analysis_id" },
     );
 
-    await service.from("notifications").insert({
-      user_id: userId,
-      type: "analysis_ready",
-      title: "Your job analysis is ready",
-      body: `You match ${match.matchPercent}% of what this role asks for.`,
-      payload: { analysis_id: analysisId },
+    await service.rpc("notify", {
+      p_user_id: userId,
+      p_type: "analysis_ready",
+      p_title: "Your job analysis is ready",
+      p_body: `You match ${match.matchPercent}% of what this role asks for.`,
+      p_payload: { analysis_id: analysisId },
+      // Keyed on the analysis, so a retried job does not tell them twice.
+      p_dedupe_key: `analysis:${analysisId}`,
     });
 
     return { analysisId, matchPercent: match.matchPercent };
@@ -190,12 +193,13 @@ export const handlers: Record<string, Handler> = {
           .from("documents")
           .update({ status: "failed", failure_reason: error.studentMessage })
           .eq("id", documentId);
-        await service.from("notifications").insert({
-          user_id: userId,
-          type: "cv_parsed",
-          title: "Tack could not read that CV",
-          body: error.studentMessage,
-          payload: { document_id: documentId },
+        await service.rpc("notify", {
+          p_user_id: userId,
+          p_type: "cv_parsed",
+          p_title: "Tack could not read that CV",
+          p_body: error.studentMessage,
+          p_payload: { document_id: documentId },
+          p_dedupe_key: `cv_unreadable:${documentId}`,
         });
         return { unreadable: true };
       }
@@ -270,14 +274,15 @@ export const handlers: Record<string, Handler> = {
       .limit(1)
       .maybeSingle();
 
-    await service.from("notifications").insert({
-      user_id: userId,
-      type: "cv_parsed",
-      title: "Your CV score is ready",
-      body: score
+    await service.rpc("notify", {
+      p_user_id: userId,
+      p_type: "cv_parsed",
+      p_title: "Your CV score is ready",
+      p_body: score
         ? `Your CV scores ${score.score_10} out of 10 for the field you are aiming at.`
         : "Tack has read your CV.",
-      payload: { document_id: documentId },
+      p_payload: { document_id: documentId },
+      p_dedupe_key: `cv_scored:${documentId}`,
     });
 
     return {
@@ -317,6 +322,66 @@ export const handlers: Record<string, Handler> = {
     if (error) throw error;
 
     return { rescored: documentId };
+  },
+
+  /**
+   * Delivers a notification that `notify()` has already written to the inbox.
+   *
+   * Returns rather than throws in every ordinary "could not send" case. The
+   * in-app notification exists either way, so a phone that has uninstalled the
+   * app, or a project with no FCM credentials, is not a failure of the work —
+   * and treating it as one would retry each digest three times before
+   * dead-lettering it, once per student, every night.
+   */
+  send_push: async (service, job) => {
+    const userId = job.user_id;
+    if (!userId) return { skipped: "no user" };
+    if (!isConfigured()) return { skipped: "fcm not configured" };
+
+    const { data: devices } = await service
+      .from("device_tokens")
+      .select("token")
+      .eq("user_id", userId);
+
+    if (!devices || devices.length === 0) {
+      return { skipped: "no devices" };
+    }
+
+    const message = {
+      title: String(job.payload.title ?? "Tack"),
+      body: job.payload.body == null ? null : String(job.payload.body),
+      // FCM data values must all be strings.
+      data: { type: String(job.payload.type ?? "general") },
+    };
+
+    let sent = 0;
+    const stale: string[] = [];
+    const errors: string[] = [];
+
+    for (const device of devices) {
+      const outcome = await sendTo(device.token, message);
+      if (outcome.ok) {
+        sent++;
+      } else if (outcome.stale) {
+        stale.push(device.token);
+      } else {
+        errors.push(outcome.error);
+      }
+    }
+
+    // A token FCM has rejected as unregistered will never work again. Removing
+    // it here is the only thing that stops it being retried nightly forever.
+    if (stale.length > 0) {
+      await service.from("device_tokens").delete().in("token", stale);
+    }
+
+    // Every device failed for a reason that might not repeat — rate limiting,
+    // FCM being briefly unavailable. That is worth the queue's backoff.
+    if (sent === 0 && errors.length > 0) {
+      throw new Error(errors[0]);
+    }
+
+    return { sent, removed: stale.length };
   },
 };
 

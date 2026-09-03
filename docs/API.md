@@ -94,6 +94,14 @@ Called by `roadmap/data/roadmap_repository.dart`, `paths/data/path_repository.da
 
 Called by `radar/data/radar_repository.dart`.
 
+### Notifications
+
+| Function | Returns | Notes |
+|---|---|---|
+| `register_device(p_token text, p_platform text)` | `void` | Records this install against the signed-in student. Upserts on the token, so a reinstall or a second account on a shared phone reassigns it rather than leaving the previous owner receiving somebody else's reminders. |
+
+`notify()` and `enqueue_daily_digest()` are **not** client-callable — see below.
+
 ### Coach
 
 | Function | Returns | Notes |
@@ -240,6 +248,11 @@ Never granted to `authenticated`, and deliberately so:
   `derive_career_field`, `tack_activity`, `tack_week_summary`.
 - **Radar indexing** — `extract_listing_skills`, `reindex_listing_skills`,
   `reindex_listings`, `prune_job_listings`.
+- **Notifications** — `notify`, `enqueue_daily_digest`. `notify()` is the only
+  way a notification is made: it writes the in-app row *and* enqueues the push
+  in one transaction, deduplicated on a key, so the phone can never announce
+  something the inbox cannot show. A student who could call it could put a
+  message in somebody else's inbox, so they cannot.
 
 `tack_week_summary` is the cautionary one: it was granted, then revoked in
 `0047`, because it took a user id as an argument.
