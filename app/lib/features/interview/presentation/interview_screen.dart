@@ -30,7 +30,7 @@ class _InterviewScreenState extends ConsumerState<InterviewScreen> {
     final session = _session;
 
     if (session == null) {
-      return _Setup(busy: _busy, onStart: _start);
+      return _Setup(busy: _busy, onStart: _start, onStartPack: _startPack);
     }
     if (session.isComplete) {
       return _Summary(
@@ -43,6 +43,33 @@ class _InterviewScreenState extends ConsumerState<InterviewScreen> {
       onAnswered: (updated) => setState(() => _session = updated),
       onFinished: _complete,
     );
+  }
+
+  /// Starting from a company pack.
+  ///
+  /// Separate from [_start] because it touches no Edge Function and no model:
+  /// the questions are seeded reference data, so this is an insert and
+  /// nothing else.
+  Future<void> _startPack(CompanyPack pack, bool timer) async {
+    setState(() => _busy = true);
+    try {
+      final session = await ref
+          .read(interviewRepositoryProvider)
+          .startFromPack(pack: pack, timerEnabled: timer);
+      if (!mounted) return;
+      setState(() {
+        _session = session;
+        _busy = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _busy = false);
+      TackToast.show(
+        context,
+        message: Failure.from(e).message,
+        kind: TackToastKind.error,
+      );
+    }
   }
 
   Future<void> _start({
@@ -99,7 +126,11 @@ class _InterviewScreenState extends ConsumerState<InterviewScreen> {
 }
 
 class _Setup extends ConsumerStatefulWidget {
-  const _Setup({required this.busy, required this.onStart});
+  const _Setup({
+    required this.busy,
+    required this.onStart,
+    required this.onStartPack,
+  });
 
   final bool busy;
   final void Function({
@@ -109,6 +140,8 @@ class _Setup extends ConsumerStatefulWidget {
     required bool timer,
   })
   onStart;
+
+  final void Function(CompanyPack pack, bool timer) onStartPack;
 
   @override
   ConsumerState<_Setup> createState() => _SetupState();
@@ -246,6 +279,64 @@ class _SetupState extends ConsumerState<_Setup> {
                 ),
               ],
             ),
+          ),
+
+          // The question a student actually has the night before is not
+          // "behavioural or technical" — it is "I have an interview at bKash
+          // on Thursday". This costs no quota at all: the questions are seeded
+          // and the session is written straight to the tables.
+          Consumer(
+            builder: (context, ref, _) {
+              final packs = ref.watch(companyPacksProvider).value ?? const [];
+              if (packs.isEmpty) return const SizedBox.shrink();
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: TackSpace.xl),
+                  Text(
+                    'Interviewing somewhere specific?',
+                    style: TackText.sectionHeader,
+                  ),
+                  const SizedBox(height: TackSpace.xs),
+                  Text(
+                    'What each is known to ask. Free — these do not use one of '
+                    'your daily AI actions.',
+                    style: TackText.bodyMuted,
+                  ),
+                  const SizedBox(height: TackSpace.md),
+                  for (final pack in packs)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: TackSpace.row),
+                      child: TackCard(
+                        compact: true,
+                        onTap: () => widget.onStartPack(pack, _timer),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(pack.name, style: TackText.rowTitle),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '${pack.questions.length} questions',
+                                    style: TackText.meta,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            TackIcon(
+                              TackIcons.chevronRight,
+                              size: 18,
+                              color: TackColors.muted,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
           ),
 
           if (history.isNotEmpty) ...[

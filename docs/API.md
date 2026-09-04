@@ -224,14 +224,22 @@ from the content-addressed cache at `200`, free.
 
 ### `interview`
 
-Two actions on one function.
+Two actions, chosen by the **path**, not by a field in the body:
 
-```json
-{ "action": "questions", "role": "Backend developer", "sessionType": "mixed" }
-{ "action": "evaluate", "questionId": "uuid", "answer": "…" }
+```
+POST /functions/v1/interview/questions
+{ "role": "Backend developer", "sessionType": "mixed",
+  "difficulty": "medium", "count": 5 }
+
+POST /functions/v1/interview/evaluate
+{ "questionId": "uuid", "answer": "…" }
 ```
 
 → `{questions, cached, quotaRemaining}` and `{feedback, quotaRemaining}`.
+
+`cached: true` means the questions came from `interview_question_bank` and cost
+no quota. Since `0069` seeded all 90 combinations, that is every request the
+app can make — the model is only reached for a role the app does not offer.
 
 ### `worker`
 
