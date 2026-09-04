@@ -334,6 +334,20 @@ class _Dashboard extends ConsumerWidget {
               const SizedBox(height: TackSpace.stackLoose),
             ],
 
+            // Interview practice and the job-description analyser are whole
+            // features that nothing in the app navigated to. They had routes
+            // and screens and no door: the only way in was a deep link, which
+            // is also why their back arrows had never worked.
+            reveal(
+              padded(
+                _GetReady(
+                  onInterview: () => context.push(Routes.interview),
+                  onAnalyse: () => context.push(Routes.analyser),
+                ),
+              ),
+            ),
+            const SizedBox(height: TackSpace.stackLoose),
+
             padded(const PrivacyNote()),
             const SizedBox(height: TackSpace.xl),
           ],
@@ -651,4 +665,83 @@ class _DashboardLoading extends StatelessWidget {
       ),
     );
   }
+}
+
+/// The two tools that had no way in.
+///
+/// Deliberately last on the dashboard and deliberately quiet: neither is
+/// something a student does daily, and both are what you reach for when an
+/// interview is actually coming. Putting them above the roadmap would suggest
+/// otherwise.
+class _GetReady extends StatelessWidget {
+  const _GetReady({required this.onInterview, required this.onAnalyse});
+
+  final VoidCallback onInterview;
+  final VoidCallback onAnalyse;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text('When it gets real', style: TackText.sectionHeader),
+      const SizedBox(height: TackSpace.md),
+      TackCard(
+        child: Column(
+          children: [
+            _Tool(
+              icon: TackIcons.practice,
+              title: 'Practise an interview',
+              body: 'Real questions for your role. Free — no daily limit.',
+              onTap: onInterview,
+            ),
+            const TackDivider(),
+            _Tool(
+              icon: TackIcons.file,
+              title: 'Check a job description',
+              body: 'Paste one in and see what you already match.',
+              onTap: onAnalyse,
+            ),
+          ],
+        ),
+      ),
+    ],
+  );
+}
+
+class _Tool extends StatelessWidget {
+  const _Tool({
+    required this.icon,
+    required this.title,
+    required this.body,
+    required this.onTap,
+  });
+
+  final String icon;
+  final String title;
+  final String body;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => TackTapRow(
+    onTap: onTap,
+    child: Row(
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(right: TackSpace.md),
+          child: TackIcon(icon, size: 21, color: TackColors.maroonText),
+        ),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: TackText.rowTitle),
+              const SizedBox(height: 2),
+              Text(body, style: TackText.meta),
+            ],
+          ),
+        ),
+        TackIcon(TackIcons.chevronRight, size: 18, color: TackColors.muted),
+      ],
+    ),
+  );
 }

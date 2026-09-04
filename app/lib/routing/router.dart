@@ -224,3 +224,22 @@ final routerProvider = Provider<GoRouter>((ref) {
     ),
   );
 });
+
+/// Goes back, and always goes somewhere.
+///
+/// `context.pop()` does nothing when there is nothing to pop, which leaves a
+/// dead back arrow — and there is nothing to pop more often than it looks.
+/// A screen opened with `context.go()` replaces the stack rather than growing
+/// it; a notification tap, a deep link and a cold start on a route all arrive
+/// with no history at all. The interview screen was reachable only that way,
+/// so its back arrow had never worked.
+///
+/// [fallback] is where the student should end up when there is no history: the
+/// screen they would have come from, had they come from anywhere.
+void tackBack(BuildContext context, {String fallback = Routes.home}) {
+  if (context.canPop()) {
+    context.pop();
+  } else {
+    context.go(fallback);
+  }
+}

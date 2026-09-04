@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/failure.dart';
 import '../../../design/tack.dart';
+import '../../../routing/router.dart';
 import '../data/coach_models.dart';
 import '../data/coach_repository.dart';
 
@@ -120,7 +121,7 @@ class _CoachScreenState extends ConsumerState<CoachScreen> {
       scrollable: false,
       header: TackHeader(
         title: 'Your coach',
-        onBack: () => Navigator.of(context).maybePop(),
+        onBack: () => tackBack(context),
         trailing: remaining == null ? null : _Allowance(remaining: remaining),
       ),
       // Outside the scroll region, which is what keeps it reachable with a

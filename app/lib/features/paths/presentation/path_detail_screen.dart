@@ -74,11 +74,17 @@ class _PathDetailScreenState extends ConsumerState<PathDetailScreen> {
 
     return matches.when(
       loading: () => TackScaffold(
-        header: TackHeader(title: 'Path', onBack: () => context.pop()),
+        header: TackHeader(
+          title: 'Path',
+          onBack: () => tackBack(context, fallback: Routes.paths),
+        ),
         body: const TackSkeleton(height: 320, radius: 20),
       ),
       error: (_, _) => TackScaffold(
-        header: TackHeader(title: 'Path', onBack: () => context.pop()),
+        header: TackHeader(
+          title: 'Path',
+          onBack: () => tackBack(context, fallback: Routes.paths),
+        ),
         body: TackErrorState(
           body: 'This path did not load. Check your connection and try again.',
           onRetry: () => ref.invalidate(careerPathsProvider),
@@ -88,7 +94,10 @@ class _PathDetailScreenState extends ConsumerState<PathDetailScreen> {
         final match = all.where((m) => m.path.slug == widget.slug).firstOrNull;
         if (match == null) {
           return TackScaffold(
-            header: TackHeader(title: 'Path', onBack: () => context.pop()),
+            header: TackHeader(
+              title: 'Path',
+              onBack: () => tackBack(context, fallback: Routes.paths),
+            ),
             body: const TackErrorState(
               title: 'That path is not here',
               body: 'Go back to the list and pick another one.',
@@ -100,7 +109,10 @@ class _PathDetailScreenState extends ConsumerState<PathDetailScreen> {
         final following = chosen.any((c) => c.pathId == path.id);
 
         return TackScaffold(
-          header: TackHeader(title: path.title, onBack: () => context.pop()),
+          header: TackHeader(
+            title: path.title,
+            onBack: () => tackBack(context, fallback: Routes.paths),
+          ),
           pinnedCta: following
               ? TackButton.secondary(
                   'Stop following',

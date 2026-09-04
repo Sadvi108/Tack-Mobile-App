@@ -189,7 +189,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     return TackScaffold(
       header: TackHeader(
         title: 'Settings',
-        onBack: () => Navigator.of(context).maybePop(),
+        onBack: () => tackBack(context, fallback: Routes.profile),
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

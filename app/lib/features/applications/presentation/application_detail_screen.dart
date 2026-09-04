@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/failure.dart';
 import '../../../design/tack.dart';
+import '../../../routing/router.dart';
 import '../../score/data/score_repository.dart';
 import '../data/application_models.dart';
 import '../data/application_repository.dart';
@@ -39,11 +40,17 @@ class ApplicationDetailScreen extends ConsumerWidget {
 
     return applicationAsync.when(
       loading: () => TackScaffold(
-        header: TackHeader(title: 'Application', onBack: () => context.pop()),
+        header: TackHeader(
+          title: 'Application',
+          onBack: () => tackBack(context, fallback: Routes.applications),
+        ),
         body: const TackSkeleton(height: 260, radius: 20),
       ),
       error: (_, _) => TackScaffold(
-        header: TackHeader(title: 'Application', onBack: () => context.pop()),
+        header: TackHeader(
+          title: 'Application',
+          onBack: () => tackBack(context, fallback: Routes.applications),
+        ),
         body: TackErrorState(
           body:
               'This application did not load. Check your connection and try again.',
@@ -55,7 +62,7 @@ class ApplicationDetailScreen extends ConsumerWidget {
           return TackScaffold(
             header: TackHeader(
               title: 'Application',
-              onBack: () => context.pop(),
+              onBack: () => tackBack(context, fallback: Routes.applications),
             ),
             body: const TackErrorState(
               title: 'That application is gone',
@@ -69,7 +76,7 @@ class ApplicationDetailScreen extends ConsumerWidget {
         return TackScaffold(
           header: TackHeader(
             title: application.title,
-            onBack: () => context.pop(),
+            onBack: () => tackBack(context, fallback: Routes.applications),
             trailing: GestureDetector(
               onTap: () => _showMenu(context, ref, application),
               behavior: HitTestBehavior.opaque,

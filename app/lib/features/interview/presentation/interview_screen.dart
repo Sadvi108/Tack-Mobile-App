@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../core/failure.dart';
 import '../../../design/tack.dart';
+import '../../../routing/router.dart';
 import '../../profile/data/profile_repository.dart';
 import '../../score/data/score_repository.dart';
 import '../data/interview_models.dart';
@@ -187,7 +187,7 @@ class _SetupState extends ConsumerState<_Setup> {
     return TackScaffold(
       header: TackHeader(
         title: 'Interview practice',
-        onBack: () => context.pop(),
+        onBack: () => tackBack(context),
       ),
       pinnedCta: TackButton(
         'Start practising',
@@ -454,7 +454,7 @@ class _QuestionState extends ConsumerState<_Question> {
     return TackScaffold(
       header: TackHeader(
         title: 'Question ${index + 1} of ${session.questions.length}',
-        onBack: () => context.pop(),
+        onBack: () => tackBack(context),
         progress: SegmentedProgress(
           total: session.questions.length,
           current: index + 1,
@@ -712,7 +712,7 @@ class _Summary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TackScaffold(
-      header: TackHeader(title: 'How it went', onBack: () => context.pop()),
+      header: TackHeader(title: 'How it went', onBack: () => tackBack(context)),
       pinnedCta: TackButton('Practise again', onPressed: onAgain),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

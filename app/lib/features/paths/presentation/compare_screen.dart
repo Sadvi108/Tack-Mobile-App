@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../design/tack.dart';
+import '../../../routing/router.dart';
 import '../data/path_repository.dart';
 
 /// Two paths, side by side.
@@ -26,7 +27,7 @@ class ComparePathsScreen extends ConsumerWidget {
     return TackScaffold(
       header: TackHeader(
         title: 'Compare',
-        onBack: () => Navigator.of(context).pop(),
+        onBack: () => tackBack(context, fallback: Routes.paths),
       ),
       body: matches.when(
         loading: () => const TackSkeleton(height: 320, radius: 20),

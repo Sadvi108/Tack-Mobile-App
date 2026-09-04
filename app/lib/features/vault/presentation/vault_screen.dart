@@ -73,7 +73,7 @@ class VaultScreen extends ConsumerWidget {
               // can make one, and the empty Vault is exactly where they find
               // out they have nothing to upload.
               if (cvs.isEmpty) ...[
-                _BuildCvCard(onTap: () => context.go(Routes.cvBuilder)),
+                _BuildCvCard(onTap: () => context.push(Routes.cvBuilder)),
                 const SizedBox(height: TackSpace.stackLoose),
               ],
 

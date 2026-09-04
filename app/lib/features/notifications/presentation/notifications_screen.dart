@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../design/tack.dart';
+import '../../../routing/router.dart';
 import '../data/notification_repository.dart';
 
 class NotificationsScreen extends ConsumerWidget {
@@ -16,7 +17,7 @@ class NotificationsScreen extends ConsumerWidget {
     return TackScaffold(
       header: TackHeader(
         title: 'Updates',
-        onBack: () => context.pop(),
+        onBack: () => tackBack(context),
         trailing: unread == 0
             ? null
             : TackButton.ghost(

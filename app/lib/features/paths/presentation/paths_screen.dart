@@ -55,7 +55,7 @@ class _PathsScreenState extends ConsumerState<PathsScreen> {
     return TackScaffold(
       header: TackHeader(
         title: 'Career paths',
-        onBack: () => context.pop(),
+        onBack: () => tackBack(context),
         // Counted, not written down. "Ten real jobs" was true only until
         // somebody added an eleventh or retired one, and copy that states a
         // fact about the data has to read it.

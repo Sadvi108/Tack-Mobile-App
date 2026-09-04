@@ -182,7 +182,7 @@ class _CvBuilderScreenState extends ConsumerState<CvBuilderScreen> {
   Widget _shell({required Widget body, Widget? pinnedCta}) => TackScaffold(
     header: TackHeader(
       title: 'Build your CV',
-      onBack: () => Navigator.of(context).maybePop(),
+      onBack: () => tackBack(context, fallback: Routes.vault),
     ),
     pinnedCta: pinnedCta,
     body: body,

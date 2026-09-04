@@ -38,7 +38,7 @@ class _AnalyserScreenState extends ConsumerState<AnalyserScreen> {
     return TackScaffold(
       header: TackHeader(
         title: 'Job analyser',
-        onBack: () => context.pop(),
+        onBack: () => tackBack(context),
         trailing: state is AnalysisReady
             ? TackButton.ghost(
                 'New',
