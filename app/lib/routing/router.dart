@@ -21,6 +21,7 @@ import '../features/onboarding/presentation/intake_screen.dart';
 import '../features/paths/presentation/path_detail_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
 import '../features/radar/presentation/radar_screen.dart';
+import '../features/cv_builder/presentation/cv_builder_screen.dart';
 import '../features/settings/presentation/settings_screen.dart';
 import '../features/paths/presentation/paths_screen.dart';
 import '../features/roadmap/presentation/roadmap_screen.dart';
@@ -55,6 +56,7 @@ class Routes {
   static const interview = '/interview';
   static const notifications = '/notifications';
   static const settings = '/settings';
+  static const cvBuilder = '/cv-builder';
 
   static String application(String id) => '/applications/$id';
   static String path(String slug) => '/paths/$slug';
@@ -200,6 +202,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: Routes.settings,
         builder: (context, state) => const SettingsScreen(),
+      ),
+      GoRoute(
+        path: Routes.cvBuilder,
+        builder: (context, state) => const CvBuilderScreen(),
       ),
       GoRoute(
         path: Routes.notifications,

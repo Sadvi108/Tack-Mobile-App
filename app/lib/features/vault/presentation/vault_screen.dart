@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mime/mime.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -64,6 +65,15 @@ class VaultScreen extends ConsumerWidget {
             children: [
               if (upload.busy || upload.failure != null) ...[
                 _UploadCard(state: upload),
+                const SizedBox(height: TackSpace.stackLoose),
+              ],
+
+              // Offered wherever the absence is felt, not buried in a menu.
+              // A student with no CV is the one who most needs to be told Tack
+              // can make one, and the empty Vault is exactly where they find
+              // out they have nothing to upload.
+              if (cvs.isEmpty) ...[
+                _BuildCvCard(onTap: () => context.go(Routes.cvBuilder)),
                 const SizedBox(height: TackSpace.stackLoose),
               ],
 
@@ -688,4 +698,36 @@ class _DocumentRow extends StatelessWidget {
       ),
     );
   }
+}
+
+/// The offer to build a CV, shown when the student has none.
+///
+/// Deliberately not a plain button. A student who has never written a CV does
+/// not know that Tack already holds everything one needs, and "Upload your CV"
+/// is a dead end for them — this says where the content comes from.
+class _BuildCvCard extends StatelessWidget {
+  const _BuildCvCard({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => TackCard(
+    background: TackColors.maroonTint,
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('NO CV YET', style: TackText.monoLabelSmall),
+        const SizedBox(height: TackSpace.xs),
+        Text('Tack can build one for you', style: TackText.cardTitle),
+        const SizedBox(height: TackSpace.sm),
+        Text(
+          'From what is already on your profile — your course, your skills, '
+          'anything you have built. You choose what goes on it.',
+          style: TackText.bodyMuted,
+        ),
+        const SizedBox(height: TackSpace.md),
+        TackButton('Build my CV', onPressed: onTap),
+      ],
+    ),
+  );
 }
