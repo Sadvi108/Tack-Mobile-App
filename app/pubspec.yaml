@@ -48,6 +48,8 @@ dependencies:
   # tables — Sentry is here for alerting and symbolicated stack traces, which
   # a database table cannot give you at 2am.
   sentry_flutter: ^9.7.0
+  pdf: ^3.13.0
+  printing: ^5.15.0
 
 dev_dependencies:
   flutter_test:

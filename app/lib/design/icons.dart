@@ -101,6 +101,13 @@ class TackIcons {
       '6.0 0 0 1 10.45 6.2L10.32 3.36Z"/>'
       '<circle cx="12" cy="12" r="3"/>';
 
+  /// Three stacked rules — the universal "drag me" affordance.
+  ///
+  /// Distinct from [more] on purpose: vertical dots mean "there are options
+  /// here", and a row that offers both a reorder grip and a remove button
+  /// cannot afford the ambiguity.
+  static const dragHandle = '<path d="M4 8h16M4 12h16M4 16h16"/>';
+
   static const logout =
       '<path d="M15 4h3.5A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5H15"/><path d="M11 16l4-4-4-4"/><path d="M15 12H4"/>';
   static const star =
