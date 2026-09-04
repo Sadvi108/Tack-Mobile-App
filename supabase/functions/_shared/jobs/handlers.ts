@@ -19,6 +19,7 @@ import {
 } from "../ai/schemas.ts";
 import { extractDocument, UnreadableDocument } from "../cv/extract.ts";
 import { isConfigured, sendTo } from "../push/fcm.ts";
+import { readRepo } from "../verify/github.ts";
 import { measure } from "../cv/metrics.ts";
 
 export type Handler = (
@@ -322,6 +323,42 @@ export const handlers: Record<string, Handler> = {
     if (error) throw error;
 
     return { rescored: documentId };
+  },
+
+  /**
+   * Turns a claimed repository into a verified one.
+   *
+   * Never fails the job for a repository that is gone or private — that is a
+   * fact about the project, recorded as `missing`, and retrying it three times
+   * would not make it exist. Only a transport failure or GitHub's rate limit
+   * throws, because those are worth another attempt later.
+   */
+  verify_project: async (service, job) => {
+    const projectId = job.payload.project_id as string;
+    const repoUrl = job.payload.repo_url as string;
+    if (!projectId || !repoUrl) return { skipped: "no project" };
+
+    const facts = await readRepo(repoUrl);
+
+    await service.from("project_verifications").upsert({
+      project_id: projectId,
+      provider: "github",
+      state: facts.state,
+      stars: facts.stars ?? null,
+      language: facts.language ?? null,
+      last_push_at: facts.lastPushAt ?? null,
+      checked_at: new Date().toISOString(),
+      error: facts.error ?? null,
+    }, { onConflict: "project_id" });
+
+    // Recorded first, then thrown: the row says why it is not verified even
+    // while the retry is pending, so the student is never left looking at a
+    // silent "pending" with no explanation.
+    if (facts.state === "error") {
+      throw new Error(facts.error ?? "github failed");
+    }
+
+    return { state: facts.state, stars: facts.stars };
   },
 
   /**

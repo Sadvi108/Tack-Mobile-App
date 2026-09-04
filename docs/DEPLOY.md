@@ -82,6 +82,30 @@ inbox fills normally. To switch it on:
 supabase secrets set FCM_SERVICE_ACCOUNT
 ```
 
+**The public profile page has no front door.** `public_profile()`, handles,
+the visibility settings and GitHub repo verification are all built, applied and
+verified — but the page itself is not usable yet, and there is no way to publish
+one from the app on purpose.
+
+Supabase's gateway rewrites **every** Edge Function response to
+`content-type: text/plain` and injects `sandbox` into the
+`content-security-policy`. Measured on both the 200 and the 404 path:
+
+```
+content-type: text/plain
+content-security-policy: default-src 'none'; sandbox
+```
+
+That is an anti-phishing measure on `*.supabase.co` and it cannot be overridden
+from inside the function — the HTML it returns is correct and escaped, but a
+browser displays it as source. A page that renders as source code is not a page
+a student can send to an employer.
+
+The fix is to serve it from a domain we control: a ~20-line Cloudflare Worker
+or Vercel function that fetches `/functions/v1/profile/<handle>` and re-serves
+the body as `text/html`. Free on either. Until then `profiles.is_public`
+defaults to false, no screen sets it, and nothing is exposed.
+
 **`AI_PROVIDER` must be decided before a beta.** It should stay `mock` for
 development. If it is still `mock` when real students arrive, the coach, CV
 scoring, JD analysis and interview practice will all answer with fixtures.

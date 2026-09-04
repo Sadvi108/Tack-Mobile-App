@@ -102,6 +102,22 @@ Called by `radar/data/radar_repository.dart`.
 
 `notify()` and `enqueue_daily_digest()` are **not** client-callable — see below.
 
+### Public profile
+
+| Function | Returns | Notes |
+|---|---|---|
+| `handle_available(p_handle text)` | `boolean` | Shape, reserved list and uniqueness in one answer. |
+| `set_handle(p_handle text)` | `void` | Claims a handle and creates default visibility settings. |
+
+`public_profile(p_handle text)` is **not** client-callable: the `profile` Edge
+Function reads it as `service_role`. That is what keeps "nothing of ours is
+anon-callable" true while still serving a page to somebody who is not signed
+in. It never selects the phone number, under any setting — the filter is in
+SQL, where it is enforced by the query rather than by remembering to delete
+keys in the renderer.
+
+**The page is not served yet** — see DEPLOY.md.
+
 ### Coach
 
 | Function | Returns | Notes |
