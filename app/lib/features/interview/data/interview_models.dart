@@ -174,3 +174,32 @@ class InterviewSession {
     );
   }
 }
+
+/// An employer a student is likely to be interviewing with.
+///
+/// Seeded, not user-generated: what bKash asks is a fact about bKash, and
+/// letting students write these would turn a reference into a rumour.
+class CompanyPack {
+  const CompanyPack({
+    required this.slug,
+    required this.name,
+    required this.about,
+    required this.questions,
+  });
+
+  final String slug;
+  final String name;
+  final String about;
+  final List<String> questions;
+
+  factory CompanyPack.fromRow(Map<String, dynamic> row) => CompanyPack(
+    slug: row['slug'] as String,
+    name: row['name'] as String,
+    about: (row['about'] as String?) ?? '',
+    questions: ((row['questions'] as List?) ?? const [])
+        .cast<Map<String, dynamic>>()
+        .map((q) => (q['question'] as String?) ?? '')
+        .where((q) => q.isNotEmpty)
+        .toList(growable: false),
+  );
+}

@@ -56,6 +56,69 @@ class InterviewRepository {
     }
   }
 
+  /// The employers students actually apply to, and what each is known to ask.
+  ///
+  /// Seeded reference data, readable by any signed-in student. No model is
+  /// involved at any point.
+  Future<List<CompanyPack>> companyPacks() async {
+    try {
+      final rows = await _db
+          .from('company_interview_packs')
+          .select('slug, name, about, questions')
+          .order('name');
+      return rows.map(CompanyPack.fromRow).toList(growable: false);
+    } catch (e) {
+      throw Failure.from(e);
+    }
+  }
+
+  /// Starts a session from a company pack.
+  ///
+  /// Written straight into the tables rather than through the Edge Function:
+  /// the questions are already here, so a round trip to a server whose only
+  /// job would be to hand them back is a round trip for nothing. It also means
+  /// this works with no quota and no network beyond the insert.
+  Future<InterviewSession> startFromPack({
+    required CompanyPack pack,
+    required bool timerEnabled,
+  }) async {
+    try {
+      final session = await _db
+          .from('interview_sessions')
+          .insert({
+            'user_id': _uid,
+            'role': pack.name,
+            'session_type': InterviewType.mixed.name,
+            'difficulty': Difficulty.medium.name,
+            'timer_enabled': timerEnabled,
+            'question_count': pack.questions.length,
+          })
+          .select('id')
+          .single();
+
+      final sessionId = session['id'] as String;
+
+      await _db.from('interview_questions').insert([
+        for (var i = 0; i < pack.questions.length; i++)
+          {
+            'session_id': sessionId,
+            'user_id': _uid,
+            'order_index': i,
+            'question': pack.questions[i],
+            'category': 'company',
+          },
+      ]);
+
+      final created = await byId(sessionId);
+      if (created == null) {
+        throw const Failure('The session could not be opened.');
+      }
+      return created;
+    } catch (e) {
+      throw Failure.from(e);
+    }
+  }
+
   /// Starts a session. Question sets are cached server-side by role, type and
   /// difficulty, so a repeat setup usually costs no quota at all.
   Future<InterviewSession> start({
@@ -218,3 +281,8 @@ final interviewHistoryProvider = FutureProvider<List<InterviewSession>>((
   if (!ref.watch(isSignedInProvider)) return const [];
   return ref.watch(interviewRepositoryProvider).history();
 });
+
+/// The seeded employer packs. Reference data, so it is fetched once and kept.
+final companyPacksProvider = FutureProvider<List<CompanyPack>>(
+  (ref) => ref.watch(interviewRepositoryProvider).companyPacks(),
+);
