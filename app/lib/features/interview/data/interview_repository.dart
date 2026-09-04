@@ -65,7 +65,9 @@ class InterviewRepository {
       final rows = await _db
           .from('company_interview_packs')
           .select('slug, name, about, questions')
-          .order('name');
+          // ascending explicitly: the Dart client's order() defaults to
+          // descending, which listed these Shohoz-first on the device.
+          .order('name', ascending: true);
       return rows.map(CompanyPack.fromRow).toList(growable: false);
     } catch (e) {
       throw Failure.from(e);

@@ -148,8 +148,14 @@ class _Setup extends ConsumerStatefulWidget {
 }
 
 class _SetupState extends ConsumerState<_Setup> {
-  late String _role =
-      ref.read(profileProvider).value?.targetRole ?? 'Frontend developer';
+  /// Null until the student picks one, so the default can follow their target
+  /// role once the profile resolves.
+  ///
+  /// This was a `late` field initialised from `ref.read` on first build, which
+  /// meant that if the profile had not loaded yet — the ordinary case, it is a
+  /// FutureProvider — every student was offered "Frontend developer" whatever
+  /// they were actually aiming at.
+  String? _picked;
   InterviewType _type = InterviewType.mixed;
   Difficulty _difficulty = Difficulty.medium;
 
@@ -173,6 +179,10 @@ class _SetupState extends ConsumerState<_Setup> {
   Widget build(BuildContext context) {
     final history =
         ref.watch(interviewHistoryProvider).value ?? const <InterviewSession>[];
+    final role =
+        _picked ??
+        ref.watch(profileProvider).value?.targetRole ??
+        'Frontend developer';
 
     return TackScaffold(
       header: TackHeader(
@@ -183,7 +193,7 @@ class _SetupState extends ConsumerState<_Setup> {
         'Start practising',
         loading: widget.busy,
         onPressed: () => widget.onStart(
-          role: _role,
+          role: role,
           type: _type,
           difficulty: _difficulty,
           timer: _timer,
@@ -196,7 +206,7 @@ class _SetupState extends ConsumerState<_Setup> {
           const SizedBox(height: TackSpace.sm),
           TackSelectField<String>(
             hint: 'Choose a role',
-            value: _role,
+            value: role,
             valueLabel: (r) => r,
             onTap: () async {
               final picked = await showTackSheet<String>(
@@ -218,7 +228,7 @@ class _SetupState extends ConsumerState<_Setup> {
                   ],
                 ),
               );
-              if (picked != null) setState(() => _role = picked);
+              if (picked != null) setState(() => _picked = picked);
             },
           ),
           const SizedBox(height: TackSpace.lg),

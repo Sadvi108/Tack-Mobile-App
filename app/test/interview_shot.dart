@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tack/features/interview/data/interview_models.dart';
 import 'package:tack/features/interview/data/interview_repository.dart';
