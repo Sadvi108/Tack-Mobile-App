@@ -60,17 +60,39 @@ class CoachRepository {
     }
   }
 
-  /// How many of today's three are left, without spending one.
-  Future<int> remaining() async {
+  /// Today's allowance, without spending any of it.
+  ///
+  /// The limit comes from the server. It used to be read and thrown away while
+  /// the screen printed a hardcoded 3, so raising it in the database would
+  /// have left the app confidently telling students the wrong number.
+  Future<AiAllowance> allowance() async {
     try {
       final row = await _db.rpc<Map<String, dynamic>>('coach_allowance');
-      final used = (row['used'] as num?)?.toInt() ?? 0;
-      final limit = (row['limit'] as num?)?.toInt() ?? 3;
-      return (limit - used).clamp(0, limit);
+      return AiAllowance(
+        used: (row['used'] as num?)?.toInt() ?? 0,
+        limit: (row['limit'] as num?)?.toInt() ?? 0,
+      );
     } catch (e) {
       throw Failure.from(e);
     }
   }
+}
+
+/// What is left of today's shared AI allowance.
+///
+/// Shared is the important word: the same pool is spent by the coach, by
+/// having a CV read properly, by a job-description analysis and by having an
+/// interview answer read. It was only ever shown on the coach screen, labelled
+/// "coach questions", so a student who spent it elsewhere found the coach
+/// empty with no explanation.
+class AiAllowance {
+  const AiAllowance({required this.used, required this.limit});
+
+  final int used;
+  final int limit;
+
+  int get remaining => (limit - used).clamp(0, limit);
+  bool get isSpent => remaining == 0;
 }
 
 final coachRepositoryProvider = Provider<CoachRepository>(
@@ -84,7 +106,11 @@ final coachHistoryProvider = FutureProvider<(String?, List<ChatMessage>)>((
   return ref.watch(coachRepositoryProvider).latestThread();
 });
 
-final coachRemainingProvider = FutureProvider<int>((ref) async {
-  if (!ref.watch(isSignedInProvider)) return 0;
-  return ref.watch(coachRepositoryProvider).remaining();
+/// Today's shared AI allowance. Watched anywhere an action might be spent,
+/// not only by the coach.
+final aiAllowanceProvider = FutureProvider<AiAllowance>((ref) async {
+  if (!ref.watch(isSignedInProvider)) {
+    return const AiAllowance(used: 0, limit: 0);
+  }
+  return ref.watch(coachRepositoryProvider).allowance();
 });

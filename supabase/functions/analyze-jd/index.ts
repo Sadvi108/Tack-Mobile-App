@@ -1,7 +1,6 @@
 import { requireUser, serviceClient } from "../_shared/util/auth.ts";
 import { fail, json, preflight } from "../_shared/util/http.ts";
 import {
-  DAILY_AI_QUOTA,
   hashText,
   quotaRemaining,
 } from "../_shared/ai/gateway.ts";
@@ -74,7 +73,7 @@ Deno.serve(async (req) => {
   const remaining = await quotaRemaining(service, auth.userId);
   if (remaining <= 0) {
     return fail(
-      `You have used your ${DAILY_AI_QUOTA} analyses for today. They reset at midnight.`,
+      "You have used today's AI actions. They reset at midnight.",
       429,
       "quota_exhausted",
     );

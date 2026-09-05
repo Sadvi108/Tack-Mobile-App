@@ -86,7 +86,7 @@ class _CoachScreenState extends ConsumerState<CoachScreen> {
           );
         }
       });
-      ref.invalidate(coachRemainingProvider);
+      ref.invalidate(aiAllowanceProvider);
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -115,14 +115,14 @@ class _CoachScreenState extends ConsumerState<CoachScreen> {
   Widget build(BuildContext context) {
     final history = ref.watch(coachHistoryProvider);
     history.whenData(_adoptHistory);
-    final remaining = ref.watch(coachRemainingProvider).value;
+    final allowance = ref.watch(aiAllowanceProvider).value;
 
     return TackScaffold(
       scrollable: false,
       header: TackHeader(
         title: 'Your coach',
         onBack: () => tackBack(context),
-        trailing: remaining == null ? null : _Allowance(remaining: remaining),
+        trailing: allowance == null ? null : _Allowance(allowance: allowance),
       ),
       // Outside the scroll region, which is what keeps it reachable with a
       // thumb once the keyboard is open.
@@ -163,17 +163,27 @@ class _CoachScreenState extends ConsumerState<CoachScreen> {
   }
 }
 
-/// Three a day, visible before you type rather than after you run out.
+/// Visible before you type rather than after you run out.
+///
+/// Both numbers come from the server. The limit used to be hardcoded here as
+/// 3 while the database was free to hold a different one — raising it would
+/// have left this confidently wrong.
+///
+/// It says "AI actions", not "coach questions": the pool is shared with having
+/// a CV read properly, a job description analysed, and an interview answer
+/// read, and a student who spends it there should not arrive here puzzled.
 class _Allowance extends StatelessWidget {
-  const _Allowance({required this.remaining});
+  const _Allowance({required this.allowance});
 
-  final int remaining;
+  final AiAllowance allowance;
 
   @override
   Widget build(BuildContext context) {
-    final none = remaining == 0;
+    final none = allowance.isSpent;
     return Semantics(
-      label: '$remaining of 3 coach questions left today',
+      label:
+          '${allowance.remaining} of ${allowance.limit} AI actions left '
+          'today, shared across Tack',
       excludeSemantics: true,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
@@ -182,7 +192,7 @@ class _Allowance extends StatelessWidget {
           borderRadius: TackRadius.pillAll,
         ),
         child: Text(
-          '$remaining of 3',
+          '${allowance.remaining} of ${allowance.limit}',
           style: TackText.pill.copyWith(
             color: none ? TackColors.muted : TackColors.tealText,
           ),

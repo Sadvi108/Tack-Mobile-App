@@ -146,7 +146,7 @@ Deno.serve(async (req) => {
       spent: false,
       // Said as a trade that keeps Tack free, never as a punishment.
       limit:
-        `You have used your ${DAILY_AI_QUOTA} coach questions for today. ` +
+        "You have used today's AI actions. They are shared across Tack. " +
         `They reset tomorrow. Questions about your score, skills and roadmap ` +
         `are always free — try asking one of those.`,
     }, 200);

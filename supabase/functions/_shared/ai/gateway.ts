@@ -4,7 +4,20 @@ import { CompletionRequest, selectProvider } from "./provider.ts";
 import { validate } from "./schemas.ts";
 
 /** Three AI actions a day, per student. */
-export const DAILY_AI_QUOTA = 3;
+/**
+ * A fallback, not the rule.
+ *
+ * The daily allowance lives in `ai_daily_limit()` in the database, which
+ * `consume_quota` and `quota_remaining` read for themselves — a caller passing
+ * a different number can no longer grant itself a different allowance. This
+ * constant is only the optimistic value used before the first round trip, and
+ * `p_limit` is passed for signature compatibility and ignored server-side.
+ *
+ * Nothing a student reads should name a number from here; the messages say
+ * "today's AI actions" so there is one place to change it and no way for the
+ * two to disagree.
+ */
+export const DAILY_AI_QUOTA = 10;
 
 export interface GatewayOutcome {
   data: unknown;

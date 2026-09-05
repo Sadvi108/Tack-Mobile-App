@@ -20,7 +20,7 @@ ChatMessage msg(String role, String body, {String? answeredBy}) => ChatMessage(
 
 List<Override> overrides({
   List<ChatMessage> history = const [],
-  int remaining = 3,
+  int remaining = 10,
 }) => [
   localDbProvider.overrideWith((ref) {
     final db = LocalDb(NativeDatabase.memory());
@@ -32,7 +32,9 @@ List<Override> overrides({
   coachHistoryProvider.overrideWith(
     (ref) async => (history.isEmpty ? null : 't1', history),
   ),
-  coachRemainingProvider.overrideWith((ref) async => remaining),
+  aiAllowanceProvider.overrideWith(
+    (ref) async => AiAllowance(used: 10 - remaining, limit: 10),
+  ),
 ];
 
 String bodyText(WidgetTester tester) => tester
@@ -73,7 +75,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('2 of 3'), findsOneWidget);
+    expect(find.text('2 of 10'), findsOneWidget);
   });
 
   testWidgets('every reply says whether it cost anything', (tester) async {
@@ -152,6 +154,6 @@ void main() {
     for (final blame in ['too many', 'exceeded', 'denied', 'blocked']) {
       expect(text.contains(blame), isFalse, reason: 'must not say "$blame"');
     }
-    expect(find.text('0 of 3'), findsOneWidget);
+    expect(find.text('0 of 10'), findsOneWidget);
   });
 }
