@@ -63,9 +63,9 @@ class CoachReply {
 
 /// The questions Tack can always answer for nothing.
 ///
-/// Shown on the empty screen because the allowance is three a day, and a
-/// student who does not know which questions are free will spend all three
-/// before they learn. Every one of these is answered from their own numbers.
+/// Shown on the empty screen because a student who does not know which
+/// questions are free will spend the allowance before they learn. Every one of
+/// these is answered from their own numbers, so none of them costs anything.
 const freeQuestions = <String>[
   'What should I do next?',
   'How am I doing?',

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/failure.dart';
 import '../../../design/tack.dart';
+import '../../coach/data/coach_repository.dart';
 import '../../../routing/router.dart';
 import '../application/analyser_controller.dart';
 import '../data/analysis_models.dart';
@@ -33,7 +34,8 @@ class _AnalyserScreenState extends ConsumerState<AnalyserScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(analyserControllerProvider);
-    final remaining = ref.watch(analysisQuotaProvider).value;
+    final allowance = ref.watch(aiAllowanceProvider).value;
+    final remaining = allowance?.remaining;
 
     return TackScaffold(
       header: TackHeader(
@@ -69,7 +71,7 @@ class _AnalyserScreenState extends ConsumerState<AnalyserScreen> {
       body: switch (state) {
         AnalysisIdle() => _Input(
           controller: _text,
-          remaining: remaining,
+          allowance: allowance,
           onChanged: () => setState(() {}),
         ),
         AnalysisQueued() => const _Processing(),
@@ -80,6 +82,7 @@ class _AnalyserScreenState extends ConsumerState<AnalyserScreen> {
           exhausted
               ? TackQuotaState(
                   resetsAt: 'midnight',
+                  limit: allowance?.limit ?? 0,
                   onGoToRoadmap: () => context.go(Routes.roadmap),
                 )
               : TackErrorState(
@@ -125,17 +128,21 @@ class _AnalyserScreenState extends ConsumerState<AnalyserScreen> {
 class _Input extends StatelessWidget {
   const _Input({
     required this.controller,
-    required this.remaining,
+    required this.allowance,
     required this.onChanged,
   });
 
   final TextEditingController controller;
-  final int? remaining;
+  final AiAllowance? allowance;
   final VoidCallback onChanged;
 
   @override
   Widget build(BuildContext context) {
-    final left = remaining ?? AnalysisRepository.dailyQuota;
+    // Nothing is assumed while it loads: an optimistic number here is how a
+    // student ends up told they have actions they have already spent.
+    if (allowance == null) return const SizedBox.shrink();
+    final left = allowance!.remaining;
+    final limit = allowance!.limit;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -155,9 +162,9 @@ class _Input extends StatelessWidget {
               Expanded(
                 child: Text(
                   left > 0
-                      ? '$left of ${AnalysisRepository.dailyQuota} analyses left today. '
-                            'They reset at midnight.'
-                      : 'No analyses left today. They reset at midnight.',
+                      ? '$left of $limit AI actions left today, shared across '
+                            'Tack. They reset at midnight.'
+                      : 'No AI actions left today. They reset at midnight.',
                   style: TackText.bodyMuted,
                 ),
               ),

@@ -325,7 +325,10 @@ class _Bubble extends StatelessWidget {
               Text(
                 message.wasFree
                     ? 'From your own numbers · free'
-                    : 'Used one of your three',
+                    // Deliberately no number. It said "one of your three" when
+                    // the allowance was ten, which is how a caption becomes a
+                    // lie nobody notices.
+                    : 'Used one AI action',
                 style: TackText.meta.copyWith(fontSize: 12.5),
               ),
             ],

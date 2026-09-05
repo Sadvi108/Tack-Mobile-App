@@ -1,6 +1,10 @@
 import { requireUser, serviceClient } from "../_shared/util/auth.ts";
 import { fail, json, preflight } from "../_shared/util/http.ts";
-import { DAILY_AI_QUOTA, quotaRemaining } from "../_shared/ai/gateway.ts";
+import {
+  DAILY_AI_QUOTA,
+  QUOTA_BUCKET,
+  quotaRemaining,
+} from "../_shared/ai/gateway.ts";
 import { redact } from "../_shared/ai/redact.ts";
 import { selectProvider } from "../_shared/ai/provider.ts";
 import { answerFromData, type Context } from "../_shared/coach/router.ts";
@@ -130,7 +134,7 @@ Deno.serve(async (req) => {
   // "1 remaining" after their first question and "3" after their third.
   const { data: left, error: quotaError } = await service.rpc("consume_quota", {
     p_user_id: auth.userId,
-    p_bucket: "ai",
+    p_bucket: QUOTA_BUCKET,
     p_limit: DAILY_AI_QUOTA,
   });
 
@@ -145,8 +149,7 @@ Deno.serve(async (req) => {
       remaining: 0,
       spent: false,
       // Said as a trade that keeps Tack free, never as a punishment.
-      limit:
-        "You have used today's AI actions. They are shared across Tack. " +
+      limit: "You have used today's AI actions. They are shared across Tack. " +
         `They reset tomorrow. Questions about your score, skills and roadmap ` +
         `are always free — try asking one of those.`,
     }, 200);
@@ -202,7 +205,7 @@ Deno.serve(async (req) => {
     // student for a reply they never got.
     await service.rpc("refund_quota", {
       p_user_id: auth.userId,
-      p_bucket: "ai",
+      p_bucket: QUOTA_BUCKET,
     });
     return fail("The coach could not answer that just now. Try again.", 503);
   }

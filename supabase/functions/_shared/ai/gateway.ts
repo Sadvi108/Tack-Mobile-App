@@ -19,6 +19,20 @@ import { validate } from "./schemas.ts";
  */
 export const DAILY_AI_QUOTA = 10;
 
+/**
+ * The one bucket the allowance is counted in.
+ *
+ * It used to be two. The coach charged `ai` while everything routed through
+ * `runCompletion` — CV parsing, job-description analysis, interview feedback —
+ * charged `ai_actions`, and `coach_allowance()` only ever read `ai`. So a
+ * student silently had two separate budgets and the app showed them one of
+ * them, which meant the counter on the coach screen was accurate about the
+ * coach and wrong about everything else.
+ *
+ * Named here so a future feature cannot invent a third by typing a string.
+ */
+export const QUOTA_BUCKET = "ai";
+
 export interface GatewayOutcome {
   data: unknown;
   cached: boolean;
@@ -53,7 +67,7 @@ export async function runCompletion(
   if (options.consumeQuota ?? true) {
     const { data, error: quotaError } = await service.rpc("consume_quota", {
       p_user_id: userId,
-      p_bucket: "ai_actions",
+      p_bucket: QUOTA_BUCKET,
       p_limit: DAILY_AI_QUOTA,
     });
     if (quotaError) throw quotaError;
@@ -139,7 +153,7 @@ export async function quotaRemaining(
 ): Promise<number> {
   const { data } = await service.rpc("quota_remaining", {
     p_user_id: userId,
-    p_bucket: "ai_actions",
+    p_bucket: QUOTA_BUCKET,
     p_limit: DAILY_AI_QUOTA,
   });
   return (data as number | null) ?? DAILY_AI_QUOTA;

@@ -14,33 +14,12 @@ class AnalysisRepository {
 
   final SupabaseClient _db;
 
-  static const dailyQuota = 3;
-
   String get _uid {
     final id = _db.auth.currentUser?.id;
     if (id == null) {
       throw const Failure('You are signed out. Log in and try again.');
     }
     return id;
-  }
-
-  /// How many analyses are left today. Shown before the student starts, so
-  /// nobody burns a run by accident.
-  Future<int> remainingToday() async {
-    try {
-      final today = DateTime.now().toUtc();
-      final row = await _db
-          .from('rate_limits')
-          .select('count')
-          .eq('user_id', _uid)
-          .eq('bucket', 'ai_actions')
-          .eq('window_start', today.toIso8601String().substring(0, 10))
-          .maybeSingle();
-      final used = (row?['count'] as num?)?.toInt() ?? 0;
-      return (dailyQuota - used).clamp(0, dailyQuota);
-    } catch (e) {
-      throw Failure.from(e);
-    }
   }
 
   Future<AnalysisState> submit(String text) async {
@@ -54,7 +33,7 @@ class AnalysisRepository {
       if (response.status == 429) {
         return AnalysisFailed(
           _errorMessage(body) ??
-              'You have used your $dailyQuota analyses for today. They reset at midnight.',
+              'You have used today\'s AI actions. They reset at midnight.',
           quotaExhausted: true,
         );
       }
@@ -202,7 +181,7 @@ final analysisRepositoryProvider = Provider<AnalysisRepository>(
   (ref) => AnalysisRepository(ref.watch(supabaseProvider)),
 );
 
-final analysisQuotaProvider = FutureProvider<int>((ref) async {
-  if (!ref.watch(isSignedInProvider)) return 0;
-  return ref.watch(analysisRepositoryProvider).remainingToday();
-});
+/// Deliberately gone: the analyser used to count its own allowance against
+/// bucket `ai_actions` with a local `dailyQuota = 3`, while the coach counted
+/// `ai` and the database enforced something else again. Watch
+/// `aiAllowanceProvider` instead — one pool, one number, read from the server.

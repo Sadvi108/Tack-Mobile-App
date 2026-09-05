@@ -189,9 +189,18 @@ class TackErrorState extends StatelessWidget {
 /// The daily AI limit, explained as a tradeoff that keeps the app free rather
 /// than as a punishment, and pointing at work the student can still do.
 class TackQuotaState extends StatelessWidget {
-  const TackQuotaState({super.key, required this.resetsAt, this.onGoToRoadmap});
+  const TackQuotaState({
+    super.key,
+    required this.resetsAt,
+    required this.limit,
+    this.onGoToRoadmap,
+  });
 
   final String resetsAt;
+
+  /// Read from the server. Hardcoding it here is how the app came to tell
+  /// students a number the database had stopped agreeing with.
+  final int limit;
   final VoidCallback? onGoToRoadmap;
 
   @override
@@ -201,14 +210,12 @@ class TackQuotaState extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'You have used your 3 analyses for today',
-            style: TackText.cardTitle,
-          ),
+          Text('You have used today\'s AI actions', style: TackText.cardTitle),
           const SizedBox(height: TackSpace.sm),
           Text(
-            'Every student gets three a day, which is how Tack stays free for everyone. '
-            'Your next three arrive at $resetsAt.',
+            'Every student gets $limit a day, which is how Tack stays free for '
+            'everyone. Plenty here costs nothing at all — checking your CV, '
+            'practising interviews, Radar. Your next $limit arrive at $resetsAt.',
             style: TackText.bodyMuted,
           ),
           const SizedBox(height: TackSpace.lg),

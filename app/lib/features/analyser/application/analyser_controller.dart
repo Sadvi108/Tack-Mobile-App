@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/failure.dart';
 import '../data/analysis_models.dart';
+import '../../coach/data/coach_repository.dart';
 import '../data/analysis_repository.dart';
 
 /// Runs an analysis and follows it to completion.
@@ -32,7 +33,7 @@ class AnalyserController extends Notifier<AnalysisState> {
       final result = await ref.read(analysisRepositoryProvider).submit(text);
       state = result;
       // Quota is spent on submission, so refresh the count either way.
-      ref.invalidate(analysisQuotaProvider);
+      ref.invalidate(aiAllowanceProvider);
 
       if (result is AnalysisQueued && result.jobId != null) {
         _startPolling(result.jobId!);

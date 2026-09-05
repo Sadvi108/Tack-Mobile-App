@@ -95,7 +95,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('From your own numbers · free'), findsOneWidget);
-    expect(find.text('Used one of your three'), findsOneWidget);
+    expect(find.text('Used one AI action'), findsOneWidget);
   });
 
   testWidgets('a student line never claims to have cost anything', (
@@ -110,7 +110,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('From your own numbers · free'), findsNothing);
-    expect(find.text('Used one of your three'), findsNothing);
+    expect(find.text('Used one AI action'), findsNothing);
   });
 
   testWidgets('it lays out at the 360px floor without overflow', (

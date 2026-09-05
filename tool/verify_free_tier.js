@@ -162,6 +162,15 @@ function makePdf(lines) {
       `delete from public.rate_limits where user_id = $1 and bucket = 'probe_free'`,
       [student.id]);
 
+    // The coach charged bucket `ai` while everything through runCompletion
+    // charged `ai_actions`, and only `ai` was ever shown — so a student had two
+    // budgets and saw one. One bucket now, and this is what keeps it that way.
+    const { rows: buckets } = await pg.query(
+      `select distinct bucket from public.rate_limits order by bucket`);
+    ok('the allowance is counted in one bucket',
+      buckets.every((b) => b.bucket === 'ai' || b.bucket.startsWith('probe')),
+      buckets.map((b) => b.bucket).join(', '));
+
     // ---------------------------------------------------------------------
     console.log('\n2. a CV check, for nothing');
 
