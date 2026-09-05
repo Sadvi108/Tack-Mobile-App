@@ -241,6 +241,21 @@ POST /functions/v1/interview/evaluate
 no quota. Since `0069` seeded all 90 combinations, that is every request the
 app can make — the model is only reached for a role the app does not offer.
 
+### `cv-check`
+
+```json
+{ "documentId": "uuid" }
+```
+
+Returns `202` with `{status: "queued", jobId, free: true}`. **Costs no quota
+and never reaches a model** — it reads the file, counts what is in it
+(`_shared/cv/metrics.ts`) and matches the skill taxonomy against the text
+(`skills_named_in`). Findings land in `cv_checks`, and a student may run it as
+often as they like.
+
+Deliberately a separate function from `score-cv` rather than a flag on it: two
+paths sharing a function eventually share a quota call by accident.
+
 ### `worker`
 
 Not called by the app. A cron trigger every two minutes, guarded by the

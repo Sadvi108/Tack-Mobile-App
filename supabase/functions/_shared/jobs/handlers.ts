@@ -20,6 +20,7 @@ import {
 import { extractDocument, UnreadableDocument } from "../cv/extract.ts";
 import { isConfigured, sendTo } from "../push/fcm.ts";
 import { readRepo } from "../verify/github.ts";
+import { findings, sortFindings } from "../cv/findings.ts";
 import { measure } from "../cv/metrics.ts";
 
 export type Handler = (
@@ -323,6 +324,98 @@ export const handlers: Record<string, Handler> = {
     if (error) throw error;
 
     return { rescored: documentId };
+  },
+
+  /**
+   * The free CV check.
+   *
+   * Deliberately never calls runCompletion, so there is no consumeQuota
+   * argument to get wrong: it cannot spend a student's allowance because it
+   * has no way to. Reading the file and counting what is in it were always
+   * free; they were only ever locked behind parse_cv, which is not.
+   */
+  check_cv: async (service, job) => {
+    const userId = job.user_id;
+    const documentId = job.payload.document_id as string;
+    if (!userId || !documentId) {
+      throw new Error("check_cv needs a user and a document");
+    }
+
+    const { data: doc } = await service
+      .from("documents")
+      .select("id, user_id, storage_path, mime_type")
+      .eq("id", documentId)
+      .maybeSingle();
+
+    // Checked again here rather than trusted from the payload, exactly as
+    // parse_cv does it.
+    if (!doc || doc.user_id !== userId) {
+      throw new Error("document not found for this user");
+    }
+
+    const { data: blob, error: readError } = await service.storage
+      .from("documents")
+      .download(doc.storage_path);
+    if (readError || !blob) throw new Error("storage read failed");
+
+    let extraction;
+    try {
+      extraction = await extractDocument(
+        new Uint8Array(await blob.arrayBuffer()),
+        doc.mime_type,
+      );
+    } catch (error) {
+      // A photograph Tack cannot read is a fact about the photograph. The
+      // student is told in a sentence they can act on rather than the job
+      // being retried three times and dead-lettered.
+      if (error instanceof UnreadableDocument) {
+        await service.from("cv_checks").insert({
+          user_id: userId,
+          document_id: documentId,
+          findings: [{
+            kind: "unreadable",
+            severity: "problem",
+            title: "Tack could not read this file",
+            detail: error.studentMessage,
+          }],
+          problems: 1,
+        });
+        return { unreadable: true };
+      }
+      throw error;
+    }
+
+    const metrics = measure(extraction.text, {
+      pages: extraction.pages,
+      truncated: extraction.truncated,
+      extractor: extraction.extractor,
+      confidence: extraction.confidence,
+    });
+
+    // The same extractor that indexes job listings, pointed at a CV. It has
+    // never cared what the text was.
+    const { data: skills } = await service.rpc("skills_named_in", {
+      p_text: extraction.text,
+    });
+    const recognised = (skills as string[] | null) ?? [];
+
+    const list = sortFindings(findings(metrics, recognised));
+
+    await service.from("cv_checks").insert({
+      user_id: userId,
+      document_id: documentId,
+      metrics,
+      skills: recognised,
+      findings: list,
+      problems: list.filter((f) => f.severity === "problem").length,
+      suggestions: list.filter((f) => f.severity === "improve").length,
+    });
+
+    return {
+      findings: list.length,
+      problems: list.filter((f) => f.severity === "problem").length,
+      skills: recognised.length,
+    };
   },
 
   /**

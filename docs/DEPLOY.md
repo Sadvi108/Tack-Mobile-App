@@ -170,6 +170,7 @@ node tool/verify_onboarding.js       # the school-student branch end to end
 node tool/verify_delete_account.js   # deletion really deletes, files included
 node tool/verify_notifications.js    # the inbox, the digest and its daily cap
 node tool/verify_interview_bank.js   # all 90 sets resolve, and cost no quota
+node tool/verify_free_tier.js        # the free paths spend nothing
 node tool/verify_cv_builder.js       # the assembled profile document
 node tool/verify_public_profile.js   # what the public page refuses to say
 node tool/verify_dashboard.js

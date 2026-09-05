@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:tack/design/tack.dart';
 import 'package:tack/routing/router.dart';
 
 /// A back arrow that does nothing is worse than no back arrow: the student
