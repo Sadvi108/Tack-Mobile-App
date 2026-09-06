@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- TackColors.sailWhite, light palette. The icon keeps the light ground in
+         both system themes: a launcher icon is not part of the app's surface. -->
+    <color name="ic_launcher_background">#F1EFE8</color>
+</resources>
