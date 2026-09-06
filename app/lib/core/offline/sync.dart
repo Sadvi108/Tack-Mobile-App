@@ -3,13 +3,14 @@ import 'dart:convert';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/widgets.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../supabase/client.dart';
 import 'local_db.dart';
 
 final localDbProvider = Provider<LocalDb>((ref) {
-  final db = LocalDb();
+  final db = LocalDb(null, ref.watch(currentUserProvider)?.id ?? 'signed_out');
   ref.onDispose(db.close);
   return db;
 });
@@ -50,8 +51,6 @@ class SyncService {
   final Ref _ref;
   bool _running = false;
 
-  static const _maxAttempts = 5;
-
   Future<int> flush() async {
     if (_running) return 0;
     _running = true;
@@ -61,24 +60,36 @@ class SyncService {
     var sent = 0;
 
     try {
-      if (client.auth.currentUser == null) return 0;
-
-      for (final item in await db.pending()) {
-        try {
-          await _apply(client, item);
-          await db.discard(item.id);
-          sent++;
-        } catch (e) {
-          final attempts = item.attempts + 1;
-          if (attempts >= _maxAttempts) {
-            // Five failures is not a connection problem. Drop it rather than
-            // retrying for ever against a change the server will never accept.
+      final userId = client.auth.currentUser?.id;
+      if (userId == null || db.accountId != userId) return 0;
+      while (client.auth.currentUser?.id == userId) {
+        final items = await db.pending();
+        if (items.isEmpty) break;
+        var failed = false;
+        for (final item in items) {
+          if (client.auth.currentUser?.id != userId) return sent;
+          try {
+            await _apply(client, userId, item);
+            if (client.auth.currentUser?.id != userId) return sent;
             await db.discard(item.id);
-          } else {
-            await db.bumpAttempts(item.id, attempts, e.toString());
+            sent++;
+          } catch (error) {
+            if (client.auth.currentUser?.id != userId) return sent;
+            await db.bumpAttempts(
+              item.id,
+              item.attempts + 1,
+              error is PostgrestException &&
+                      error.message.contains('sync_conflict')
+                  ? 'sync_conflict'
+                  : 'sync_pending',
+            );
+            failed = true;
           }
         }
+        // Keep failed work visible. A later reconnect/resume retries it.
+        if (failed) break;
       }
+      if (sent > 0) _ref.read(syncRevisionProvider.notifier).changed();
     } finally {
       _running = false;
     }
@@ -86,40 +97,128 @@ class SyncService {
     return sent;
   }
 
-  Future<void> _apply(SupabaseClient client, OutboxData item) async {
+  Future<Map<String, dynamic>> currentApplication(String id) async {
+    final client = _ref.read(supabaseProvider);
+    final uid = client.auth.currentUser?.id;
+    if (uid == null) throw StateError('sign_in_required');
+    return await client
+        .from('job_applications')
+        .select('notes,status,next_action,next_action_date,updated_at')
+        .eq('id', id)
+        .eq('user_id', uid)
+        .single();
+  }
+
+  Future<void> resolveConflict(
+    OutboxData item, {
+    required bool keepLocal,
+    String? expectedVersion,
+  }) async {
+    final db = _ref.read(localDbProvider);
+    if (db.accountId != _ref.read(supabaseProvider).auth.currentUser?.id) {
+      return;
+    }
+    if (keepLocal) {
+      final payload = (jsonDecode(item.payload) as Map).cast<String, dynamic>();
+      payload['_expected_updated_at'] = expectedVersion;
+      await db.enqueue(
+        kind: item.kind,
+        targetId: item.targetId,
+        payload: jsonEncode(payload),
+      );
+    } else {
+      await db.discard(item.id);
+      // Drop the optimistic snapshot so it cannot reappear after discarding.
+      await db.clearCache();
+    }
+    _ref.read(syncRevisionProvider.notifier).changed();
+    await flush();
+  }
+
+  Future<void> _apply(
+    SupabaseClient client,
+    String userId,
+    OutboxData item,
+  ) async {
     final payload = jsonDecode(item.payload) as Map<String, dynamic>;
 
+    List<Map<String, dynamic>> rows;
     switch (item.kind) {
       case 'task_done':
-        await client
+        rows = await client
             .from('roadmap_tasks')
             .update({'is_done': payload['is_done']})
-            .eq('id', item.targetId);
+            .eq('id', item.targetId)
+            .eq('user_id', userId)
+            .select('id');
       case 'application_status':
-        await client
+        rows = await client
             .from('job_applications')
             .update({'status': payload['status']})
-            .eq('id', item.targetId);
+            .eq('id', item.targetId)
+            .eq('user_id', userId)
+            .select('id');
       case 'application_notes':
-        await client
+        rows = await client
             .from('job_applications')
             .update({'notes': payload['notes']})
-            .eq('id', item.targetId);
+            .eq('id', item.targetId)
+            .eq('user_id', userId)
+            .select('id');
+      case 'application_patch':
+        final expected = payload.remove('_expected_updated_at');
+        final id = await client.rpc<String>(
+          'apply_application_patch',
+          params: {
+            'p_id': item.targetId,
+            'p_patch': payload,
+            'p_expected_updated_at': expected,
+          },
+        );
+        rows = [
+          {'id': id},
+        ];
       default:
-        throw StateError('unknown queued change: ${item.kind}');
+        throw StateError('unknown queued change');
     }
+    if (rows.length != 1) throw StateError('sync_target_unavailable');
   }
 }
 
 final syncServiceProvider = Provider<SyncService>(SyncService.new);
 
-/// Flushes the queue whenever the device comes back online.
+class SyncRevision extends Notifier<int> {
+  @override
+  int build() => 0;
+  void changed() => state++;
+}
+
+final syncRevisionProvider = NotifierProvider<SyncRevision, int>(
+  SyncRevision.new,
+);
+
+/// Drain on a connected cold start, reauthentication, reconnect and resume.
 final syncOnReconnectProvider = Provider<void>((ref) {
-  ref.listen(connectivityProvider, (previous, next) {
-    final wasOffline = previous?.value == false;
-    final isOnline = next.value == true;
-    if (wasOffline && isOnline) {
+  void flush() {
+    if (ref.read(isOnlineProvider)) {
       unawaited(ref.read(syncServiceProvider).flush());
     }
+  }
+
+  ref.listen(connectivityProvider, (_, next) {
+    if (next.value == true) flush();
   });
+  ref.listen(pendingChangesProvider, (_, next) {
+    if ((next.value ?? 0) > 0) flush();
+  });
+  ref.listen(currentUserProvider, (_, next) {
+    if (next != null) flush();
+  });
+  final lifecycle = AppLifecycleListener(onResume: flush);
+  ref.onDispose(lifecycle.dispose);
+  Future.microtask(flush);
 });
+
+final syncProblemsProvider = StreamProvider<List<OutboxData>>(
+  (ref) => ref.watch(localDbProvider).watchProblems(),
+);

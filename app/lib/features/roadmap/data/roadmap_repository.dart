@@ -1,3 +1,5 @@
+import '../../../core/offline/sync.dart';
+import '../../../core/offline/workspace_cache.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -7,7 +9,8 @@ import 'path_suggestion.dart';
 import 'roadmap_models.dart';
 
 class RoadmapRepository {
-  const RoadmapRepository(this._db);
+  const RoadmapRepository(this._db, [this._cache]);
+  final WorkspaceCache? _cache;
 
   final SupabaseClient _db;
 
@@ -32,11 +35,12 @@ class RoadmapRepository {
   }
 
   Future<List<Roadmap>> all() async {
+    final uid = _uid;
     try {
       final rows = await _db
           .from('roadmaps')
           .select(_select)
-          .eq('user_id', _uid)
+          .eq('user_id', uid)
           .isFilter('deleted_at', null)
           // The full path, because roadmap_tasks is nested inside
           // roadmap_milestones. Filtering it as a top-level embed made
@@ -47,8 +51,16 @@ class RoadmapRepository {
           // screen nobody could see was broken.
           .isFilter('roadmap_milestones.roadmap_tasks.deleted_at', null)
           .order('created_at');
-      return rows.map(Roadmap.fromRow).toList();
+      if (_uid != uid) {
+        throw const Failure('Your account changed. Open your roadmap again.');
+      }
+      final visible = await _cache?.remember('roadmaps', rows) ?? rows;
+      return visible.map(Roadmap.fromRow).toList();
     } catch (e) {
+      if (Failure.from(e).isOffline && _uid == uid) {
+        final cached = await _cache?.restore('roadmaps');
+        if (cached != null) return cached.map(Roadmap.fromRow).toList();
+      }
       throw Failure.from(e);
     }
   }
@@ -105,12 +117,24 @@ class RoadmapRepository {
   /// Ticks or un-ticks a task. `done_at` and the milestone state are both set
   /// by database triggers, so this only writes the flag and refetches.
   Future<void> setTaskDone(String taskId, {required bool done}) async {
+    if (_cache != null) {
+      await _cache.queue('roadmaps', 'task_done', taskId, {'is_done': done});
+      return;
+    }
+    final uid = _uid;
     try {
       await _db
           .from('roadmap_tasks')
           .update({'is_done': done})
-          .eq('id', taskId);
+          .eq('id', taskId)
+          .eq('user_id', uid)
+          .select('id')
+          .single();
     } catch (e) {
+      if (Failure.from(e).isOffline && _cache != null && _uid == uid) {
+        await _cache.queue('roadmaps', 'task_done', taskId, {'is_done': done});
+        return;
+      }
       throw Failure.from(e);
     }
   }
@@ -150,7 +174,8 @@ class RoadmapRepository {
       await _db
           .from('roadmap_tasks')
           .update({'due_date': due?.toIso8601String().substring(0, 10)})
-          .eq('id', taskId);
+          .eq('id', taskId)
+          .eq('user_id', _uid);
     } catch (e) {
       throw Failure.from(e);
     }
@@ -161,7 +186,8 @@ class RoadmapRepository {
       await _db
           .from('roadmap_tasks')
           .update({'deleted_at': DateTime.now().toUtc().toIso8601String()})
-          .eq('id', taskId);
+          .eq('id', taskId)
+          .eq('user_id', _uid);
     } catch (e) {
       throw Failure.from(e);
     }
@@ -171,15 +197,19 @@ class RoadmapRepository {
 /// What Tack reads out of the student's own answers, and where it thinks they
 /// could go as a result.
 final pathAdviceProvider = FutureProvider<PathAdvice>((ref) async {
-  if (!ref.watch(isSignedInProvider)) return PathAdvice.empty;
+  if (ref.watch(currentUserProvider)?.id == null) return PathAdvice.empty;
   return ref.watch(roadmapRepositoryProvider).advice();
 });
 
 final roadmapRepositoryProvider = Provider<RoadmapRepository>(
-  (ref) => RoadmapRepository(ref.watch(supabaseProvider)),
+  (ref) => RoadmapRepository(
+    ref.watch(supabaseProvider),
+    WorkspaceCache(ref.watch(localDbProvider)),
+  ),
 );
 
 final roadmapsProvider = FutureProvider<List<Roadmap>>((ref) async {
-  if (!ref.watch(isSignedInProvider)) return const [];
+  ref.watch(syncRevisionProvider);
+  if (ref.watch(currentUserProvider)?.id == null) return const [];
   return ref.watch(roadmapRepositoryProvider).all();
 });

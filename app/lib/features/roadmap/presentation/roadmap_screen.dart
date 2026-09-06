@@ -2,10 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import 'dart:convert';
-
 import '../../../core/failure.dart';
-import '../../../core/offline/sync.dart';
 import '../../../design/tack.dart';
 import '../../../routing/router.dart';
 import '../../dashboard/presentation/motion.dart';
@@ -48,31 +45,14 @@ class _RoadmapScreenState extends ConsumerState<RoadmapScreen> {
         ..invalidate(weekChangeProvider);
       if (!mounted) return;
       if (done) {
-        TackToast.show(context, message: 'Done. +${task.points} points.');
+        TackToast.show(
+          context,
+          message: 'Saved. Your progress will update after syncing.',
+        );
       }
     } catch (e) {
       final failure = Failure.from(e);
       if (!mounted) return;
-
-      // Ticking a task is the change students make most often, and the one
-      // most likely to happen with no signal. Queue it instead of losing it.
-      if (failure.isOffline) {
-        await ref
-            .read(localDbProvider)
-            .enqueue(
-              kind: 'task_done',
-              targetId: task.id,
-              payload: jsonEncode({'is_done': done}),
-            );
-        if (!mounted) return;
-        TackToast.show(
-          context,
-          message:
-              'Saved on this phone. It will sync when you are back online.',
-          kind: TackToastKind.info,
-        );
-        return;
-      }
 
       TackToast.show(
         context,

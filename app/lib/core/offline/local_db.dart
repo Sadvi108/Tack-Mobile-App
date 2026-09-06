@@ -44,8 +44,10 @@ class Outbox extends Table {
 
 @DriftDatabase(tables: [CachedReads, Outbox])
 class LocalDb extends _$LocalDb {
-  LocalDb([QueryExecutor? executor])
-    : super(executor ?? driftDatabase(name: 'tack_local'));
+  LocalDb([QueryExecutor? executor, this.accountId = 'legacy'])
+    : super(executor ?? driftDatabase(name: 'tack_local_$accountId'));
+
+  final String accountId;
 
   @override
   int get schemaVersion => 1;
@@ -73,18 +75,20 @@ class LocalDb extends _$LocalDb {
   }) async {
     // One pending change per target per kind. A student who ticks and unticks
     // a task five times offline should send one change, not five.
-    await (delete(
-      outbox,
-    )..where((t) => t.kind.equals(kind) & t.targetId.equals(targetId))).go();
+    return transaction(() async {
+      await (delete(
+        outbox,
+      )..where((t) => t.kind.equals(kind) & t.targetId.equals(targetId))).go();
 
-    return into(outbox).insert(
-      OutboxCompanion.insert(
-        kind: kind,
-        targetId: targetId,
-        payload: payload,
-        queuedAt: DateTime.now(),
-      ),
-    );
+      return into(outbox).insert(
+        OutboxCompanion.insert(
+          kind: kind,
+          targetId: targetId,
+          payload: payload,
+          queuedAt: DateTime.now(),
+        ),
+      );
+    });
   }
 
   Future<List<OutboxData>> pending({int limit = 50}) =>
@@ -104,6 +108,12 @@ class LocalDb extends _$LocalDb {
     )..addColumns([outbox.id.count()])).getSingle();
     return rows.read(outbox.id.count()) ?? 0;
   }
+
+  Stream<List<OutboxData>> watchProblems() =>
+      (select(outbox)
+            ..where((t) => t.attempts.isBiggerThanValue(0))
+            ..orderBy([(t) => OrderingTerm(expression: t.queuedAt)]))
+          .watch();
 
   Future<void> discard(int id) =>
       (delete(outbox)..where((t) => t.id.equals(id))).go();

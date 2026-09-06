@@ -1,3 +1,5 @@
+import '../../../core/offline/sync.dart';
+import '../../../core/offline/workspace_cache.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -7,7 +9,8 @@ import '../../../design/tack.dart';
 import 'application_models.dart';
 
 class ApplicationRepository {
-  const ApplicationRepository(this._db);
+  const ApplicationRepository(this._db, [this._cache]);
+  final WorkspaceCache? _cache;
 
   final SupabaseClient _db;
 
@@ -26,38 +29,39 @@ class ApplicationRepository {
   }
 
   Future<List<JobApplication>> list({TackStatus? status}) async {
+    final uid = _uid;
+    List<Map<String, dynamic>> rows;
     try {
-      var query = _db
+      rows = await _db
           .from('job_applications')
           .select(_select)
-          .eq('user_id', _uid)
-          .isFilter('deleted_at', null);
-      if (status != null) query = query.eq('status', status.name);
-
-      final rows = await query.order('updated_at', ascending: false);
-      return rows.map(JobApplication.fromRow).toList();
+          .eq('user_id', uid)
+          .isFilter('deleted_at', null)
+          .order('updated_at', ascending: false);
+      if (_uid != uid) {
+        throw const Failure(
+          'Your account changed. Open your applications again.',
+        );
+      }
+      rows = await _cache?.remember('applications', rows) ?? rows;
     } catch (e) {
-      throw Failure.from(e);
+      if (!Failure.from(e).isOffline || _uid != uid) throw Failure.from(e);
+      final cached = await _cache?.restore('applications');
+      if (cached == null) throw Failure.from(e);
+      rows = cached;
     }
+    return rows
+        .map(JobApplication.fromRow)
+        .where((row) => status == null || row.status == status)
+        .toList();
   }
 
   Future<ApplicationCounts> counts() async {
-    try {
-      final rows = await _db
-          .from('job_applications')
-          .select('status')
-          .eq('user_id', _uid)
-          .isFilter('deleted_at', null);
-
-      final tally = <TackStatus, int>{};
-      for (final row in rows) {
-        final status = TackStatusStyle.fromWire('${row['status']}');
-        tally[status] = (tally[status] ?? 0) + 1;
-      }
-      return ApplicationCounts(tally);
-    } catch (e) {
-      throw Failure.from(e);
+    final tally = <TackStatus, int>{};
+    for (final row in await list()) {
+      tally[row.status] = (tally[row.status] ?? 0) + 1;
     }
+    return ApplicationCounts(tally);
   }
 
   /// Anything due in the next seven days, soonest first. This is the maroon
@@ -86,6 +90,7 @@ class ApplicationRepository {
           .from('application_status_history')
           .select('from_status, to_status, changed_at, note')
           .eq('application_id', applicationId)
+          .eq('user_id', _uid)
           .order('changed_at');
       return rows.map(StatusChange.fromRow).toList();
     } catch (e) {
@@ -105,34 +110,17 @@ class ApplicationRepository {
     TackStatus status = TackStatus.saved,
   }) async {
     try {
-      final companyId = companyName.trim().isEmpty
-          ? null
-          : await _db.rpc<String?>(
-              'upsert_company',
-              params: {'raw_name': companyName.trim()},
-            );
-
-      final job = await _db
-          .from('jobs')
-          .insert({
-            'user_id': _uid,
-            'company_id': companyId,
-            'company_name': companyName.trim(),
-            'title': title.trim(),
-            'location': location?.trim(),
-            'source_url': sourceUrl?.trim(),
-            'closes_at': closesAt?.toIso8601String().substring(0, 10),
-          })
-          .select('id')
-          .single();
-
-      final application = await _db
-          .from('job_applications')
-          .insert({'user_id': _uid, 'job_id': job['id'], 'status': status.name})
-          .select('id')
-          .single();
-
-      return application['id'] as String;
+      return await _db.rpc<String>(
+        'create_application',
+        params: {
+          'p_title': title.trim(),
+          'p_company': companyName.trim(),
+          'p_location': location?.trim(),
+          'p_source_url': sourceUrl?.trim(),
+          'p_closes_at': closesAt?.toIso8601String().substring(0, 10),
+          'p_status': status.name,
+        },
+      );
     } catch (e) {
       throw Failure.from(e);
     }
@@ -141,20 +129,40 @@ class ApplicationRepository {
   /// Moves an application along. The database validates the transition and the
   /// history row is written by a trigger, so an illegal move fails loudly
   /// rather than silently corrupting the timeline.
-  Future<void> setStatus(String applicationId, TackStatus status) async {
+  Future<void> setStatus(String applicationId, TackStatus status) =>
+      update(applicationId, {'status': status.name});
+
+  Future<void> update(String applicationId, Map<String, Object?> patch) async {
+    const fields = {
+      'status',
+      'notes',
+      'next_action',
+      'next_action_date',
+      'cv_document_id',
+      'applied_at',
+    };
+    if (patch.keys.any((key) => !fields.contains(key))) {
+      throw const Failure('That change is not supported.');
+    }
+    final uid = _uid;
+    if (_cache != null) {
+      // Persist first; even an app kill between the tap and the request keeps it.
+      await _cache.queue(
+        'applications',
+        'application_patch',
+        applicationId,
+        patch,
+      );
+      return;
+    }
     try {
       await _db
           .from('job_applications')
-          .update({'status': status.name})
-          .eq('id', applicationId);
-    } catch (e) {
-      throw Failure.from(e);
-    }
-  }
-
-  Future<void> update(String applicationId, Map<String, Object?> patch) async {
-    try {
-      await _db.from('job_applications').update(patch).eq('id', applicationId);
+          .update(patch)
+          .eq('id', applicationId)
+          .eq('user_id', uid)
+          .select('id')
+          .single();
     } catch (e) {
       throw Failure.from(e);
     }
@@ -166,7 +174,8 @@ class ApplicationRepository {
       await _db
           .from('job_applications')
           .update({'deleted_at': DateTime.now().toUtc().toIso8601String()})
-          .eq('id', applicationId);
+          .eq('id', applicationId)
+          .eq('user_id', _uid);
     } catch (e) {
       throw Failure.from(e);
     }
@@ -174,13 +183,19 @@ class ApplicationRepository {
 }
 
 final applicationRepositoryProvider = Provider<ApplicationRepository>(
-  (ref) => ApplicationRepository(ref.watch(supabaseProvider)),
+  (ref) => ApplicationRepository(
+    ref.watch(supabaseProvider),
+    WorkspaceCache(ref.watch(localDbProvider)),
+  ),
 );
 
 final applicationCountsProvider = FutureProvider<ApplicationCounts>((
   ref,
 ) async {
-  if (!ref.watch(isSignedInProvider)) return ApplicationCounts.empty;
+  ref.watch(syncRevisionProvider);
+  if (ref.watch(currentUserProvider)?.id == null) {
+    return ApplicationCounts.empty;
+  }
   return ref.watch(applicationRepositoryProvider).counts();
 });
 
@@ -189,13 +204,15 @@ final applicationsProvider =
       ref,
       status,
     ) async {
-      if (!ref.watch(isSignedInProvider)) return const [];
+      ref.watch(syncRevisionProvider);
+      if (ref.watch(currentUserProvider)?.id == null) return const [];
       return ref.watch(applicationRepositoryProvider).list(status: status);
     });
 
 final upcomingApplicationsProvider = FutureProvider<List<JobApplication>>((
   ref,
 ) async {
-  if (!ref.watch(isSignedInProvider)) return const [];
+  ref.watch(syncRevisionProvider);
+  if (ref.watch(currentUserProvider)?.id == null) return const [];
   return ref.watch(applicationRepositoryProvider).upcoming();
 });
