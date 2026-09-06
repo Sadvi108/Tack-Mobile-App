@@ -60,6 +60,18 @@ class AnalysisRepository {
     }
   }
 
+  Future<String?> latestJob() async {
+    final row = await _db
+        .from('jobs_queue')
+        .select('id')
+        .eq('user_id', _uid)
+        .eq('type', 'analyse_jd')
+        .order('created_at', ascending: false)
+        .limit(1)
+        .maybeSingle();
+    return row?['id'] as String?;
+  }
+
   /// Polls a queued job. Returns null while it is still running.
   Future<AnalysisState?> poll(String jobId) async {
     try {
@@ -67,6 +79,7 @@ class AnalysisRepository {
           .from('jobs_queue')
           .select('status, result, last_error')
           .eq('id', jobId)
+          .eq('user_id', _uid)
           .maybeSingle();
       if (job == null) return null;
 

@@ -1,3 +1,4 @@
+import '../../../core/supabase/client.dart';
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,8 +17,29 @@ class AnalyserController extends Notifier<AnalysisState> {
 
   @override
   AnalysisState build() {
+    final userId = ref.watch(currentUserProvider)?.id;
     ref.onDispose(() => _poll?.cancel());
+    if (userId != null) Future.microtask(() => _restore(userId));
     return const AnalysisIdle();
+  }
+
+  Future<void> _restore(String userId) async {
+    try {
+      final repo = ref.read(analysisRepositoryProvider);
+      final id = await repo.latestJob();
+      if (!ref.mounted ||
+          ref.read(currentUserProvider)?.id != userId ||
+          state is! AnalysisIdle ||
+          id == null) {
+        return;
+      }
+      final result = await repo.poll(id);
+      if (!ref.mounted || state is! AnalysisIdle) return;
+      state = result ?? AnalysisQueued(id);
+      if (result == null) _startPolling(id);
+    } catch (_) {
+      /* The saved job remains discoverable after reconnect. */
+    }
   }
 
   void reset() {
@@ -47,9 +69,8 @@ class AnalyserController extends Notifier<AnalysisState> {
     var attempts = 0;
     _poll = Timer.periodic(const Duration(seconds: 3), (timer) async {
       attempts++;
-      // Roughly two minutes. Longer than that and something is wrong with the
-      // worker, not with the student's connection.
-      if (attempts > 40) {
+      // Allow the cron interval and bounded worker retries.
+      if (attempts > 240) {
         timer.cancel();
         state = const AnalysisFailed(
           'This is taking longer than usual. Check back in a few minutes.',
@@ -61,7 +82,9 @@ class AnalyserController extends Notifier<AnalysisState> {
         final result = await ref.read(analysisRepositoryProvider).poll(jobId);
         if (result != null) {
           timer.cancel();
+          if (!ref.mounted) return;
           state = result;
+          ref.invalidate(aiAllowanceProvider);
         }
       } catch (_) {
         // A dropped poll is not a failed analysis; the next tick tries again.

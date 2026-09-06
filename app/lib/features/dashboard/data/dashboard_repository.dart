@@ -40,6 +40,6 @@ final dashboardRepositoryProvider = Provider<DashboardRepository>(
 /// used to compose, which is most of why the dashboard is now testable without
 /// a network stub per card.
 final dashboardFeedProvider = FutureProvider<DashboardFeed?>((ref) async {
-  if (!ref.watch(isSignedInProvider)) return null;
+  if (ref.watch(currentUserProvider)?.id == null) return null;
   return ref.watch(dashboardRepositoryProvider).feed();
 });

@@ -151,12 +151,12 @@ final careerPathsProvider = FutureProvider<List<CareerPath>>(
 );
 
 final userSkillIdsProvider = FutureProvider<Set<String>>((ref) async {
-  if (!ref.watch(isSignedInProvider)) return <String>{};
+  if (ref.watch(currentUserProvider)?.id == null) return <String>{};
   return ref.watch(pathRepositoryProvider).userSkillIds();
 });
 
 final chosenPathsProvider = FutureProvider<List<ChosenPath>>((ref) async {
-  if (!ref.watch(isSignedInProvider)) return const [];
+  if (ref.watch(currentUserProvider)?.id == null) return const [];
   return ref.watch(pathRepositoryProvider).chosen();
 });
 

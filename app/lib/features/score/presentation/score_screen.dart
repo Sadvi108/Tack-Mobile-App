@@ -190,9 +190,9 @@ class ScoreScreen extends ConsumerWidget {
           : 'Compared against your own year, never against final-years.';
     }
     final noun = mode.cohortNoun;
-    if (score >= cohort.average + 5) return 'Ahead of most $noun.';
+    if (score >= cohort.average + 5) return 'Above the average for $noun.';
     if (score >= cohort.average - 5) return 'About average for $noun.';
-    return 'A little behind most $noun, and very fixable.';
+    return 'Below the average for $noun. Your next step can help.';
   }
 
   static String _list(Iterable<String> items) {

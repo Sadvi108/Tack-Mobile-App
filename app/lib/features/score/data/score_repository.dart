@@ -138,17 +138,17 @@ final scoreRepositoryProvider = Provider<ScoreRepository>(
 );
 
 final readinessProvider = FutureProvider<ReadinessScore>((ref) async {
-  if (!ref.watch(isSignedInProvider)) return ReadinessScore.empty;
+  if (ref.watch(currentUserProvider)?.id == null) return ReadinessScore.empty;
   return ref.watch(scoreRepositoryProvider).current();
 });
 
 final weekChangeProvider = FutureProvider<int>((ref) async {
-  if (!ref.watch(isSignedInProvider)) return 0;
+  if (ref.watch(currentUserProvider)?.id == null) return 0;
   return ref.watch(scoreRepositoryProvider).weekChange();
 });
 
 final scoreTrendProvider = FutureProvider<List<ReadinessScore>>((ref) async {
-  if (!ref.watch(isSignedInProvider)) return const [];
+  if (ref.watch(currentUserProvider)?.id == null) return const [];
   return ref.watch(scoreRepositoryProvider).trend();
 });
 

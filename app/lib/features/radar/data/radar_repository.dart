@@ -117,12 +117,12 @@ final radarQueryProvider = NotifierProvider<RadarQueryController, RadarQuery>(
 /// How many listings sit behind each chip, so a chip with nothing behind it
 /// can say so rather than looking broken when it is tapped.
 final radarKindsProvider = FutureProvider<Map<String, int>>((ref) async {
-  if (!ref.watch(isSignedInProvider)) return const {};
+  if (ref.watch(currentUserProvider)?.id == null) return const {};
   return ref.watch(radarRepositoryProvider).kinds();
 });
 
 final radarResultsProvider = FutureProvider<RadarResult>((ref) async {
-  if (!ref.watch(isSignedInProvider)) return RadarResult.empty;
+  if (ref.watch(currentUserProvider)?.id == null) return RadarResult.empty;
   final query = ref.watch(radarQueryProvider);
   return ref.watch(radarRepositoryProvider).search(query);
 });

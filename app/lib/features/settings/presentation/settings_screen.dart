@@ -251,6 +251,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       : '$queued ${queued == 1 ? 'change' : 'changes'}',
                 ),
                 const TackDivider(),
+                _Tap(
+                  label: 'Review saved changes',
+                  hint: 'Resolve changes made on two devices',
+                  onTap: () => context.push('/settings/sync'),
+                ),
+                const TackDivider(),
+                _Tap(
+                  label: 'Try syncing now',
+                  hint: 'Saved changes stay here until they are sent',
+                  onTap: () async {
+                    await ref.read(syncServiceProvider).flush();
+                  },
+                ),
+                const TackDivider(),
                 _Row(label: 'Connection', value: online ? 'Online' : 'Offline'),
                 const TackDivider(),
                 _Tap(
@@ -288,6 +302,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   label: 'Privacy policy',
                   hint: 'What we hold, and what leaves our database',
                   onTap: () => PolicyLinks.open(context, PolicyLinks.privacy),
+                ),
+                const TackDivider(),
+                _Tap(
+                  label: 'Support and account deletion',
+                  hint: 'Contact Tack or request deletion outside the app',
+                  onTap: () => PolicyLinks.open(context, PolicyLinks.support),
                 ),
                 const TackDivider(),
                 _Tap(
@@ -430,7 +450,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   static String queuedWarning(int queued) => queued == 0
       ? 'Your work stays saved. You can log back in any time.'
       : 'You have $queued ${queued == 1 ? 'change' : 'changes'} still waiting '
-            'to sync. Go back online first, or they will be lost.';
+            'to sync. They stay on this phone for this account. Log back in to send them.';
 }
 
 class _Section extends StatelessWidget {

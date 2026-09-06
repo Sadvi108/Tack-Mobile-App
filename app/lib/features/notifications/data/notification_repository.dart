@@ -108,7 +108,7 @@ final notificationRepositoryProvider = Provider<NotificationRepository>(
 final notificationsProvider = FutureProvider<List<TackNotification>>((
   ref,
 ) async {
-  if (!ref.watch(isSignedInProvider)) return const [];
+  if (ref.watch(currentUserProvider)?.id == null) return const [];
   return ref.watch(notificationRepositoryProvider).all();
 });
 

@@ -152,6 +152,6 @@ final draftRepositoryProvider = Provider<DraftRepository>(
 );
 
 final onboardingDraftProvider = FutureProvider<OnboardingDraft>((ref) async {
-  if (!ref.watch(isSignedInProvider)) return OnboardingDraft.empty;
+  if (ref.watch(currentUserProvider)?.id == null) return OnboardingDraft.empty;
   return ref.watch(draftRepositoryProvider).load();
 });

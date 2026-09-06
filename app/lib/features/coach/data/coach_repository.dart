@@ -1,3 +1,4 @@
+import '../../../core/jobs/job_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -7,7 +8,9 @@ import 'coach_models.dart';
 
 /// The only thing that talks to the coach function.
 class CoachRepository {
-  const CoachRepository(this._db);
+  const CoachRepository(this._db, [this._jobs]);
+
+  final JobRepository? _jobs;
 
   final SupabaseClient _db;
 
@@ -29,7 +32,10 @@ class CoachRepository {
       if (data is! Map) {
         throw const Failure('The coach could not answer that. Try again.');
       }
-      return CoachReply.fromJson(data.cast<String, dynamic>());
+      final reply =
+          await _jobs?.resolve(data.cast<String, dynamic>()) ??
+          data.cast<String, dynamic>();
+      return CoachReply.fromJson(reply);
     } catch (e) {
       throw Failure.from(e);
     }
@@ -53,6 +59,7 @@ class CoachRepository {
           .from('chat_messages')
           .select()
           .eq('thread_id', id)
+          .eq('user_id', _uid)
           .order('created_at');
       return (id, rows.map(ChatMessage.fromRow).toList());
     } catch (e) {
@@ -96,20 +103,25 @@ class AiAllowance {
 }
 
 final coachRepositoryProvider = Provider<CoachRepository>(
-  (ref) => CoachRepository(ref.watch(supabaseProvider)),
+  (ref) => CoachRepository(
+    ref.watch(supabaseProvider),
+    ref.watch(jobRepositoryProvider),
+  ),
 );
 
 final coachHistoryProvider = FutureProvider<(String?, List<ChatMessage>)>((
   ref,
 ) async {
-  if (!ref.watch(isSignedInProvider)) return (null, <ChatMessage>[]);
+  if (ref.watch(currentUserProvider)?.id == null) {
+    return (null, <ChatMessage>[]);
+  }
   return ref.watch(coachRepositoryProvider).latestThread();
 });
 
 /// Today's shared AI allowance. Watched anywhere an action might be spent,
 /// not only by the coach.
 final aiAllowanceProvider = FutureProvider<AiAllowance>((ref) async {
-  if (!ref.watch(isSignedInProvider)) {
+  if (ref.watch(currentUserProvider)?.id == null) {
     return const AiAllowance(used: 0, limit: 0);
   }
   return ref.watch(coachRepositoryProvider).allowance();

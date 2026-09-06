@@ -16,30 +16,37 @@ void main() {
           phone: '+880 1711111111',
           headline: 'Backend developer',
         ),
-        links: const [
-          PortfolioLink(kind: 'github', url: 'github.com/rafiq'),
-        ],
+        links: const [PortfolioLink(kind: 'github', url: 'github.com/rafiq')],
         education: const [
           Education(
             institution: 'Bangladesh University of Engineering and Technology',
-            degree: 'BSc', fieldOfStudy: 'Computer Science and Engineering',
-            startYear: 2022, graduationYear: 2026,
-            cgpa: 3.62, cgpaScale: 4, isCurrent: true,
+            degree: 'BSc',
+            fieldOfStudy: 'Computer Science and Engineering',
+            startYear: 2022,
+            graduationYear: 2026,
+            cgpa: 3.62,
+            cgpaScale: 4,
+            isCurrent: true,
           ),
         ],
         experiences: [
           Experience(
-            company: 'Pathao', title: 'Backend intern',
+            company: 'Pathao',
+            title: 'Backend intern',
             location: 'Dhaka',
-            startDate: DateTime(2025, 6), endDate: DateTime(2025, 9),
+            startDate: DateTime(2025, 6),
+            endDate: DateTime(2025, 9),
             description:
                 'Built and shipped three endpoints behind the rider app, and '
                 'cut the slowest query on the trips table from 2.4s to 180ms.',
           ),
           Experience(
-            company: 'BRAC IT', title: 'Junior developer (part time)',
-            startDate: DateTime(2024, 7), endDate: DateTime(2025, 2),
-            description: 'Maintained an internal reporting tool used by 40 staff.',
+            company: 'BRAC IT',
+            title: 'Junior developer (part time)',
+            startDate: DateTime(2024, 7),
+            endDate: DateTime(2025, 2),
+            description:
+                'Maintained an internal reporting tool used by 40 staff.',
           ),
         ],
         projects: [
@@ -55,7 +62,8 @@ void main() {
         certifications: [
           Certification(
             title: 'AWS Certified Cloud Practitioner',
-            issuer: 'Amazon Web Services', issuedOn: DateTime(2025, 3),
+            issuer: 'Amazon Web Services',
+            issuedOn: DateTime(2025, 3),
           ),
         ],
         skills: const [
@@ -68,8 +76,10 @@ void main() {
         ],
         activities: const [
           Activity(
-            title: 'BUET Computer Club', role: 'Events secretary',
-            organisation: 'BUET', category: 'leadership',
+            title: 'BUET Computer Club',
+            role: 'Events secretary',
+            organisation: 'BUET',
+            category: 'leadership',
           ),
         ],
       ),

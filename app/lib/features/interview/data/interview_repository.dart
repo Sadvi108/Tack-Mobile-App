@@ -1,3 +1,4 @@
+import '../../../core/jobs/job_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -6,7 +7,9 @@ import '../../../core/supabase/client.dart';
 import 'interview_models.dart';
 
 class InterviewRepository {
-  const InterviewRepository(this._db);
+  const InterviewRepository(this._db, [this._jobs]);
+
+  final JobRepository? _jobs;
 
   final SupabaseClient _db;
 
@@ -141,7 +144,12 @@ class InterviewRepository {
         },
       );
 
-      final body = (response.data as Map?)?.cast<String, dynamic>() ?? const {};
+      var body =
+          (response.data as Map?)?.cast<String, dynamic>() ??
+          const <String, dynamic>{};
+      if (response.status == 202 && _jobs != null) {
+        body = await _jobs.resolve(body);
+      }
       if (response.status >= 400) {
         final error = body['error'];
         throw Failure(
@@ -203,7 +211,12 @@ class InterviewRepository {
         'interview/evaluate',
         body: {'questionId': questionId, 'answer': answer},
       );
-      final body = (response.data as Map?)?.cast<String, dynamic>() ?? const {};
+      var body =
+          (response.data as Map?)?.cast<String, dynamic>() ??
+          const <String, dynamic>{};
+      if (response.status == 202 && _jobs != null) {
+        body = await _jobs.resolve(body);
+      }
 
       if (response.status >= 400) {
         final error = body['error'];
@@ -230,7 +243,8 @@ class InterviewRepository {
             'skipped': true,
             'answered_at': DateTime.now().toUtc().toIso8601String(),
           })
-          .eq('id', questionId);
+          .eq('id', questionId)
+          .eq('user_id', _uid);
     } catch (e) {
       throw Failure.from(e);
     }
@@ -263,7 +277,8 @@ class InterviewRepository {
             'weakest_area': weakest,
             'points_earned': 3 + scored.length,
           })
-          .eq('id', session.id);
+          .eq('id', session.id)
+          .eq('user_id', _uid);
 
       final updated = await byId(session.id);
       return updated ?? session;
@@ -274,13 +289,16 @@ class InterviewRepository {
 }
 
 final interviewRepositoryProvider = Provider<InterviewRepository>(
-  (ref) => InterviewRepository(ref.watch(supabaseProvider)),
+  (ref) => InterviewRepository(
+    ref.watch(supabaseProvider),
+    ref.watch(jobRepositoryProvider),
+  ),
 );
 
 final interviewHistoryProvider = FutureProvider<List<InterviewSession>>((
   ref,
 ) async {
-  if (!ref.watch(isSignedInProvider)) return const [];
+  if (ref.watch(currentUserProvider)?.id == null) return const [];
   return ref.watch(interviewRepositoryProvider).history();
 });
 

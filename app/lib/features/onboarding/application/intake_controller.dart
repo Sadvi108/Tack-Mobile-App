@@ -102,7 +102,7 @@ class IntakeState {
 class IntakeController extends AsyncNotifier<IntakeState> {
   @override
   Future<IntakeState> build() async {
-    if (!ref.watch(isSignedInProvider)) return IntakeState.loading;
+    if (ref.watch(currentUserProvider)?.id == null) return IntakeState.loading;
 
     final draft = await ref.watch(onboardingDraftProvider.future);
     final state = IntakeState(

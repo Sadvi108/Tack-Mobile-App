@@ -338,12 +338,12 @@ final profileSectionsRepositoryProvider = Provider<ProfileSectionsRepository>(
 
 final profileSectionsProvider =
     FutureProvider<Map<ProfileSection, List<ProfileEntry>>>((ref) async {
-      if (!ref.watch(isSignedInProvider)) return const {};
+      if (ref.watch(currentUserProvider)?.id == null) return const {};
       return ref.watch(profileSectionsRepositoryProvider).loadAll();
     });
 
 final userSkillsProvider = FutureProvider<List<UserSkill>>((ref) async {
-  if (!ref.watch(isSignedInProvider)) return const [];
+  if (ref.watch(currentUserProvider)?.id == null) return const [];
   return ref.watch(profileSectionsRepositoryProvider).skills();
 });
 

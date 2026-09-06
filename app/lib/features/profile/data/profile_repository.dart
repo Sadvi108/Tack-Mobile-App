@@ -65,7 +65,7 @@ final profileRepositoryProvider = Provider<ProfileRepository>(
 
 /// The signed-in student's profile. Null while signed out.
 final profileProvider = FutureProvider<Profile?>((ref) async {
-  if (!ref.watch(isSignedInProvider)) return null;
+  if (ref.watch(currentUserProvider)?.id == null) return null;
   return ref.watch(profileRepositoryProvider).fetch();
 });
 

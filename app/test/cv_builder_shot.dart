@@ -8,14 +8,29 @@ import 'helpers.dart';
 import 'shot_util.dart';
 
 ProfileDocument _full() => ProfileDocument(
-  identity: const Identity(fullName: 'Rafiq Hossain', headline: 'Backend developer'),
+  identity: const Identity(
+    fullName: 'Rafiq Hossain',
+    headline: 'Backend developer',
+  ),
   education: const [Education(institution: 'BUET', degree: 'BSc')],
   experiences: [
-    Experience(company: 'Pathao', title: 'Backend intern', startDate: DateTime(2025, 6)),
-    Experience(company: 'BRAC IT', title: 'Junior developer', startDate: DateTime(2024, 7)),
+    Experience(
+      company: 'Pathao',
+      title: 'Backend intern',
+      startDate: DateTime(2025, 6),
+    ),
+    Experience(
+      company: 'BRAC IT',
+      title: 'Junior developer',
+      startDate: DateTime(2024, 7),
+    ),
   ],
   projects: const [Project(title: 'Bus tracker')],
-  skills: const [Skill(name: 'Python'), Skill(name: 'PostgreSQL'), Skill(name: 'Git')],
+  skills: const [
+    Skill(name: 'Python'),
+    Skill(name: 'PostgreSQL'),
+    Skill(name: 'Git'),
+  ],
   certifications: const [],
   activities: const [],
 );
@@ -29,8 +44,13 @@ void main() {
   setUpAll(loadTackFonts);
 
   testWidgets('the builder', (tester) async {
-    await shoot(tester, const CvBuilderScreen(), 'cv-builder',
-        const Size(390, 844), overrides: _for(_full()));
+    await shoot(
+      tester,
+      const CvBuilderScreen(),
+      'cv-builder',
+      const Size(390, 844),
+      overrides: _for(_full()),
+    );
   });
 
   testWidgets('nothing to build with', (tester) async {
@@ -39,7 +59,9 @@ void main() {
       const CvBuilderScreen(),
       'cv-builder-empty',
       const Size(390, 844),
-      overrides: _for(const ProfileDocument(identity: Identity(fullName: 'New Student'))),
+      overrides: _for(
+        const ProfileDocument(identity: Identity(fullName: 'New Student')),
+      ),
     );
   });
 }

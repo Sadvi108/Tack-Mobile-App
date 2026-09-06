@@ -84,39 +84,38 @@ void main() {
     // The builder should not offer this — hasSubstance is false and the screen
     // shows what to add instead — but the renderer must not throw if it is
     // ever reached, because the one thing worse than a thin CV is a crash.
-    final bytes = await CvPdf.build(
-      document: doc(),
-      layout: const CvLayout(),
-    );
+    final bytes = await CvPdf.build(document: doc(), layout: const CvLayout());
     expect(String.fromCharCodes(bytes.take(5)), startsWith('%PDF'));
   });
 
-  test('a long history runs to more than one page rather than truncating',
-      () async {
-    final many = [
-      for (var i = 0; i < 24; i++)
-        Experience(
-          company: 'Company $i',
-          title: 'Engineer $i',
-          startDate: DateTime(2020 + (i % 5), 1),
-          endDate: DateTime(2021 + (i % 5), 1),
-          description:
-              'A description long enough to take a couple of lines on the '
-              'page, repeated so the document is forced past a single sheet '
-              'of A4 and the flow has to do its job. Entry number $i.',
-        ),
-    ];
+  test(
+    'a long history runs to more than one page rather than truncating',
+    () async {
+      final many = [
+        for (var i = 0; i < 24; i++)
+          Experience(
+            company: 'Company $i',
+            title: 'Engineer $i',
+            startDate: DateTime(2020 + (i % 5), 1),
+            endDate: DateTime(2021 + (i % 5), 1),
+            description:
+                'A description long enough to take a couple of lines on the '
+                'page, repeated so the document is forced past a single sheet '
+                'of A4 and the flow has to do its job. Entry number $i.',
+          ),
+      ];
 
-    final bytes = await CvPdf.build(
-      document: doc(experiences: many),
-      layout: const CvLayout(),
-    );
-    expect(
-      _pages(bytes),
-      greaterThan(1),
-      reason: 'MultiPage must flow, not clip the overflow',
-    );
-  });
+      final bytes = await CvPdf.build(
+        document: doc(experiences: many),
+        layout: const CvLayout(),
+      );
+      expect(
+        _pages(bytes),
+        greaterThan(1),
+        reason: 'MultiPage must flow, not clip the overflow',
+      );
+    },
+  );
 
   test('an empty section is dropped, not printed as a bare heading', () async {
     final withSkills = await CvPdf.build(
@@ -142,7 +141,11 @@ void main() {
       document: doc(
         skills: const [Skill(name: 'Python')],
         certifications: [
-          Certification(title: 'AWS', issuer: 'Amazon', issuedOn: DateTime(2025)),
+          Certification(
+            title: 'AWS',
+            issuer: 'Amazon',
+            issuedOn: DateTime(2025),
+          ),
         ],
       ),
       layout: const CvLayout(),
@@ -151,13 +154,20 @@ void main() {
       document: doc(
         skills: const [Skill(name: 'Python')],
         certifications: [
-          Certification(title: 'AWS', issuer: 'Amazon', issuedOn: DateTime(2025)),
+          Certification(
+            title: 'AWS',
+            issuer: 'Amazon',
+            issuedOn: DateTime(2025),
+          ),
         ],
       ),
       layout: const CvLayout(sections: [CvSection.skills]),
     );
 
-    expect(trimmed.length, lessThan(full.length),
-        reason: 'hiding a section the student has data for must shrink the PDF');
+    expect(
+      trimmed.length,
+      lessThan(full.length),
+      reason: 'hiding a section the student has data for must shrink the PDF',
+    );
   });
 }
