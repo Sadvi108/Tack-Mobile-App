@@ -14,14 +14,20 @@ void main() {
       expect(out, {'count': 3, 'mode': 'launch', 'completed': true});
     });
 
-    test('short identifiers are kept', () {
+    test('unknown identifiers are rejected', () {
       final out = clean({'path_slug': 'frontend-developer', 'step': 2});
-      expect(out['path_slug'], 'frontend-developer');
+      expect(out.containsKey('path_slug'), false);
       expect(out['step'], 2);
     });
   });
 
   group('what is dropped', () {
+    test('short personal text under an unexpected or enum key is rejected', () {
+      expect(
+        clean({'safe': 'a@b.com', 'screen': 'a@b.com', 'mode': 'Rafiq'}),
+        isEmpty,
+      );
+    });
     test('anything named after personal data', () {
       final out = clean({
         'name': 'Rafiq Hossain',

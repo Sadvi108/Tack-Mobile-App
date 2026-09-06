@@ -36,7 +36,7 @@ class Analytics {
 
   Future<void> track(String name, {Map<String, Object?>? properties}) async {
     final userId = _uid;
-    if (userId == null) return;
+    if (userId == null || !_events.contains(name)) return;
 
     _appVersion ??= await _version();
 
@@ -67,11 +67,11 @@ class Analytics {
     _flushTimer = null;
     if (_buffer.isEmpty) return;
 
-    final batch = List<Map<String, Object?>>.from(_buffer);
+    final batch = _buffer.where((row) => row['user_id'] == _uid).toList();
     _buffer.clear();
 
     try {
-      await _db.from('analytics_events').insert(batch);
+      if (batch.isNotEmpty) await _db.from('analytics_events').insert(batch);
     } catch (_) {
       // Deliberately silent.
     }
@@ -84,19 +84,37 @@ class Analytics {
     StackTrace? stack, {
     Map<String, Object?>? context,
   }) async {
+    if (_uid == null) return;
     _appVersion ??= await _version();
     try {
-      await _db.from('error_reports').insert({
-        'user_id': _uid,
-        'message': error.toString().split('\n').first,
-        'stack': stack?.toString().split('\n').take(20).join('\n'),
-        'context': _clean(context ?? const {}),
-        'app_version': _appVersion,
-        'platform': defaultTargetPlatform.name,
-      });
+      await _db.rpc(
+        'record_client_error',
+        params: {
+          'p_code': errorCode(error),
+          'p_stack': safeStack(stack),
+          'p_context': _clean(context ?? const {}),
+          'p_version': _appVersion,
+          'p_platform': defaultTargetPlatform.name,
+        },
+      );
     } catch (_) {
-      // Deliberately silent.
+      /* Reporting must never interrupt the student's work. */
     }
+  }
+
+  static String errorCode(Object error) => switch (error) {
+    FormatException() => 'invalid_data',
+    StateError() => 'invalid_state',
+    ArgumentError() => 'invalid_argument',
+    FlutterError() => 'render_failure',
+    _ => 'unexpected_failure',
+  };
+
+  static String? safeStack(StackTrace? stack) {
+    if (stack == null) return null;
+    return RegExp(
+      r'package:tack/[a-zA-Z0-9_/]+\.dart:\d+:\d+',
+    ).allMatches(stack.toString()).take(20).map((m) => m[0]).join('\n');
   }
 
   void dispose() {
@@ -113,30 +131,63 @@ class Analytics {
     }
   }
 
-  /// Last line of defence. Anything long enough to be prose, or holding a
-  /// key that names personal data, is dropped rather than trusted.
-  static Map<String, Object?> _clean(Map<String, Object?> properties) {
-    const banned = {
+  static const _events = {
+    'screen_view',
+    'onboarding_started',
+    'onboarding_step_viewed',
+    'onboarding_step_completed',
+    'onboarding_completed',
+    'onboarding_resumed',
+    'onboarding_branch_selected',
+    'insight_opened',
+  };
+  static const _values = <String, Set<String>>{
+    'mode': {'discover', 'explore', 'build', 'prove', 'launch', 'graduate'},
+    'branch': {'school', 'university', 'graduate'},
+    'tone': {'neutral', 'positive', 'warning', 'maroon', 'teal', 'amber'},
+    'phase': {'startup', 'render', 'runtime'},
+    'screen': {
+      'dashboard',
+      'onboarding',
+      'roadmap',
+      'applications',
+      'vault',
+      'coach',
+      'interview',
+      'profile',
+      'settings',
+      'radar',
+      'analyser',
+    },
+    'step': {
       'name',
-      'full_name',
-      'email',
-      'phone',
-      'address',
-      'cv',
-      'cv_text',
-      'answer',
-      'notes',
-      'description',
-      'text',
-      'title',
-      'summary',
-      'query',
-    };
+      'branch',
+      'school',
+      'university',
+      'year',
+      'field',
+      'skills',
+      'experience',
+      'projects',
+      'goals',
+      'review',
+    },
+  };
+
+  /// Only named counts, flags and enumerated values may leave the device.
+  static Map<String, Object?> _clean(Map<String, Object?> properties) {
     final out = <String, Object?>{};
     properties.forEach((key, value) {
-      if (banned.contains(key.toLowerCase())) return;
-      if (value is String && value.length > 40) return;
-      if (value is String || value is num || value is bool) out[key] = value;
+      if (const {'count', 'step', 'actions_shown'}.contains(key) &&
+          value is int &&
+          value >= 0 &&
+          value <= 10000) {
+        out[key] = value;
+      } else if (key == 'completed' && value is bool) {
+        out[key] = value;
+      } else if (value is String && (_values[key]?.contains(value) ?? false)) {
+        out[key] = value;
+      }
     });
     return out;
   }

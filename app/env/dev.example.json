@@ -1,6 +1,5 @@
 {
   "SUPABASE_URL": "",
   "SUPABASE_ANON_KEY": "",
-  "APP_ENV": "dev",
-  "SENTRY_DSN": ""
+  "APP_ENV": "dev"
 }
