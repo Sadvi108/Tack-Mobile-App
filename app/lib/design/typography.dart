@@ -88,7 +88,7 @@ class TackText {
 
   static TextStyle get bodyMuted => TextStyle(
     fontFamily: _inter,
-    fontSize: 15,
+    fontSize: 16,
     height: 1.45,
     fontWeight: FontWeight.w400,
     color: TackColors.muted,

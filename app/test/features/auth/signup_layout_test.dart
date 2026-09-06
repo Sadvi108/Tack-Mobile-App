@@ -29,9 +29,11 @@ void main() {
     expect(find.text('Continue with Google'), findsOneWidget);
     expect(find.text('Create account'), findsOneWidget);
 
-    // All three social options are reachable without scrolling.
-    expect(find.text('Facebook'), findsOneWidget);
+    // Every social option Tack actually has configured is reachable without
+    // scrolling. Facebook is deliberately absent: it is disabled server side,
+    // and offering a button that cannot complete is worse than not offering it.
     expect(find.text('GitHub'), findsOneWidget);
+    expect(find.text('Facebook'), findsNothing);
   });
 
   testWidgets('sign up still fits with the largest supported text scale', (

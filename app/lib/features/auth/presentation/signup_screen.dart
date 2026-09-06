@@ -89,6 +89,14 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   Widget build(BuildContext context) {
     final auth = ref.watch(authControllerProvider);
 
+    // The type sizes here are an accessibility floor, not a preference, so
+    // when a student turns their text size up it is the spacing that yields,
+    // never the text. `app.dart` caps the scale at 1.3; at that cap this gives
+    // back more than the height the 16px body line costs, so the screen keeps
+    // its no-scroll promise instead of overflowing by a couple of pixels.
+    final textScale = MediaQuery.textScalerOf(context).scale(16) / 16;
+    final gap = textScale > 1 ? 1 / textScale : 1.0;
+
     return TackScaffold(
       padBody: false,
       scrollable: false,
@@ -98,13 +106,13 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: TackSpace.sm),
+            SizedBox(height: TackSpace.sm * gap),
             const TackWordmark(),
-            const SizedBox(height: TackSpace.lg),
+            SizedBox(height: TackSpace.lg * gap),
             Text('Create your account', style: TackText.screenTitle),
-            const SizedBox(height: TackSpace.xs),
+            SizedBox(height: TackSpace.xs * gap),
             Text('Free for every student.', style: TackText.bodyMuted),
-            const SizedBox(height: TackSpace.lg),
+            SizedBox(height: TackSpace.lg * gap),
 
             GoogleSignInButton(
               busy: auth.busy,
@@ -112,16 +120,16 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                   .read(authControllerProvider.notifier)
                   .signInWith(TackOAuthProvider.google),
             ),
-            const SizedBox(height: TackSpace.row),
+            SizedBox(height: TackSpace.row * gap),
             SecondaryProviderRow(
               busy: auth.busy,
               onPressed: (provider) => ref
                   .read(authControllerProvider.notifier)
                   .signInWith(provider),
             ),
-            const SizedBox(height: TackSpace.md),
+            SizedBox(height: TackSpace.md * gap),
             const TackOrDivider(),
-            const SizedBox(height: TackSpace.md),
+            SizedBox(height: TackSpace.md * gap),
 
             TackTextField(
               hint: 'Email address',
@@ -132,7 +140,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
               autofillHints: const [AutofillHints.email],
               onChanged: (_) => _revalidate(),
             ),
-            const SizedBox(height: TackSpace.row),
+            SizedBox(height: TackSpace.row * gap),
             TackTextField(
               hint: 'Password, at least 8 characters',
               controller: _password,
@@ -145,11 +153,11 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
             ),
 
             if (auth.failure != null) ...[
-              const SizedBox(height: TackSpace.sm),
+              SizedBox(height: TackSpace.sm * gap),
               Text(auth.failure!.message, style: TackText.fieldError),
             ],
 
-            const SizedBox(height: TackSpace.md),
+            SizedBox(height: TackSpace.md * gap),
             TackButton(
               'Create account',
               loading: auth.busy,
@@ -178,7 +186,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                 const Expanded(child: PolicyNote()),
               ],
             ),
-            const SizedBox(height: TackSpace.xs),
+            SizedBox(height: TackSpace.xs * gap),
             Center(
               child: Semantics(
                 button: true,
