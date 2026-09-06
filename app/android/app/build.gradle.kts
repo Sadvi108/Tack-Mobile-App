@@ -4,6 +4,15 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+// Release credentials are supplied by the build environment. No password is
+// stored in this repository, and a release never falls back to a debug key.
+val releaseStore = providers.environmentVariable("TACK_KEYSTORE_PATH").orNull
+val releaseStorePassword = providers.environmentVariable("TACK_KEYSTORE_PASSWORD").orNull
+val releaseAlias = providers.environmentVariable("TACK_KEY_ALIAS").orNull
+val releaseKeyPassword = providers.environmentVariable("TACK_KEY_PASSWORD").orNull
+val releaseSigningReady = listOf(releaseStore, releaseStorePassword, releaseAlias, releaseKeyPassword)
+    .all { !it.isNullOrBlank() }
+
 android {
     namespace = "com.tack.tack"
     compileSdk = flutter.compileSdkVersion
@@ -15,7 +24,6 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.tack.tack"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
@@ -25,12 +33,30 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        if (releaseSigningReady) {
+            create("release") {
+                storeFile = file(releaseStore!!)
+                storePassword = releaseStorePassword
+                keyAlias = releaseAlias
+                keyPassword = releaseKeyPassword
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            if (releaseSigningReady) signingConfig = signingConfigs.getByName("release")
         }
+    }
+}
+
+gradle.taskGraph.whenReady {
+    val packagingRelease = allTasks.any {
+        it.project == project && it.name in listOf("assembleRelease", "bundleRelease", "packageRelease")
+    }
+    if (packagingRelease && !releaseSigningReady) {
+        throw GradleException("Release signing is missing. Set TACK_KEYSTORE_PATH, TACK_KEYSTORE_PASSWORD, TACK_KEY_ALIAS and TACK_KEY_PASSWORD in the build environment.")
     }
 }
 

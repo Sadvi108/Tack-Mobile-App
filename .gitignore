@@ -23,6 +23,10 @@ app/android/.gradle/
 app/android/local.properties
 app/android/key.properties
 app/android/app/*.jks
+# Signing material never belongs in the repo, wherever it is dropped.
+*.jks
+*.p12
+*.keystore
 app/android/app/google-services.json
 app/ios/Runner/GoogleService-Info.plist
 **/*.g.dart
