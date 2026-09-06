@@ -1,9 +1,10 @@
+import { validateResponse } from "./response_validation.ts";
+import { assertClean, redact } from "./redact.ts";
 import { SupabaseClient } from "@supabase/supabase-js";
 
 import { CompletionRequest, selectProvider } from "./provider.ts";
 import { validate } from "./schemas.ts";
 
-/** Three AI actions a day, per student. */
 /**
  * A fallback, not the rule.
  *
@@ -17,7 +18,7 @@ import { validate } from "./schemas.ts";
  * "today's AI actions" so there is one place to change it and no way for the
  * two to disagree.
  */
-export const DAILY_AI_QUOTA = 10;
+export const DAILY_AI_QUOTA = 3;
 
 /**
  * The one bucket the allowance is counted in.
@@ -77,6 +78,8 @@ export async function runCompletion(
     remaining = await quotaRemaining(service, userId);
   }
 
+  request = { ...request, user: redact(request.user).text };
+  assertClean(request.user);
   const provider = selectProvider();
   let result;
   try {
@@ -87,12 +90,15 @@ export async function runCompletion(
       feature: request.feature,
       provider: provider.name,
       succeeded: false,
-      error_code: (error as Error).message.slice(0, 120),
+      error_code: "provider_unavailable",
     });
     throw error;
   }
 
-  let problems = validate(result.data, shape, required);
+  let problems = [
+    ...validate(result.data, shape, required),
+    ...validateResponse(request.feature, result.data),
+  ];
 
   // One corrective retry. Models occasionally return a nearly-right shape, and
   // a single re-ask is cheaper than failing the student's only run.
@@ -105,7 +111,10 @@ export async function runCompletion(
         }. ` +
         `Reply again with valid JSON only.`,
     });
-    const retryProblems = validate(retry.data, shape, required);
+    const retryProblems = [
+      ...validate(retry.data, shape, required),
+      ...validateResponse(request.feature, retry.data),
+    ];
     if (retryProblems.length === 0) {
       result = retry;
       problems = [];
@@ -120,9 +129,7 @@ export async function runCompletion(
     prompt_tokens: result.promptTokens,
     completion_tokens: result.completionTokens,
     succeeded: problems.length === 0,
-    error_code: problems.length === 0
-      ? null
-      : problems.join("; ").slice(0, 120),
+    error_code: problems.length === 0 ? null : "invalid_model_reply",
   });
 
   if (problems.length > 0) {
@@ -151,12 +158,13 @@ export async function quotaRemaining(
   service: SupabaseClient,
   userId: string,
 ): Promise<number> {
-  const { data } = await service.rpc("quota_remaining", {
+  const { data, error } = await service.rpc("quota_remaining", {
     p_user_id: userId,
     p_bucket: QUOTA_BUCKET,
     p_limit: DAILY_AI_QUOTA,
   });
-  return (data as number | null) ?? DAILY_AI_QUOTA;
+  if (error || typeof data !== "number") throw new Error("quota_unavailable");
+  return data;
 }
 
 /** Content hash, so identical text is never analysed twice. */

@@ -29,7 +29,7 @@ Deno.test("renders the student's own details", () => {
 // strangers. Escaping is the whole security boundary of the renderer.
 Deno.test("escapes anything a student typed", () => {
   const html = render({
-    name: '<script>alert(1)</script>',
+    name: "<script>alert(1)</script>",
     headline: 'Backend "developer" & friend',
     projects: [{
       title: "<img src=x onerror=alert(1)>",

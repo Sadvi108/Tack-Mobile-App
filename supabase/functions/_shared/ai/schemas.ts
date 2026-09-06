@@ -123,7 +123,7 @@ export function validate(
         actual.every((item) =>
           kind === "string[]"
             ? typeof item === "string"
-            : typeof item === "object"
+            : typeof item === "object" && item !== null && !Array.isArray(item)
         );
     if (!ok) problems.push(`${key} was not ${kind}`);
   }

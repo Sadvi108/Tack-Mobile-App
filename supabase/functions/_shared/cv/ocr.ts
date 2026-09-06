@@ -68,53 +68,49 @@ export async function recogniseImage(bytes: Uint8Array): Promise<OcrResult> {
     );
   }
 
-  const { createWorker } = await import("tesseract.js");
-
-  // Tesseract fetches ~5MB of trained data on first use and caches it beside
-  // the process. An Edge Function's filesystem is read-only apart from /tmp,
-  // so left alone this writes eng.traineddata into the working directory —
-  // which fails there, and which littered the repository here.
-  //
-  // Starting the engine is caught apart from reading the image, because the
-  // two failures mean completely different things. A bad photo is one
-  // student's problem. An engine that will not start is OCR not working at
-  // all — most likely because Supabase's Edge Runtime does not give
-  // tesseract.js the worker threads it wants, which could not be tested here
-  // without Docker. That distinction is what makes it findable in the logs
-  // rather than a mystery.
-  let worker;
+  // Run the WASM API in this isolate. Supabase does not implement Node's
+  // Worker constructor, which createWorker() requires.
+  let core: OcrCore;
   try {
-    worker = await createWorker("eng", undefined, { cachePath: "/tmp" });
-  } catch (error) {
-    throw new OcrUnavailable(
-      `the OCR engine did not start: ${(error as Error).message}`,
-      { cause: error },
+    const { default: createCore } = await import("tesseract.js-core");
+    core = await createCore({ print: () => {}, printErr: () => {} }) as OcrCore;
+    const response = await fetch(
+      "https://cdn.jsdelivr.net/npm/@tesseract.js-data/eng@1.0.0/4.0.0_best_int/eng.traineddata.gz",
+      { signal: AbortSignal.timeout(20000) },
     );
+    if (!response.ok || !response.body) {
+      throw new Error("language_data_unavailable");
+    }
+    const language = new Uint8Array(
+      await new Response(
+        response.body.pipeThrough(new DecompressionStream("gzip")),
+      ).arrayBuffer(),
+    );
+    core.FS.writeFile("/eng.traineddata", language);
+  } catch (error) {
+    throw new OcrUnavailable("The text reader is temporarily unavailable.", {
+      cause: error,
+    });
   }
+  const api = new core.TessBaseAPI();
   try {
-    // The bytes go in as they are. tesseract.js types its input as a Node
-    // Buffer, which Deno has no business constructing, and wrapping them in a
-    // Blob to satisfy that type made the engine read a truncated file — the
-    // types are wrong about what the runtime accepts, so the cast is the
-    // honest fix rather than changing the value to suit them.
-    const { data } = await worker.recognize(
-      bytes as unknown as Parameters<typeof worker.recognize>[0],
-    );
+    if (api.Init("/", "eng", 1) !== 0) {
+      throw new OcrUnavailable("ocr_initialization_failed");
+    }
+    core.FS.writeFile("/input", bytes);
+    if (api.SetImageFile(1, 0) !== 0) {
+      throw new UnreadableDocument(
+        "Tack could not open that image. Upload your CV as a text PDF instead.",
+      );
+    }
+    api.Recognize(null);
     return {
-      text: repairOcrText(normalise(data.text ?? "")),
-      confidence: data.confidence ?? 0,
+      text: repairOcrText(normalise(api.GetUTF8Text())),
+      confidence: api.MeanTextConf(),
     };
-  } catch (error) {
-    // Tesseract says "Error attempting to read image" for anything it cannot
-    // decode — a truncated upload, a HEIC variant it does not know, a file
-    // whose extension lied. None of that is the student's fault to diagnose.
-    throw new UnreadableDocument(
-      "Tack could not open that image. Try taking the photo again, or upload " +
-        "your CV as a PDF instead.",
-      { cause: error },
-    );
   } finally {
-    await worker.terminate();
+    api.End();
+    core.destroy(api);
   }
 }
 
@@ -157,4 +153,17 @@ export function repairOcrText(text: string): string {
       /\b(?:https?:\/\/)?(?:www[ \t]*\.[ \t]*)?[A-Za-z0-9-]+[ \t]*\.[ \t]*(?:com|org|net|edu|gov|io|co|dev|me|info|app|ai|bd|uk|us|xyz)\b(?:[ \t]*\/[ \t]*[A-Za-z0-9._~-]+)*/gi,
       (match) => match.replace(/\s+/g, ""),
     );
+}
+
+interface OcrCore {
+  destroy(object: unknown): void;
+  FS: { writeFile(path: string, bytes: Uint8Array): void };
+  TessBaseAPI: new () => {
+    Init(path: string, language: string, mode: number): number;
+    SetImageFile(orientation: number, angle: number): number;
+    Recognize(monitor: null): number;
+    GetUTF8Text(): string;
+    MeanTextConf(): number;
+    End(): void;
+  };
 }

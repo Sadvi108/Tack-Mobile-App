@@ -1,9 +1,8 @@
+import { analysisRequest, readRequest } from "../_shared/util/requests.ts";
+import { enqueueStudentJob } from "../_shared/jobs/enqueue.ts";
 import { requireUser, serviceClient } from "../_shared/util/auth.ts";
 import { fail, json, preflight } from "../_shared/util/http.ts";
-import {
-  hashText,
-  quotaRemaining,
-} from "../_shared/ai/gateway.ts";
+import { hashText, quotaRemaining } from "../_shared/ai/gateway.ts";
 import { matchSkills } from "../_shared/ai/matching.ts";
 import { redact } from "../_shared/ai/redact.ts";
 
@@ -21,26 +20,9 @@ Deno.serve(async (req) => {
   const auth = await requireUser(req);
   if (!auth) return fail("You are signed out. Log in and try again.", 401);
 
-  let body: { text?: string; jobId?: string };
-  try {
-    body = await req.json();
-  } catch {
-    return fail("That request could not be read.", 400);
-  }
-
-  const text = (body.text ?? "").trim();
-  if (text.length < 80) {
-    return fail(
-      "Paste the whole job description — a line or two is not enough to analyse.",
-      400,
-    );
-  }
-  if (text.length > 20000) {
-    return fail(
-      "That description is very long. Paste just the role and requirements.",
-      400,
-    );
-  }
+  const body = await readRequest(req, analysisRequest);
+  if (body instanceof Response) return body;
+  const text = body.text;
 
   const service = serviceClient();
   const hash = await hashText(text);
@@ -70,52 +52,12 @@ Deno.serve(async (req) => {
     });
   }
 
-  const remaining = await quotaRemaining(service, auth.userId);
-  if (remaining <= 0) {
-    return fail(
-      "You have used today's AI actions. They reset at midnight.",
-      429,
-      "quota_exhausted",
-    );
-  }
-
-  // Contact details are stripped here, on the way in, so they never reach the
-  // queue payload let alone the model.
   const { text: clean } = redact(text);
-
-  const { data: job, error } = await service
-    .from("jobs_queue")
-    .insert({
-      user_id: auth.userId,
-      type: "analyse_jd",
-      payload: { text: clean, hash, jobId: body.jobId ?? null },
-      idempotency_key: `analyse_jd:${auth.userId}:${hash}`,
-    })
-    .select("id")
-    .single();
-
-  if (error) {
-    // A duplicate key means this student already queued this exact text.
-    if (error.code === "23505") {
-      return json({
-        status: "queued",
-        duplicate: true,
-        quotaRemaining: remaining,
-      }, 202);
-    }
-    return fail("That could not be queued. Try again in a moment.", 500);
-  }
-
-  return json(
-    {
-      status: "queued",
-      jobId: job.id,
-      quotaRemaining: remaining,
-      message:
-        "This takes about a minute. You can close the app and come back.",
-    },
-    202,
-  );
+  return enqueueStudentJob(service, auth.userId, "analyse_jd", {
+    text: clean,
+    hash,
+    jobId: body.jobId ?? null,
+  }, `analyse_jd:${auth.userId}:${hash}`);
 });
 
 /** Deterministic. No model call. */

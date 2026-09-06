@@ -1,3 +1,5 @@
+import { documentRequest, readRequest } from "../_shared/util/requests.ts";
+import { enqueueStudentJob } from "../_shared/jobs/enqueue.ts";
 import { requireUser, serviceClient } from "../_shared/util/auth.ts";
 import { fail, json, preflight } from "../_shared/util/http.ts";
 import {
@@ -27,15 +29,9 @@ Deno.serve(async (req) => {
   const auth = await requireUser(req);
   if (!auth) return fail("You are signed out. Log in and try again.", 401);
 
-  let body: { documentId?: string };
-  try {
-    body = await req.json();
-  } catch {
-    return fail("That request could not be read.", 400);
-  }
-
-  const documentId = (body.documentId ?? "").trim();
-  if (!documentId) return fail("No CV was named in that request.", 400);
+  const body = await readRequest(req, documentRequest);
+  if (body instanceof Response) return body;
+  const documentId = body.documentId;
 
   // Read through the caller's own session, so row level security decides
   // whether this document exists at all. An id belonging to someone else
@@ -122,53 +118,11 @@ Deno.serve(async (req) => {
     return json(await scored(service, auth.userId, doc.id, true));
   }
 
-  const remaining = await quotaRemaining(service, auth.userId);
-  if (remaining <= 0) {
-    return fail(
-      "You have used today's AI actions. They reset at midnight.",
-      429,
-      "quota_exhausted",
-    );
-  }
-
-  const { data: job, error } = await service
-    .from("jobs_queue")
-    .insert({
-      user_id: auth.userId,
-      type: "parse_cv",
-      payload: { document_id: doc.id, checksum },
-      idempotency_key: `parse_cv:${auth.userId}:${checksum}`,
-    })
-    .select("id")
-    .single();
-
-  if (error) {
-    // A duplicate key means this student already queued this exact file.
-    if (error.code === "23505") {
-      return json({
-        status: "queued",
-        duplicate: true,
-        quotaRemaining: remaining,
-      }, 202);
-    }
-    return fail("That could not be queued. Try again in a moment.", 500);
-  }
-
-  await service
-    .from("documents")
-    .update({ status: "processing", failure_reason: null })
-    .eq("id", doc.id);
-
-  return json(
-    {
-      status: "queued",
-      jobId: job.id,
-      quotaRemaining: remaining,
-      message:
-        "This takes about a minute. You can close the app and come back.",
-    },
-    202,
-  );
+  const response = await enqueueStudentJob(service, auth.userId, "parse_cv", {
+    document_id: doc.id,
+    checksum,
+  }, `parse_cv:${auth.userId}:${doc.id}:${checksum}`);
+  return response;
 });
 
 /** Deterministic. No model call, no quota. */

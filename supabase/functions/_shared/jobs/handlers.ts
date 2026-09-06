@@ -1,3 +1,4 @@
+import { conversationHandlers } from "./conversation_handlers.ts";
 /**
  * Everything the queue knows how to do.
  *
@@ -29,6 +30,7 @@ export type Handler = (
 ) => Promise<unknown>;
 
 export const handlers: Record<string, Handler> = {
+  ...conversationHandlers,
   recompute_readiness: async (service, job) => {
     const userId = (job.payload.user_id as string) ?? job.user_id;
     if (!userId) return { skipped: "no user" };
@@ -133,7 +135,11 @@ export const handlers: Record<string, Handler> = {
       p_dedupe_key: `analysis:${analysisId}`,
     });
 
-    return { analysisId, matchPercent: match.matchPercent };
+    return {
+      analysisId,
+      matchPercent: match.matchPercent,
+      cached: Boolean(cached),
+    };
   },
 
   /**
@@ -369,7 +375,8 @@ export const handlers: Record<string, Handler> = {
       // student is told in a sentence they can act on rather than the job
       // being retried three times and dead-lettered.
       if (error instanceof UnreadableDocument) {
-        await service.from("cv_checks").insert({
+        await service.from("cv_checks").upsert({
+          job_id: job.id,
           user_id: userId,
           document_id: documentId,
           findings: [{
@@ -379,7 +386,7 @@ export const handlers: Record<string, Handler> = {
             detail: error.studentMessage,
           }],
           problems: 1,
-        });
+        }, { onConflict: "job_id" });
         return { unreadable: true };
       }
       throw error;
@@ -401,7 +408,8 @@ export const handlers: Record<string, Handler> = {
 
     const list = sortFindings(findings(metrics, recognised));
 
-    await service.from("cv_checks").insert({
+    await service.from("cv_checks").upsert({
+      job_id: job.id,
       user_id: userId,
       document_id: documentId,
       metrics,
@@ -409,7 +417,7 @@ export const handlers: Record<string, Handler> = {
       findings: list,
       problems: list.filter((f) => f.severity === "problem").length,
       suggestions: list.filter((f) => f.severity === "improve").length,
-    });
+    }, { onConflict: "job_id" });
 
     return {
       findings: list.length,

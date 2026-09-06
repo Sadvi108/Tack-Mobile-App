@@ -116,6 +116,7 @@ export class GeminiProvider implements LLMProvider {
 
       const response = await fetch(url, {
         method: "POST",
+        signal: AbortSignal.timeout(45000),
         headers: { "Content-Type": "application/json", "x-goog-api-key": key },
         body: JSON.stringify({
           systemInstruction: { parts: [{ text: request.system }] },
@@ -173,6 +174,11 @@ export function selectProvider(): LLMProvider {
 
 function mockFixture(feature: string, input: string): unknown {
   switch (feature) {
+    case "coach_chat":
+      return {
+        reply:
+          "Choose one skill from your roadmap and practise it in a small project this week.",
+      };
     case "analyse_jd":
       return {
         job_title: "Junior frontend developer",
