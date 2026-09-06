@@ -13,8 +13,7 @@ import '../../../core/failure.dart';
 import '../../../design/tack.dart';
 import '../../../routing/router.dart';
 import '../application/upload_controller.dart';
-import '../data/document_models.dart';
-import '../data/document_repository.dart';
+import '../application/cv_check.dart';
 import '../../../routing/tab_bar.dart';
 
 /// The document vault.
@@ -281,7 +280,7 @@ class VaultScreen extends ConsumerWidget {
       TackToast.show(
         context,
         message: type == DocumentType.cv
-            ? 'Uploaded. Reading your CV now — you can leave this screen.'
+            ? 'Uploaded. Your free check is saved. Open it from this CV’s menu.'
             : 'Uploaded.',
       );
     }
@@ -298,6 +297,13 @@ class VaultScreen extends ConsumerWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          if (document.type == DocumentType.cv)
+            _SheetOption(
+              icon: TackIcons.check,
+              title: 'Free CV check',
+              body: 'See useful changes without using an AI action',
+              onTap: () => Navigator.of(context).pop('check'),
+            ),
           if (document.type == DocumentType.cv && !document.isDefault)
             _SheetOption(
               icon: TackIcons.star,
@@ -334,6 +340,8 @@ class VaultScreen extends ConsumerWidget {
 
     try {
       switch (action) {
+        case 'check':
+          context.push('/vault/check/${document.id}');
         case 'default':
           await repository.makeDefault(document.id);
           ref.invalidate(documentsProvider);

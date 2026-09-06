@@ -81,7 +81,7 @@ class UploadController extends Notifier<UploadState> {
           );
 
       // A CV keeps going in the background; everything else is done.
-      if (!document.isProcessing) {
+      if (document.type != DocumentType.cv) {
         state = UploadState.idle;
         ref.invalidate(documentsProvider);
         return true;
@@ -92,7 +92,7 @@ class UploadController extends Notifier<UploadState> {
       // Uploading a CV used to end here, which is why every CV ever uploaded
       // is still sitting at 'processing': nothing asked for it to be read.
       try {
-        await ref.read(documentRepositoryProvider).requestScore(document.id);
+        await ref.read(documentRepositoryProvider).requestCheck(document.id);
       } catch (_) {
         // The file is saved either way. Only the reading did not start, and
         // saying so is more use than a generic failure.
@@ -107,6 +107,7 @@ class UploadController extends Notifier<UploadState> {
         return false;
       }
 
+      state = UploadState.idle;
       ref.invalidate(documentsProvider);
       return true;
     } catch (e) {

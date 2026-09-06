@@ -1,3 +1,4 @@
+import '../../../core/jobs/job_repository.dart';
 import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
@@ -65,7 +66,13 @@ Future<void> streamingUpload({
 }
 
 class DocumentRepository {
-  const DocumentRepository(this._db, {this.transport = streamingUpload});
+  const DocumentRepository(
+    this._db, {
+    this.transport = streamingUpload,
+    this.jobs,
+  });
+
+  final JobRepository? jobs;
 
   final SupabaseClient _db;
   final UploadTransport transport;
@@ -144,7 +151,8 @@ class DocumentRepository {
       await _db
           .from('documents')
           .update({'storage_path': key})
-          .eq('id', documentId);
+          .eq('id', documentId)
+          .eq('user_id', _uid);
 
       final signed = await _db.storage.from(bucket).createSignedUploadUrl(key);
 
@@ -159,11 +167,12 @@ class DocumentRepository {
 
       // A CV goes to `processing` rather than `ready`: parsing runs in the
       // background and the student can leave the screen.
-      final nextStatus = type == DocumentType.cv ? 'processing' : 'ready';
+      const nextStatus = 'ready';
       final row = await _db
           .from('documents')
           .update({'status': nextStatus})
           .eq('id', documentId)
+          .eq('user_id', _uid)
           .select()
           .single();
 
@@ -174,7 +183,8 @@ class DocumentRepository {
         await _db
             .from('documents')
             .update({'status': 'failed', 'failure_reason': failure.message})
-            .eq('id', documentId);
+            .eq('id', documentId)
+            .eq('user_id', _uid);
       }
       throw failure;
     }
@@ -197,6 +207,42 @@ class DocumentRepository {
     } catch (e) {
       throw Failure.from(e);
     }
+  }
+
+  Future<void> requestCheck(String documentId) async {
+    try {
+      await _db.functions.invoke('cv-check', body: {'documentId': documentId});
+    } catch (e) {
+      throw Failure.from(e);
+    }
+  }
+
+  Future<Map<String, dynamic>> checkResult(String documentId) async {
+    final uid = _uid;
+    Future<Map<String, dynamic>?> read() => _db
+        .from('cv_checks')
+        .select('findings, problems, suggestions, skills')
+        .eq('user_id', uid)
+        .eq('document_id', documentId)
+        .order('created_at', ascending: false)
+        .limit(1)
+        .maybeSingle();
+    final existing = await read();
+    if (existing != null) return existing;
+    final response = await _db.functions.invoke(
+      'cv-check',
+      body: {'documentId': documentId},
+    );
+    final body = (response.data as Map?)?.cast<String, dynamic>() ?? {};
+    if (jobs != null) await jobs!.resolve(body);
+    if (_uid != uid) {
+      throw const Failure('Open your CV check again after signing in.');
+    }
+    final result = await read();
+    if (result == null) {
+      throw const Failure('Your check is still saved. Come back shortly.');
+    }
+    return result;
   }
 
   /// A short-lived link to read one file.
@@ -242,7 +288,8 @@ class DocumentRepository {
       await _db
           .from('documents')
           .update({'title': title.trim()})
-          .eq('id', documentId);
+          .eq('id', documentId)
+          .eq('user_id', _uid);
     } catch (e) {
       throw Failure.from(e);
     }
@@ -255,7 +302,8 @@ class DocumentRepository {
       await _db
           .from('documents')
           .update({'deleted_at': DateTime.now().toUtc().toIso8601String()})
-          .eq('id', documentId);
+          .eq('id', documentId)
+          .eq('user_id', _uid);
     } catch (e) {
       throw Failure.from(e);
     }
@@ -263,11 +311,14 @@ class DocumentRepository {
 }
 
 final documentRepositoryProvider = Provider<DocumentRepository>(
-  (ref) => DocumentRepository(ref.watch(supabaseProvider)),
+  (ref) => DocumentRepository(
+    ref.watch(supabaseProvider),
+    jobs: ref.watch(jobRepositoryProvider),
+  ),
 );
 
 final documentsProvider = FutureProvider<List<TackDocument>>((ref) async {
-  if (!ref.watch(isSignedInProvider)) return const [];
+  if (ref.watch(currentUserProvider)?.id == null) return const [];
   return ref.watch(documentRepositoryProvider).all();
 });
 
