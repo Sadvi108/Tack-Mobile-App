@@ -94,7 +94,10 @@ Rules:
 - Every model response is validated against a schema before it is stored.
 - AI endpoints return `202` with a job id. They never block.
 - `AI_PROVIDER=mock` is the default and stays that way in development.
-- Per-user quota is 3 AI actions a day, enforced by `public.consume_quota`.
+- The per-user daily AI allowance is defined once, by `public.ai_daily_limit()`
+  (currently 10). `consume_quota` and `quota_remaining` read it themselves, so
+  a caller cannot grant itself a different allowance by passing `p_limit`.
+  Never write the number into Dart, TypeScript or copy a student reads.
 - Job description analysis is cached by content hash. The same text is never
   analysed twice.
 

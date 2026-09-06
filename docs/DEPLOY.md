@@ -10,10 +10,16 @@ edited to contain one.
 
 Checked against the project rather than remembered, on 3 September 2026.
 
-- **65 migrations applied.** Row Level Security forced on every table,
-  reference data seeded.
-- **All seven Edge Functions deployed and `ACTIVE`**: `analyze-jd`, `coach`,
-  `delete-account`, `interview`, `radar`, `score-cv`, and `worker`.
+- **71 migrations applied**, counted against the live project during the
+  5 September audit. Row Level Security forced on every table, reference data
+  seeded. `supabase/migrations/` now holds 74: `0072`–`0074` are the atomic AI
+  job, private error report and application command changes, and they still
+  need `node tool/migrate.js`.
+- **Nine Edge Functions deployed and `ACTIVE`**: `analyze-jd`, `coach`,
+  `cv-check`, `delete-account`, `interview`, `profile`, `radar`, `score-cv`
+  and `worker`. `policies` is new in this checkout and is not deployed yet —
+  the app's privacy, terms and support links resolve to it, so deploying it is
+  a release blocker.
 - **Three cron jobs**, all active: `tack-worker` every two minutes,
   `tack-score-drain` every minute, `tack-nightly` at 18:20 UTC — just after
   midnight in Dhaka.
@@ -110,8 +116,10 @@ defaults to false, no screen sets it, and nothing is exposed.
 development. If it is still `mock` when real students arrive, the coach, CV
 scoring, JD analysis and interview practice will all answer with fixtures.
 
-**Crash reporting is off until a DSN is set.** A beta with no crash reports
-wastes the beta. See [SENTRY.md](SENTRY.md) for what it sends.
+**Error reports need no setup.** They go to `public.error_reports` in Tack's
+own project, so a build with a Supabase URL and anon key already reports. See
+[ERROR_REPORTING.md](ERROR_REPORTING.md) for what a report may contain and how
+to read one.
 
 **Leaked-password protection** is disabled. One toggle in Authentication →
 Settings; it checks new passwords against HaveIBeenPwned.
