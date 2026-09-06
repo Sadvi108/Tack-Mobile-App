@@ -1,3 +1,10 @@
+import '../features/settings/presentation/sync_screen.dart';
+import '../features/vault/presentation/cv_check_screen.dart';
+export 'routes.dart';
+import 'routes.dart';
+import 'session_redirect.dart';
+import '../features/auth/application/session_gate.dart';
+import '../features/profile/application/profile.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -28,51 +35,23 @@ import '../features/roadmap/presentation/roadmap_screen.dart';
 import '../features/score/presentation/score_screen.dart';
 import '../features/vault/presentation/vault_screen.dart';
 
-/// Every route name in one place, so nothing is typed as a string literal at a
-/// call site.
-class Routes {
-  const Routes._();
-
-  static const splash = '/';
-  static const welcome = '/welcome';
-  static const login = '/login';
-  static const signup = '/signup';
-  static const forgotPassword = '/forgot-password';
-  static const resetPassword = '/reset-password';
-
-  static const onboarding = '/onboarding';
-
-  static const home = '/home';
-  static const paths = '/paths';
-  static const roadmap = '/roadmap';
-  static const radar = '/radar';
-  static const coach = '/coach';
-  static const applications = '/applications';
-  static const profile = '/profile';
-
-  static const score = '/score';
-  static const vault = '/vault';
-  static const analyser = '/analyser';
-  static const interview = '/interview';
-  static const notifications = '/notifications';
-  static const settings = '/settings';
-  static const cvBuilder = '/cv-builder';
-
-  static String application(String id) => '/applications/$id';
-  static String path(String slug) => '/paths/$slug';
-}
-
 /// Rebuilds the router whenever auth changes, so the redirect below re-runs.
 class _AuthRefresh extends ChangeNotifier {
   _AuthRefresh(Ref ref) {
-    _sub = ref.listen(authStateProvider, (_, _) => notifyListeners());
+    _subscriptions = [
+      ref.listen(authStateProvider, (_, _) => notifyListeners()),
+      ref.listen(profileProvider, (_, _) => notifyListeners()),
+      ref.listen(passwordRecoveryProvider, (_, _) => notifyListeners()),
+    ];
   }
 
-  late final ProviderSubscription _sub;
+  late final List<ProviderSubscription> _subscriptions;
 
   @override
   void dispose() {
-    _sub.close();
+    for (final sub in _subscriptions) {
+      sub.close();
+    }
     super.dispose();
   }
 }
@@ -85,32 +64,15 @@ final routerProvider = Provider<GoRouter>((ref) {
     initialLocation: Env.debugInitialRoute ?? Routes.splash,
     refreshListenable: refresh,
     redirect: (context, state) {
-      final signedIn = ref.read(supabaseProvider).auth.currentSession != null;
-      final loc = state.matchedLocation;
-      const publicRoutes = {
-        Routes.splash,
-        Routes.welcome,
-        Routes.login,
-        Routes.signup,
-        Routes.forgotPassword,
-        Routes.resetPassword,
-      };
-
-      if (!signedIn) {
-        // The splash screen exists to decide where a *signed-in* student goes.
-        // A signed-out one has nothing to wait for, so send them straight on
-        // rather than leaving them watching a spinner.
-        if (loc == Routes.splash) return Routes.welcome;
-        if (!publicRoutes.contains(loc)) return Routes.welcome;
-        return null;
-      }
-      if (signedIn &&
-          (loc == Routes.welcome ||
-              loc == Routes.login ||
-              loc == Routes.signup)) {
-        return Routes.home;
-      }
-      return null;
+      return sessionRedirect(
+        signedIn: ref.read(supabaseProvider).auth.currentSession != null,
+        location: state.matchedLocation,
+        recovering: ref.read(passwordRecoveryProvider),
+        onboardingComplete: ref
+            .read(profileProvider)
+            .value
+            ?.hasFinishedOnboarding,
+      );
     },
     routes: [
       GoRoute(
@@ -188,6 +150,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const ScoreScreen(),
       ),
       GoRoute(
+        path: '/vault/check/:id',
+        builder: (context, state) =>
+            CvCheckScreen(documentId: state.pathParameters['id']!),
+      ),
+      GoRoute(
         path: Routes.vault,
         builder: (context, state) => const VaultScreen(),
       ),
@@ -198,6 +165,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: Routes.interview,
         builder: (context, state) => const InterviewScreen(),
+      ),
+      GoRoute(
+        path: '/settings/sync',
+        builder: (context, state) => const SyncScreen(),
       ),
       GoRoute(
         path: Routes.settings,

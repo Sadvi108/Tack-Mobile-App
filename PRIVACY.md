@@ -1,8 +1,8 @@
-# Privacy Policy
+# Privacy policy
 
 **Tack** — a careers app for students in Bangladesh.
 
-Last updated: 3 September 2026
+Last updated: 6 September 2026
 
 This describes what Tack actually does with your information. Every claim here
 matches something in the code, and where a limit is enforced by the software
@@ -18,9 +18,8 @@ rather than by a promise, it says so.
   students, and not us through the app.
 - You can delete your account from inside the app, at any time, and it takes
   your files with it.
-- Three things do leave our database, and each is listed below: crash reports,
-  the text sent to an AI model (with your contact details stripped out first),
-  and the words you type into the job search.
+- AI requests send text to Google with contact details removed. Job search
+  sends search terms to its sources. Analytics and error reports stay in Supabase.
 
 ---
 
@@ -73,17 +72,13 @@ yours.
 
 ## What leaves our database, and what does not
 
-### Crash reports — Sentry
+### Error reports — Supabase
 
-If the app crashes we send the crash to Sentry so it can be fixed. That report
-contains your user id — a random identifier, so that a crash affecting one
-person can be told apart from one affecting everybody — and the technical
-details of the failure.
-
-It does **not** contain your name, email, phone number, IP address, or any text
-you typed: no CV text, job description, note, interview answer or search term.
-This is enforced in code (`sendDefaultPii = false`), not by configuration
-someone could change by accident.
+Error reports stay in Tack's Supabase project. They contain a fixed error code,
+application source locations, the app version and platform. Raw exception
+messages, screenshots, contact details and text you type are not included.
+Authenticated ingestion is rate-limited. Errors before a usable signed-in
+session may not be reported.
 
 ### AI features — Google Gemini
 
@@ -93,7 +88,8 @@ text is sent.** Email addresses, Bangladeshi phone numbers, long ID numbers and
 web links are extracted locally first; they are kept in our own database and
 never placed in the prompt.
 
-You get three AI actions per day. Nothing you do in Tack sends anything to a
+You get three AI actions per day, resetting at midnight in Bangladesh.
+Free checks and cached results do not spend an AI action. Nothing you do in Tack sends anything to a
 model unless you ask for it by using one of those features.
 
 Google processes that text under its own terms. We do not use your data to
@@ -120,11 +116,8 @@ Usage analytics are stored in our own database, in the same project as
 everything else, under your own account — so Row Level Security applies to them
 like any other row, and deleting your account deletes them too.
 
-We record event names and counts. The code refuses to store a property named
-`name`, `email`, `phone`, `address`, `cv`, `cv_text`, `answer`, `notes`,
-`description`, `text`, `title`, `summary` or `query`, and it drops **any** text
-value longer than 40 characters, whatever it is called. The intent is that
-nothing readable about you can end up in that table even by mistake.
+We record only approved event names, bounded counts, flags and fixed categories.
+Unknown property names and values are dropped before an event leaves the app.
 
 There is no Google Analytics, no Firebase Analytics, no Facebook SDK, and no
 advertising identifier anywhere in this app.
@@ -153,7 +146,10 @@ openings, coach conversations, interview answers, analytics — and every file
 you uploaded, deleted from storage rather than merely hidden. It is immediate
 and permanent. We cannot restore it afterwards, even if you ask.
 
-You do not have to email anybody or explain why.
+You can also request deletion without the app by emailing
+**shadmansadvi108@gmail.com** from the address used for your Tack account, with
+"Delete my Tack account" as the subject. We verify account ownership before
+removing data. You do not need to explain why.
 
 ---
 

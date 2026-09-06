@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../design/tack.dart';
-import '../../../routing/router.dart';
-import '../../profile/data/profile_repository.dart';
+import '../../profile/application/profile.dart';
 
 /// Decides where a returning student lands: onboarding if they never finished
 /// it, otherwise the dashboard. Signed-out students are sent to the welcome
@@ -14,17 +12,6 @@ class SplashScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    ref.listen(profileProvider, (_, next) {
-      final profile = next.value;
-      if (profile == null) return;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!context.mounted) return;
-        context.go(
-          profile.hasFinishedOnboarding ? Routes.home : Routes.onboarding,
-        );
-      });
-    });
-
     final profile = ref.watch(profileProvider);
 
     return TackScaffold(

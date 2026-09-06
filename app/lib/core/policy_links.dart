@@ -1,28 +1,27 @@
+import '../config/env.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../design/tack.dart';
 
-/// Where the policy pages live.
-///
-/// Served from the repository rather than a marketing site: Play needs a
-/// stable URL it can reach without signing in, and a page that sits beside the
-/// code it describes is likelier to stay true than one on a site nobody
-/// remembers to update.
+/// Public policy resources served by Tack's Supabase project.
 class PolicyLinks {
   const PolicyLinks._();
 
-  static const privacy =
-      'https://github.com/Sadvi108/Tack-Mobile-App/blob/main/PRIVACY.md';
-  static const terms =
-      'https://github.com/Sadvi108/Tack-Mobile-App/blob/main/TERMS.md';
+  static const privacy = '${Env.supabaseUrl}/functions/v1/policies/privacy';
+  static const support = '${Env.supabaseUrl}/functions/v1/policies/support';
+  static const terms = '${Env.supabaseUrl}/functions/v1/policies/terms';
 
   /// Opens one in the browser, and says so rather than failing silently if the
   /// phone has nothing that can.
   static Future<void> open(BuildContext context, String url) async {
     try {
-      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+      final opened = await launchUrl(
+        Uri.parse(url),
+        mode: LaunchMode.externalApplication,
+      );
+      if (!opened) throw StateError('browser_unavailable');
     } catch (_) {
       if (!context.mounted) return;
       TackToast.show(
@@ -89,9 +88,9 @@ class _PolicyNoteState extends State<PolicyNote> {
                 'Your CV and certificates stay private. Signing up accepts '
                 'our ',
           ),
-          TextSpan(text: 'Terms', style: link, recognizer: _terms),
+          TextSpan(text: 'terms', style: link, recognizer: _terms),
           const TextSpan(text: ' and '),
-          TextSpan(text: 'Privacy Policy', style: link, recognizer: _privacy),
+          TextSpan(text: 'privacy policy', style: link, recognizer: _privacy),
           const TextSpan(text: '.'),
         ],
       ),

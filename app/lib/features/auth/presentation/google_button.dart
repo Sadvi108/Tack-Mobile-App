@@ -76,7 +76,7 @@ class TackOrDivider extends StatelessWidget {
   }
 }
 
-/// Facebook and GitHub, side by side under the Google button.
+/// Providers enabled for the current release.
 ///
 /// Compact on purpose: the sign-up screen has to fit 360x640 with no scroll,
 /// and three full-width buttons would not. Google stays prominent because it
@@ -86,10 +86,7 @@ class SecondaryProviderRow extends StatelessWidget {
     super.key,
     required this.onPressed,
     this.busy = false,
-    this.providers = const [
-      TackOAuthProvider.facebook,
-      TackOAuthProvider.github,
-    ],
+    this.providers = const [TackOAuthProvider.github],
   });
 
   final void Function(TackOAuthProvider provider) onPressed;

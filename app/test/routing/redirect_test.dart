@@ -1,93 +1,95 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tack/routing/router.dart';
-
-/// The redirect rule, mirrored so it can be checked without a live session.
-String? redirectFor({required bool signedIn, required String location}) {
-  const publicRoutes = {
-    Routes.splash,
-    Routes.welcome,
-    Routes.login,
-    Routes.signup,
-    Routes.forgotPassword,
-    Routes.resetPassword,
-  };
-
-  if (!signedIn) {
-    if (location == Routes.splash) return Routes.welcome;
-    if (!publicRoutes.contains(location)) return Routes.welcome;
-    return null;
-  }
-  if (location == Routes.welcome ||
-      location == Routes.login ||
-      location == Routes.signup) {
-    return Routes.home;
-  }
-  return null;
-}
+import 'package:tack/routing/routes.dart';
+import 'package:tack/routing/session_redirect.dart';
 
 void main() {
-  group('signed out', () {
-    test('the splash screen is not a dead end', () {
-      // The splash exists to decide where a signed-in student goes. A signed
-      // out one has nothing to wait for and must not be left on a spinner.
-      expect(
-        redirectFor(signedIn: false, location: Routes.splash),
-        Routes.welcome,
-      );
-    });
-
-    test('a protected route sends them to welcome', () {
-      for (final route in [
-        Routes.home,
-        Routes.roadmap,
-        Routes.applications,
-        Routes.profile,
-        Routes.vault,
-        Routes.analyser,
-      ]) {
-        expect(
-          redirectFor(signedIn: false, location: route),
-          Routes.welcome,
-          reason: '$route must not be reachable signed out',
-        );
-      }
-    });
-
-    test('the auth screens are reachable', () {
-      for (final route in [
-        Routes.welcome,
-        Routes.login,
-        Routes.signup,
-        Routes.forgotPassword,
-        Routes.resetPassword,
-      ]) {
-        expect(redirectFor(signedIn: false, location: route), isNull);
-      }
-    });
+  test('signed-out sessions cannot enter protected or reset routes', () {
+    for (final route in [
+      Routes.home,
+      Routes.splash,
+      Routes.onboarding,
+      Routes.resetPassword,
+    ]) {
+      expect(sessionRedirect(signedIn: false, location: route), Routes.welcome);
+    }
+    expect(sessionRedirect(signedIn: false, location: Routes.login), isNull);
   });
-
-  group('signed in', () {
-    test('the auth screens bounce to the dashboard', () {
-      for (final route in [Routes.welcome, Routes.login, Routes.signup]) {
-        expect(redirectFor(signedIn: true, location: route), Routes.home);
-      }
-    });
-
-    test('the splash is allowed to run, because it decides where to go', () {
-      expect(redirectFor(signedIn: true, location: Routes.splash), isNull);
-    });
-
-    test('reset password stays reachable, for the emailed link', () {
+  test(
+    'unknown profile waits and incomplete onboarding cannot be bypassed',
+    () {
       expect(
-        redirectFor(signedIn: true, location: Routes.resetPassword),
+        sessionRedirect(signedIn: true, location: Routes.home),
+        Routes.splash,
+      );
+      expect(
+        sessionRedirect(
+          signedIn: true,
+          location: Routes.login,
+          onboardingComplete: false,
+        ),
+        Routes.onboarding,
+      );
+      expect(
+        sessionRedirect(
+          signedIn: true,
+          location: Routes.home,
+          onboardingComplete: false,
+        ),
+        Routes.onboarding,
+      );
+      expect(
+        sessionRedirect(
+          signedIn: true,
+          location: Routes.onboarding,
+          onboardingComplete: false,
+        ),
         isNull,
       );
-    });
-
-    test('the app routes are left alone', () {
-      for (final route in [Routes.home, Routes.roadmap, Routes.profile]) {
-        expect(redirectFor(signedIn: true, location: route), isNull);
-      }
-    });
+    },
+  );
+  test('password recovery takes priority over onboarding', () {
+    expect(
+      sessionRedirect(
+        signedIn: true,
+        location: Routes.home,
+        recovering: true,
+        onboardingComplete: false,
+      ),
+      Routes.resetPassword,
+    );
+    expect(
+      sessionRedirect(
+        signedIn: true,
+        location: Routes.resetPassword,
+        recovering: true,
+      ),
+      isNull,
+    );
+    expect(
+      sessionRedirect(
+        signedIn: true,
+        location: Routes.resetPassword,
+        onboardingComplete: true,
+      ),
+      Routes.home,
+    );
+  });
+  test('completed student can open deep links and leaves onboarding', () {
+    expect(
+      sessionRedirect(
+        signedIn: true,
+        location: Routes.vault,
+        onboardingComplete: true,
+      ),
+      isNull,
+    );
+    expect(
+      sessionRedirect(
+        signedIn: true,
+        location: Routes.onboarding,
+        onboardingComplete: true,
+      ),
+      Routes.home,
+    );
   });
 }

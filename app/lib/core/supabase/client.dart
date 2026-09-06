@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../config/env.dart';
 import '../crash_reporting.dart';
+import '../analytics.dart';
 
 /// Boots Supabase. Called once, before `runApp`.
 Future<void> initSupabase() async {
@@ -18,6 +19,7 @@ Future<void> initSupabase() async {
     // cost the app has not yet earned.
     realtimeClientOptions: const RealtimeClientOptions(eventsPerSecond: 2),
   );
+  CrashReporting.connect(Analytics(Supabase.instance.client));
 }
 
 final supabaseProvider = Provider<SupabaseClient>(
@@ -34,10 +36,6 @@ final authStateProvider = StreamProvider<AuthState>(
 final currentUserProvider = Provider<User?>((ref) {
   ref.watch(authStateProvider);
   final user = ref.watch(supabaseProvider).auth.currentUser;
-
-  // So a crash can be traced to one account without naming the person behind
-  // it. Signing out clears it.
-  CrashReporting.setUser(user?.id);
 
   return user;
 });

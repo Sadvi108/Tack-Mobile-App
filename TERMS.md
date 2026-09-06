@@ -1,8 +1,8 @@
-# Terms of Use
+# Terms of use
 
 **Tack** — a careers app for students in Bangladesh.
 
-Last updated: 3 September 2026
+Last updated: 6 September 2026
 
 By using Tack you agree to what follows. It is short on purpose.
 
