@@ -7,7 +7,7 @@ import {
   quotaRemaining,
   recordCacheHit,
 } from "../_shared/ai/gateway.ts";
-import { isExtractable } from "../_shared/cv/extract.ts";
+import { isExtractable, SUPPORTED_CV_MESSAGE } from "../_shared/cv/extract.ts";
 
 /**
  * Scoring a CV.
@@ -15,7 +15,7 @@ import { isExtractable } from "../_shared/cv/extract.ts";
  * Returns 202 with a job id and never blocks: reading the file and calling the
  * model happen in the worker. A file this student has already had parsed is
  * served from the cache, costs no quota, and returns 200 — re-uploading your
- * own CV should not spend one of three daily actions.
+ * own CV should not spend another daily AI action.
  *
  * Note what this endpoint does *not* take: any text. The document id is the
  * whole request, and the bytes are read server-side from private storage. An
@@ -48,7 +48,7 @@ Deno.serve(async (req) => {
 
   if (!isExtractable(doc.mime_type)) {
     return fail(
-      "Tack can read PDFs and Word documents. Export your CV as a PDF and upload it again.",
+      SUPPORTED_CV_MESSAGE,
       400,
       "unreadable_type",
     );

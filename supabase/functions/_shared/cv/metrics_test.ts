@@ -230,10 +230,16 @@ Deno.test("a file Tack cannot read says what to do instead", async () => {
   }
 });
 
-Deno.test("a photograph is something Tack will now try to read", () => {
+Deno.test("photo feedback is deferred without starting the hosted OCR engine", () => {
   for (const type of ["image/jpeg", "image/png", "image/heic"]) {
-    assert(isExtractable(type), type);
+    assert(!isExtractable(type), type);
   }
+  assert(isExtractable("application/pdf"));
+  assert(
+    isExtractable(
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ),
+  );
   assert(!isExtractable("application/msword"));
   assert(!isExtractable(null));
 });

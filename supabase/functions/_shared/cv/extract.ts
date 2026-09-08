@@ -8,9 +8,8 @@
  * server could produce itself — and would make re-extraction impossible
  * without asking the student to upload the file again.
  *
- * A photograph goes through OCR. Most students here have a paper CV and a
- * phone camera rather than a scanner, so a photo is the first thing many will
- * upload, and refusing it was refusing the common case.
+ * Photos can be stored and opened in the vault. Reading them is deferred:
+ * direct WASM OCR exceeded the hosted worker's CPU limit in the live test.
  */
 
 /** Beyond this the extractor stops. A CV is not a book. */
@@ -49,7 +48,10 @@ const PDF = "application/pdf";
 const DOCX =
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
-/** What OCR can read. The vault already refuses anything not on this list. */
+export const SUPPORTED_CV_MESSAGE =
+  "For CV feedback, upload a text PDF or Word (.docx) file. You can still keep and open photos in your vault.";
+
+/** Stored photo types. These must not start the experimental OCR engine. */
 const IMAGES = new Set([
   "image/jpeg",
   "image/png",
@@ -59,8 +61,7 @@ const IMAGES = new Set([
 ]);
 
 export function isExtractable(mimeType: string | null): boolean {
-  return mimeType === PDF || mimeType === DOCX ||
-    (mimeType !== null && IMAGES.has(mimeType));
+  return mimeType === PDF || mimeType === DOCX;
 }
 
 export async function extractDocument(
@@ -71,28 +72,11 @@ export async function extractDocument(
   if (mimeType === DOCX) return finish(await fromDocx(bytes), "docx");
 
   if (mimeType !== null && IMAGES.has(mimeType)) {
-    // Imported here rather than at the top so a PDF upload does not pay for
-    // loading an OCR engine it will never use.
-    const { recogniseImage, MIN_CONFIDENCE } = await import("./ocr.ts");
-    const read = await recogniseImage(bytes);
-
-    // A blurry or badly lit photo produces text that looks like text and is
-    // not. Scoring it would be worse than refusing it, because the student
-    // would act on a number built from noise.
-    if (read.confidence < MIN_CONFIDENCE) {
-      throw new UnreadableDocument(
-        "That photo is too hard to read. Try again in better light with the " +
-          "page flat and the whole CV in frame, or upload a PDF instead.",
-      );
-    }
-
-    return finish({ text: read.text, pages: 1 }, "ocr", read.confidence);
+    throw new UnreadableDocument(SUPPORTED_CV_MESSAGE);
   }
 
   // A legacy .doc is a binary format nothing here can open.
-  throw new UnreadableDocument(
-    "Tack can read PDFs, Word documents and photos. Export your CV as a PDF and upload it again.",
-  );
+  throw new UnreadableDocument(SUPPORTED_CV_MESSAGE);
 }
 
 function finish(
