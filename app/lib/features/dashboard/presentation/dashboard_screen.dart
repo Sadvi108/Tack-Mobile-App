@@ -13,7 +13,6 @@ import '../../roadmap/data/roadmap_repository.dart';
 import '../application/dashboard_data.dart';
 import '../application/insights.dart';
 import '../data/dashboard_feed.dart';
-import '../data/dashboard_repository.dart';
 import 'insight_deck.dart';
 import 'motion.dart';
 import 'path_fit_card.dart';
@@ -409,8 +408,8 @@ class _ExploreCta extends StatelessWidget {
             available == 0
                 ? 'Real jobs, what they pay in Bangladesh, and what it takes to '
                       'get one. Nothing to commit to.'
-                : '$available real jobs, what they pay in Bangladesh, and what it '
-                      'takes to get one. Nothing to commit to.',
+                : '$available career paths, what they involve, and how to try '
+                      'them. Nothing to commit to.',
             style: TackText.bodyMuted.copyWith(color: const Color(0xD1FFFFFF)),
           ),
           const SizedBox(height: TackSpace.lg),

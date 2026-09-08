@@ -2,16 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../design/tack.dart';
+import 'package:tack/design/tack.dart';
 import '../../../routing/router.dart';
-import '../../profile/data/profile.dart';
-import '../../profile/data/profile_repository.dart';
-import '../data/career_path.dart';
-import '../data/path_repository.dart';
+import '../../profile/application/profile.dart';
+import '../application/catalog.dart';
 import 'compare_screen.dart';
 
-/// Spelled out up to twelve, because "Ten real jobs" reads as a sentence
-/// where "10 real jobs" reads as a label. Falls back to a plain plural while
+/// Spelled out up to twelve for the introductory sentence. Falls back to a plain plural while
 /// the list is still loading, rather than flashing a number that then changes.
 String _countWord(int? n) => switch (n) {
   null || 0 => 'Real',
@@ -45,6 +42,9 @@ class PathsScreen extends ConsumerStatefulWidget {
 class _PathsScreenState extends ConsumerState<PathsScreen> {
   /// Up to two paths staged for side-by-side comparison.
   final _toCompare = <String>{};
+  String _field = '';
+  String _query = '';
+  String _fieldName = 'All fields';
 
   @override
   Widget build(BuildContext context) {
@@ -60,8 +60,8 @@ class _PathsScreenState extends ConsumerState<PathsScreen> {
         // somebody added an eleventh or retired one, and copy that states a
         // fact about the data has to read it.
         subtitle: mode == YearMode.explore
-            ? '${_countWord(matchesAsync.value?.length)} real jobs, what they '
-                  'pay here, and what it takes. Nothing to commit to.'
+            ? '${_countWord(matchesAsync.value?.length)} career paths, what they '
+                  'involve, and how to try them. Nothing to commit to.'
             : 'Pick up to two. Tack builds a roadmap from whichever you choose.',
       ),
       pinnedCta: _toCompare.length == 2
@@ -96,6 +96,46 @@ class _PathsScreenState extends ConsumerState<PathsScreen> {
         data: (matches) => Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            TackButton.secondary(
+              _fieldName,
+              onPressed: () async {
+                final fields = catalogFields(
+                  matches.map((m) => m.path).toList(),
+                );
+                final selected = await showSearchPicker<String>(
+                  context: context,
+                  title: 'Filter by field',
+                  selected: _field,
+                  load: () async => [
+                    const PickerOption(value: '', label: 'All fields'),
+                    for (final field in fields)
+                      PickerOption(
+                        value: field.slug,
+                        label: field.name,
+                        trailing: '${field.count} paths',
+                      ),
+                  ],
+                );
+                if (selected == null || !mounted) return;
+                setState(() {
+                  _field = selected;
+                  _fieldName = selected.isEmpty
+                      ? 'All fields'
+                      : fields.firstWhere((f) => f.slug == selected).name;
+                });
+              },
+            ),
+            const SizedBox(height: TackSpace.md),
+            TackTextField(
+              hint: 'Search career paths',
+              onChanged: (value) => setState(() => _query = value),
+            ),
+            const SizedBox(height: TackSpace.lg),
+            Text(
+              '${filterCatalog(matches.map((m) => m.path).toList(), field: _field, query: _query).length} paths to explore',
+              style: TackText.bodyMuted,
+            ),
+            const SizedBox(height: TackSpace.md),
             if (_toCompare.isNotEmpty) ...[
               Text(
                 _toCompare.length == 1
@@ -105,7 +145,13 @@ class _PathsScreenState extends ConsumerState<PathsScreen> {
               ),
               const SizedBox(height: TackSpace.md),
             ],
-            for (final match in matches) ...[
+            for (final match in matches.where(
+              (m) => filterCatalog(
+                [m.path],
+                field: _field,
+                query: _query,
+              ).isNotEmpty,
+            )) ...[
               _PathCard(
                 match: match,
                 following: chosen.any((c) => c.pathId == match.path.id),

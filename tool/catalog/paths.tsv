@@ -1,0 +1,130 @@
+# field|title|primary skill|practice project
+engineering|Industrial engineer|Process improvement|Map a campus service and propose two ways to reduce waiting time
+engineering|Quality engineer|Quality assurance|Create an inspection checklist for a familiar manufactured item
+engineering|Project engineer|Project planning|Plan the tasks, costs and risks for a small campus improvement
+computer-science|Mobile app developer|Flutter|Build a small offline study planner
+computer-science|Full stack developer|Web development|Build a campus club directory with sign-in and search
+computer-science|DevOps engineer|Continuous integration|Automate testing and deployment for a sample application
+computer-science|Cybersecurity analyst|Network security|Write a security review of your own test application
+computer-science|Cloud engineer|Cloud computing|Document a small application architecture and its running costs
+computer-science|Machine learning engineer|Machine learning|Evaluate a simple model on a public non-personal dataset
+computer-science|Database developer|SQL|Design and query a library lending database
+computer-science|IT support specialist|Technical troubleshooting|Write a troubleshooting guide for five common computer problems
+medicine|Clinical medicine|Clinical documentation|Compare supervised training routes using official course information
+medicine|Clinical research coordinator|Research coordination|Draft a fictional study schedule and consent-process checklist
+medicine|Health informatics analyst|Health information systems|Build a dashboard from a public aggregate health dataset
+pharmacy|Pharmaceutical quality analyst|Laboratory documentation|Draft a sample quality-control record using fictional measurements
+pharmacy|Regulatory affairs associate|Regulatory documentation|Map the sections of a public product-information document
+pharmacy|Pharmaceutical production associate|Production planning|Draw a fictional production flow with quality checkpoints
+nursing|Registered nursing|Patient care documentation|Compare accredited nursing routes and supervised placement requirements
+nursing|Community health coordinator|Health communication|Draft a health-event plan using reviewed public education material
+nursing|Patient services coordinator|Service coordination|Map a fictional clinic reception and referral workflow
+business|Operations executive|Operations management|Map the order-to-delivery process of a small business
+business|Supply chain analyst|Supply chain planning|Build a stock and reorder worksheet with fictional sales
+business|Project coordinator|Project coordination|Plan a campus event with a timeline and responsibility chart
+business|Customer success associate|Customer communication|Design an onboarding guide for a fictional software product
+business|Procurement associate|Supplier evaluation|Compare three fictional supplier proposals using a scoring sheet
+accounting|Audit associate|Audit documentation|Prepare a sample evidence checklist for fictional expense records
+accounting|Financial analyst|Financial modelling|Compare two public annual reports using a simple ratio worksheet
+accounting|Tax associate|Tax research|Create an index of official tax guidance for a sample business case
+accounting|Management accountant|Cost accounting|Build a unit-cost and break-even worksheet for a fictional product
+ economics|Economic research assistant|Economic data analysis|Chart a public economic time series and explain its limits
+ economics|Policy analyst|Policy research|Compare two public policy proposals with an evidence table
+ economics|Market research analyst|Market research|Write a short research plan for a campus service
+banking|Banking operations associate|Banking operations|Map a fictional account-service request and its checks
+banking|Credit analyst|Credit analysis|Review a fictional business using cash-flow and risk questions
+banking|Insurance operations associate|Insurance documentation|Build a sample claim-document checklist without personal records
+marketing|Brand executive|Brand strategy|Create a one-page brand brief for a fictional local product
+marketing|Performance marketing analyst|Campaign measurement|Analyse a synthetic advertising dataset and propose an experiment
+marketing|SEO specialist|Search engine optimisation|Audit a website you own and prioritise improvements
+marketing|Social media strategist|Content planning|Plan a month of content for a fictional student service
+law|Legal research assistant|Legal research|Build a source table for a publicly available legal topic
+law|Corporate compliance associate|Compliance documentation|Draft a fictional compliance register with source references
+law|Legal practice|Case analysis|Compare professional training routes and observe public legal writing
+architecture|Architectural design|Architectural drawing|Create a concept layout for a fictional study space
+architecture|Urban planning assistant|Spatial planning|Map access to public facilities using open geographic data
+architecture|BIM modeller|Building information modelling|Create a simple building model with labelled elements
+ design|UI and UX designer|User interface design|Prototype a campus service and record usability feedback
+ design|Product designer|User research|Develop a problem brief and test a low-fidelity prototype
+ design|Motion designer|Motion graphics|Create a short title sequence with accessible captions
+ design|Illustration designer|Digital illustration|Build a small editorial illustration series from an original brief
+media|Journalism researcher|Source verification|Prepare a fact-checked explainer using public primary sources
+media|Video editor|Video editing|Edit a short original interview with captions and credits
+media|Public relations executive|Public relations|Draft a fictional announcement and media question sheet
+education|School teaching|Lesson planning|Create a lesson plan and practise it with peer feedback
+education|Instructional designer|Learning design|Build a short self-paced lesson with a knowledge check
+education|Education programme coordinator|Programme coordination|Plan a small tutoring programme and its progress measures
+psychology|Psychology research assistant|Behavioural research|Review published research and document methods and limitations
+psychology|Psychology and counselling practice|Psychology ethics|Compare accredited training and supervised practice pathways
+psychology|People research analyst|Survey design|Design a non-sensitive fictional workplace survey and analysis plan
+social-science|Social research assistant|Qualitative research|Code a public interview transcript and explain your categories
+social-science|Community programme officer|Community engagement|Draft a fictional community-event plan with an inclusion checklist
+social-science|Monitoring and evaluation assistant|Programme evaluation|Build an outcomes-and-indicators table for a sample programme
+public-admin|Public administration|Administrative writing|Map a public service and propose a clearer information guide
+public-admin|Civil service preparation|Public affairs research|Create a study plan using official examination information
+public-admin|Public policy research assistant|Policy writing|Write a two-page evidence brief about a local service
+international-relations|International affairs researcher|International affairs analysis|Compare primary-source statements on a public international issue
+international-relations|International programme associate|Cross-cultural communication|Plan a fictional exchange programme and its logistics
+international-relations|Trade research analyst|Trade data analysis|Summarise a public trade dataset with charts and source notes
+agriculture|Agriculture extension assistant|Agricultural communication|Prepare an education leaflet based on reviewed official guidance
+agriculture|Food quality associate|Food quality documentation|Design a sample inspection record for a fictional food process
+agriculture|Agribusiness analyst|Agribusiness planning|Build a fictional farm-to-market cost worksheet
+ environment|Environmental research assistant|Environmental data analysis|Analyse a public environmental dataset and document uncertainty
+ environment|Sustainability reporting associate|Sustainability reporting|Compare two public sustainability reports using an evidence matrix
+ environment|GIS analyst|Geographic information systems|Map a local service using open data and explain coverage limits
+biotech|Biotechnology research assistant|Research documentation|Create a literature review with a reproducible search log
+biotech|Bioinformatics analyst|Bioinformatics|Analyse a public tutorial dataset with a documented notebook
+biotech|Laboratory quality associate|Laboratory quality systems|Draft a sample equipment and recordkeeping checklist
+statistics|Data scientist|Statistical modelling|Compare baseline models on a public non-personal dataset
+statistics|Statistical analyst|Statistical inference|Analyse an open dataset with confidence intervals and caveats
+statistics|Business intelligence developer|Data visualisation|Build a dashboard with documented metric definitions
+mathematics|Quantitative analyst|Mathematical modelling|Model a fictional queue or inventory problem and test assumptions
+mathematics|Operations research analyst|Optimisation|Optimise a sample timetable and explain trade-offs
+mathematics|Actuarial analyst|Probability modelling|Model a fictional risk pool with clearly stated assumptions
+physics|Physics research assistant|Scientific computing|Reproduce a published plot using open data
+physics|Instrumentation associate|Measurement analysis|Write a sample measurement log and uncertainty calculation
+physics|Technical applications specialist|Technical communication|Explain a scientific instrument using public documentation
+chemistry|Chemical laboratory analyst|Analytical chemistry|Analyse a public training dataset and write a sample report
+chemistry|Chemical quality associate|Quality control documentation|Draft a fictional sampling and results record
+chemistry|Materials research assistant|Materials research|Compare published material properties with source notes
+textile|Textile production associate|Textile production planning|Map a fictional garment production line and its checks
+textile|Apparel merchandiser|Apparel merchandising|Build a sample order sheet and production timeline
+textile|Textile quality inspector|Textile quality inspection|Create a defect-classification checklist using sample images
+civil-engineering|Civil site engineer|Construction documentation|Create a fictional site progress report and issue register
+civil-engineering|Quantity surveyor|Quantity estimation|Prepare a simple materials quantity worksheet from a sample drawing
+civil-engineering|Structural design assistant|Structural modelling|Document a classroom structural model under academic supervision
+civil-engineering|Transport planning assistant|Transport data analysis|Analyse open transport data and suggest questions for further study
+ electrical-engineering|Electrical design assistant|Electrical drawing|Document an academic circuit-design exercise under supervision
+ electrical-engineering|Electronics engineer|Embedded systems|Build and document a safe low-voltage classroom prototype
+ electrical-engineering|Power systems analyst|Power systems modelling|Analyse a public teaching model and document assumptions
+ electrical-engineering|Telecommunications engineer|Telecommunications|Map a fictional network and its service requirements
+ mechanical-engineering|Mechanical design engineer|Mechanical CAD|Model a simple non-safety-critical part and explain design choices
+ mechanical-engineering|Manufacturing engineer|Manufacturing processes|Compare production methods for a fictional part
+ mechanical-engineering|Maintenance planning associate|Maintenance planning|Create a sample equipment schedule from public manuals
+marine|Marine engineering|Marine systems documentation|Compare approved training routes and supervised placement options
+marine|Port operations associate|Port logistics|Map a fictional shipment from arrival to release
+marine|Naval design assistant|Technical drawing|Summarise a classroom design exercise and review its assumptions
+aviation|Aircraft maintenance career|Maintenance documentation|Compare approved training and certification routes using official sources
+aviation|Airport operations associate|Airport operations|Map a fictional passenger-service process and exception handling
+aviation|Airline commercial analyst|Commercial data analysis|Analyse a synthetic route-demand dataset
+hospitality|Hotel operations associate|Hospitality operations|Design a guest-arrival workflow and service-recovery checklist
+hospitality|Travel operations executive|Travel planning|Create a fictional itinerary with cost and accessibility notes
+hospitality|Event coordinator|Event planning|Plan a campus event with vendors, timing and contingencies
+sports-science|Physical education teaching|Activity planning|Plan an inclusive supervised classroom activity
+sports-science|Sports performance analyst|Sports data analysis|Analyse an open match dataset with clearly defined metrics
+sports-science|Sports programme coordinator|Sports programme planning|Plan a fictional campus tournament and participation measures
+languages|Translator|Translation|Translate a short permitted text and explain terminology choices
+languages|Editor and proofreader|Copy editing|Edit an original sample and explain significant corrections
+languages|Language teaching|Language lesson planning|Design a short language lesson with peer practice
+islamic-studies|Islamic studies teaching|Religious education planning|Create a sourced lesson outline with academic peer review
+islamic-studies|Arabic language services|Arabic translation|Translate a permitted non-sensitive passage and document terms
+islamic-studies|Islamic studies researcher|Textual research|Compare scholarly sources with a structured bibliography
+fine-arts|Fine artist|Portfolio development|Create an original three-piece series with artist statements
+fine-arts|Performing arts production|Production coordination|Plan a short campus performance with roles and rehearsal notes
+fine-arts|Arts programme coordinator|Arts administration|Design a small exhibition plan and audience guide
+library|Library assistant|Library cataloguing|Catalogue a sample collection with consistent metadata
+library|Information management associate|Information organisation|Design a searchable index for public documents
+library|Digital archivist|Digital preservation|Create a sample archive structure with rights and retention notes
+development|Development programme associate|Development programme planning|Draft a sample programme brief with goals and risks
+development|Research and evaluation officer|Monitoring and evaluation|Build an indicator and data-quality plan for a fictional project
+development|Grant writing associate|Proposal writing|Write a sample grant proposal with an evidence-based budget

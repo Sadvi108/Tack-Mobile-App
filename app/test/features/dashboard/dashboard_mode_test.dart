@@ -694,7 +694,7 @@ void main() {
       await tester.pumpAndSettle();
 
       final text = bodyText(tester);
-      expect(text, contains('14 real jobs'));
+      expect(text, contains('14 career paths'));
       expect(text, isNot(contains('Ten real jobs')));
     });
 

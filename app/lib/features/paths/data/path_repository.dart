@@ -22,6 +22,7 @@ class PathRepository {
   static const _select = '''
     id, slug, title, summary, category, salary_min_bdt, salary_max_bdt,
     months_to_job_ready, demand_level, day_to_day, good_fit_if, sort_order,
+    career_fields(slug,name),
     career_path_skills(skill_id, importance, skills(id, name)),
     career_path_milestones(id)
   ''';

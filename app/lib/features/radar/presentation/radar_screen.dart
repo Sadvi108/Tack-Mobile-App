@@ -1,20 +1,18 @@
+import '../../paths/presentation/career_field_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/failure.dart';
-import '../../../design/tack.dart';
+import 'package:tack/design/tack.dart';
 import '../../../routing/router.dart';
 import '../../../routing/tab_bar.dart';
-import '../../applications/data/application_repository.dart';
+import '../../applications/application/application_data.dart';
 import '../../applications/presentation/applications_screen.dart';
-import '../../dashboard/data/dashboard_repository.dart';
-import '../../profile/data/profile.dart';
-import '../../profile/data/profile_repository.dart';
-import '../data/listing.dart';
-import '../data/radar_filter.dart';
-import '../data/radar_repository.dart';
+import '../../dashboard/application/dashboard_data.dart';
+import '../../profile/application/profile.dart';
+import '../application/radar_data.dart';
 import 'listing_card.dart';
 
 /// Radar — what is open, and what of it is worth your time.
@@ -207,6 +205,15 @@ class _Find extends ConsumerWidget {
           // the only way to run a search — invisible, and unreachable at all
           // once the keyboard is dismissed.
           suffix: _SearchButton(onTap: submit),
+        ),
+        const SizedBox(height: TackSpace.md),
+        CareerFieldPicker(
+          onPick: (path) {
+            controller.text = path.title;
+            ref
+                .read(radarQueryProvider.notifier)
+                .submit(query.copyWith(text: path.title));
+          },
         ),
         const SizedBox(height: TackSpace.md),
         _FilterChips(

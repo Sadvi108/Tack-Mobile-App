@@ -1,3 +1,4 @@
+export '../data/dashboard_repository.dart' show dashboardFeedProvider;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../applications/data/application_models.dart';

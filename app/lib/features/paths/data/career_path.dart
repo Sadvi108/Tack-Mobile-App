@@ -38,10 +38,10 @@ class PathSkill {
   }
 }
 
-/// One of the ten hand-written career paths.
+/// A career direction with starter skills and a practice roadmap.
 ///
 /// Everything here is seeded content written for the Bangladeshi entry-level
-/// market. No model produced any of it, and none of it depends on a quota.
+/// market. Browsing it requires no runtime model call or AI allowance.
 class CareerPath {
   const CareerPath({
     required this.id,
@@ -49,6 +49,8 @@ class CareerPath {
     required this.title,
     required this.summary,
     required this.category,
+    this.fieldSlug,
+    this.fieldName,
     this.salaryMin,
     this.salaryMax,
     this.monthsToJobReady,
@@ -64,6 +66,8 @@ class CareerPath {
   final String title;
   final String summary;
   final String category;
+  final String? fieldSlug;
+  final String? fieldName;
   final int? salaryMin;
   final int? salaryMax;
   final int? monthsToJobReady;
@@ -101,6 +105,16 @@ class CareerPath {
     title: row['title'] as String,
     summary: row['summary'] as String,
     category: (row['category'] as String?) ?? 'general',
+    fieldSlug:
+        (row['career_fields'] is Map
+                ? (row['career_fields'] as Map)['slug']
+                : null)
+            as String?,
+    fieldName:
+        (row['career_fields'] is Map
+                ? (row['career_fields'] as Map)['name']
+                : null)
+            as String?,
     salaryMin: (row['salary_min_bdt'] as num?)?.toInt(),
     salaryMax: (row['salary_max_bdt'] as num?)?.toInt(),
     monthsToJobReady: (row['months_to_job_ready'] as num?)?.toInt(),
