@@ -8,18 +8,17 @@ edited to contain one.
 
 ## What is already live
 
-Checked against the project rather than remembered, on 3 September 2026.
+Checked against the project on 8 September 2026. See
+[production progress](PRODUCTION_PROGRESS_2026-09-08.md) for validation and remaining release gates.
 
-- **71 migrations applied**, counted against the live project during the
-  5 September audit. Row Level Security forced on every table, reference data
-  seeded. `supabase/migrations/` now holds 74: `0072`–`0074` are the atomic AI
-  job, private error report and application command changes, and they still
-  need `node tool/migrate.js`.
-- **Nine Edge Functions deployed and `ACTIVE`**: `analyze-jd`, `coach`,
+- **75 migrations applied.** Row Level Security is enabled and forced on all
+  public tables. `0072`–`0074` add atomic AI jobs, private error reports and
+  application commands. `0075` expands the catalogue to 139 paths in 39 fields.
+- **Ten Edge Functions deployed and `ACTIVE`**: `analyze-jd`, `coach`,
   `cv-check`, `delete-account`, `interview`, `profile`, `radar`, `score-cv`
-  and `worker`. `policies` is new in this checkout and is not deployed yet —
-  the app's privacy, terms and support links resolve to it, so deploying it is
-  a release blocker.
+  `worker` and `policies`. Privacy, terms and support routes return public,
+  readable pages. Photo feedback is deferred after the live OCR CPU failure;
+  photos remain private vault files, and CV feedback accepts text PDFs and DOCX.
 - **Three cron jobs**, all active: `tack-worker` every two minutes,
   `tack-score-drain` every minute, `tack-nightly` at 18:20 UTC — just after
   midnight in Dhaka.
@@ -212,9 +211,17 @@ cd app && flutter build appbundle --release --dart-define-from-file=env/prod.jso
 `env/prod.json` is gitignored. Copy `env/dev.example.json`, fill it in, and
 keep it off version control.
 
-Android release signing needs `android/key.properties` and a keystore, both
-gitignored. **Back the keystore up somewhere you will still have in two
-years** — losing it means never being able to update this app again.
+Android release signing reads `TACK_KEYSTORE_PATH`, `TACK_KEYSTORE_PASSWORD`,
+`TACK_KEY_ALIAS` and `TACK_KEY_PASSWORD` from the build environment. Load them
+from your existing secure signing setup; do not put the values in this
+repository. A release build fails when they are missing. Preserve the existing
+release key so new APKs can update installed copies.
+
+For GitHub APK updates, choose a Flutter build number greater than every
+previously published APK's Android version code. Flutter adds architecture
+offsets to split APKs, so incrementing only the previous base number can make
+a universal APK too old to update an installed split APK. Verify the final
+package name, signing certificate and version codes before publishing.
 
 TestFlight, signing and the install QR are in [TESTFLIGHT.md](TESTFLIGHT.md).
 

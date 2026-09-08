@@ -1,5 +1,7 @@
 # Tack production audit and improvement plan
 
+**Implementation update, 8 September:** see [production progress](PRODUCTION_PROGRESS_2026-09-08.md) for the changes and current evidence. The findings below describe the original audit. The product owner has since confirmed the database-defined daily allowance; the earlier recommendation to restore three actions is superseded.
+
 Audited on 5 September 2026 UTC / 5–6 September in Dhaka; live checks ran from approximately 17:51 to 18:14 UTC. Scope: the current Flutter source, all 16 feature areas, automated checks, the configured live Supabase project, and an iPhone 17 simulator launch.
 
 **Recommendation: hold the public production release.** Much of the core backend works, but the deployed photo-CV pipeline fails, several user-facing promises do not match the implementation, and release safeguards are incomplete. Use the working foundation for a controlled beta after the release blockers below are resolved.
@@ -232,7 +234,7 @@ These are proposed targets to validate with the pilot, not current measured serv
 | Automated checks | Clean analysis, all Flutter/backend tests, formatting, all endpoint type checks and a real Android/iOS compile. Add meaningful integration tests against a local/staging fixture environment. |
 | Live critical journey | Sign up → confirm → finish onboarding → follow path → complete task → upload/check CV → save role → update application → practise interview → delete account. Run with synthetic accounts on both platforms. |
 | Failure recovery | Network interruption, expired token, rejected upload, full/large file, backgrounding, restart, duplicate tap, 429, 5xx and two-device conflict all have tested outcomes. |
-| AI and queue | Three-action policy consistent end to end; zero model use on free/cache paths; invalid input rejected; paid actions queued; no stuck document or duplicate charge. Track queue wait and processing separately. |
+| AI and queue | The allowance from `public.ai_daily_limit()` is consistent end to end; zero model use on free/cache paths; invalid input rejected; paid actions queued; no stuck document or duplicate charge. Track queue wait and processing separately. |
 | Accessibility | 360px width, both palettes, 44px controls, 16px body text, large system text, VoiceOver/TalkBack and keyboard-open forms. CTA stays outside the scroll region. |
 | Performance | Measure release startup, frame times, memory and data use on a mid-range Android over constrained network. Initial proposed target: usable cached home under 2 seconds; ordinary warm API reads p95 under 1 second, validated from Bangladesh. |
 | Security and privacy | Forced RLS; cross-user read/write/storage/RPC tests; account-switch cache isolation; scrubbed analytics/errors; reachable policies; tested deletion and documented retention. |

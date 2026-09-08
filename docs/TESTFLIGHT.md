@@ -123,14 +123,14 @@ swift tool/make_qr.swift "https://testflight.apple.com/join/XXXXXXXX" poster.png
 ## Uploading a CV once it is installed
 
 `file_picker` and `image_picker` are already dependencies, so on a real phone
-the vault offers Files, iCloud Drive and the camera. Photographing a paper CV
-is the common case here, and it now reads: the worker runs OCR on the image and
-the score follows exactly as it would from a PDF.
+the vault offers Files, iCloud Drive and the camera. Tap an uploaded document
+to open a local copy with the phone's document options. This needs the updated
+native build, and the installed-reader flow still needs a physical-device test.
 
-A blurry or badly lit photo is refused rather than scored, with a sentence
-saying to try again in better light or upload a PDF instead. That is
-deliberate — a number built from misread text is worse than no number, because
-the student acts on it.
+CV feedback currently accepts text PDFs and Word `.docx` files. Photo OCR
+exceeded the hosted worker's CPU limit during the live test. Photos can be
+stored and opened, but feedback on them is deferred with instructions to use a
+text document. See [production progress](PRODUCTION_PROGRESS_2026-09-08.md).
 
 ## The shorter route, if you only want it on your own phone
 
