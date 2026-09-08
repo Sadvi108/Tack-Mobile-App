@@ -1,7 +1,7 @@
 name: tack
 description: "Tack — university-to-career workspace"
 publish_to: 'none'
-version: 0.2.0+4000
+version: 0.2.1+7000
 
 environment:
   sdk: ^3.12.0
