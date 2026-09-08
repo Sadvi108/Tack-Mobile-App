@@ -80,8 +80,9 @@ class UploadController extends Notifier<UploadState> {
             isCancelled: () async => _cancelRequested,
           );
 
-      // A CV keeps going in the background; everything else is done.
-      if (document.type != DocumentType.cv) {
+      // Photos remain useful private files; feedback requires a text document.
+      if (document.type != DocumentType.cv ||
+          !UploadRules.supportsCvCheck(mimeType)) {
         state = UploadState.idle;
         ref.invalidate(documentsProvider);
         return true;

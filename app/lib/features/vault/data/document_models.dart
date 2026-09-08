@@ -97,6 +97,11 @@ class TackDocument {
 /// What the vault will accept, checked on this device before anything is sent
 /// so the student gets a readable sentence instead of a failed request.
 class UploadRules {
+  static bool supportsCvCheck(String? mimeType) =>
+      mimeType == 'application/pdf' ||
+      mimeType ==
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+
   const UploadRules._();
 
   static const maxBytes = 10 * 1024 * 1024;

@@ -129,6 +129,23 @@ void main() {
   });
 
   group('uploading anything else', () {
+    test('a CV photo is saved without queueing unsupported feedback', () async {
+      final repository = _FakeRepository();
+      final container = _containerWith(repository);
+      final saved = await container
+          .read(uploadControllerProvider.notifier)
+          .upload(
+            type: DocumentType.cv,
+            title: 'CV photo',
+            bytes: Uint8List.fromList([1, 2, 3]),
+            mimeType: 'image/jpeg',
+          );
+      expect(saved, isTrue);
+      expect(repository.checkRequests, isEmpty);
+      expect(repository.scoreRequests, isEmpty);
+      expect(container.read(uploadControllerProvider).busy, isFalse);
+    });
+
     test('does not ask for a check', () async {
       final repository = _FakeRepository();
       final container = _containerWith(repository);

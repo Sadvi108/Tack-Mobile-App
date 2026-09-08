@@ -1,3 +1,4 @@
+import 'device_document.dart';
 import '../../../core/jobs/job_repository.dart';
 import 'dart:async';
 import 'dart:io';
@@ -266,6 +267,66 @@ class DocumentRepository {
           .createSignedUrl(row['storage_path'] as String, ttlSeconds);
     } catch (e) {
       throw Failure.from(e);
+    }
+  }
+
+  Future<void> openOnDevice(String documentId) async {
+    final uid = _uid;
+    final row = await _db
+        .from('documents')
+        .select('id,title,mime_type,storage_path')
+        .eq('id', documentId)
+        .eq('user_id', uid)
+        .isFilter('deleted_at', null)
+        .maybeSingle();
+    if (row == null) throw const Failure('That file is no longer available.');
+    final mime = row['mime_type'] as String? ?? '';
+    final url = await _db.storage
+        .from(bucket)
+        .createSignedUrl(row['storage_path'] as String, 300);
+    final file = await DeviceDocument.destination(
+      uid,
+      documentId,
+      DeviceDocument.fileName(row['title'] as String? ?? 'Document', mime),
+    );
+    final partial = File('${file.path}.download');
+    final client = HttpClient()
+      ..connectionTimeout = const Duration(seconds: 20);
+    try {
+      final response = await (await client.getUrl(
+        Uri.parse(url),
+      )).close().timeout(const Duration(seconds: 30));
+      if (response.statusCode != 200) {
+        throw const Failure('That file could not be downloaded. Try again.');
+      }
+      final sink = partial.openWrite();
+      var total = 0;
+      try {
+        await for (final bytes in response.timeout(
+          const Duration(seconds: 30),
+        )) {
+          total += bytes.length;
+          if (total > UploadRules.maxBytes) {
+            throw const Failure('That file is too large to open.');
+          }
+          sink.add(bytes);
+        }
+      } finally {
+        await sink.close();
+      }
+      if (total == 0) {
+        throw const Failure('That file is empty. Upload it again.');
+      }
+      if (_uid != uid) {
+        throw const Failure('Sign in to the same account to open this file.');
+      }
+      await partial.rename(file.path);
+      await DeviceDocument.open(file, mime);
+    } catch (error) {
+      if (await partial.exists()) await partial.delete();
+      throw Failure.from(error);
+    } finally {
+      client.close(force: true);
     }
   }
 

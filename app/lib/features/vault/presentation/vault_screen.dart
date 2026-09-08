@@ -7,10 +7,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mime/mime.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/failure.dart';
-import '../../../design/tack.dart';
+import 'package:tack/design/tack.dart';
 import '../../../routing/router.dart';
 import '../application/upload_controller.dart';
 import '../application/cv_check.dart';
@@ -21,11 +20,18 @@ import '../../../routing/tab_bar.dart';
 /// The empty state does the heavy lifting: it names the three things worth
 /// uploading, says plainly who can see them, and offers the phone camera as an
 /// equal option — many students have paper certificates and no scanner.
-class VaultScreen extends ConsumerWidget {
+class VaultScreen extends ConsumerStatefulWidget {
   const VaultScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<VaultScreen> createState() => _VaultScreenState();
+}
+
+class _VaultScreenState extends ConsumerState<VaultScreen> {
+  final _opening = <String>{};
+
+  @override
+  Widget build(BuildContext context) {
     final documentsAsync = ref.watch(documentsProvider);
     final upload = ref.watch(uploadControllerProvider);
 
@@ -88,6 +94,7 @@ class VaultScreen extends ConsumerWidget {
                   for (final cv in cvs) ...[
                     _DocumentRow(
                       document: cv,
+                      onOpen: () => _open(context, ref, cv),
                       onMenu: () => _menu(context, ref, cv),
                     ),
                     const SizedBox(height: TackSpace.row),
@@ -100,6 +107,7 @@ class VaultScreen extends ConsumerWidget {
                   for (final document in others) ...[
                     _DocumentRow(
                       document: document,
+                      onOpen: () => _open(context, ref, document),
                       onMenu: () => _menu(context, ref, document),
                     ),
                     const SizedBox(height: TackSpace.row),
@@ -280,9 +288,33 @@ class VaultScreen extends ConsumerWidget {
       TackToast.show(
         context,
         message: type == DocumentType.cv
-            ? 'Uploaded. Your free check is saved. Open it from this CV’s menu.'
+            ? UploadRules.supportsCvCheck(mimeType)
+                  ? 'Uploaded. Your free check is queued. Open it from this CV’s menu.'
+                  : 'Uploaded. Tap the file to open it. For CV feedback, use a text PDF or Word file.'
             : 'Uploaded.',
       );
+    }
+  }
+
+  Future<void> _open(
+    BuildContext context,
+    WidgetRef ref,
+    TackDocument document,
+  ) async {
+    if (!_opening.add(document.id)) return;
+    TackToast.show(context, message: 'Getting your file ready…');
+    try {
+      await ref.read(documentRepositoryProvider).openOnDevice(document.id);
+    } catch (error) {
+      if (context.mounted) {
+        TackToast.show(
+          context,
+          message: Failure.from(error).message,
+          kind: TackToastKind.error,
+        );
+      }
+    } finally {
+      _opening.remove(document.id);
     }
   }
 
@@ -297,7 +329,8 @@ class VaultScreen extends ConsumerWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (document.type == DocumentType.cv)
+          if (document.type == DocumentType.cv &&
+              UploadRules.supportsCvCheck(document.mimeType))
             _SheetOption(
               icon: TackIcons.check,
               title: 'Free CV check',
@@ -313,8 +346,8 @@ class VaultScreen extends ConsumerWidget {
             ),
           _SheetOption(
             icon: TackIcons.download,
-            title: 'Open it',
-            body: 'Opens with a private link that expires in five minutes',
+            title: 'Open with an app',
+            body: 'Choose a PDF or document reader on this phone',
             onTap: () => Navigator.of(context).pop('open'),
           ),
           _SheetOption(
@@ -352,8 +385,7 @@ class VaultScreen extends ConsumerWidget {
             );
           }
         case 'open':
-          final url = await repository.signedUrl(document.id);
-          await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+          await _open(context, ref, document);
         case 'rename':
           if (!context.mounted) return;
           await _rename(context, ref, document);
@@ -640,16 +672,21 @@ class _SheetOption extends StatelessWidget {
 }
 
 class _DocumentRow extends StatelessWidget {
-  const _DocumentRow({required this.document, required this.onMenu});
+  const _DocumentRow({
+    required this.document,
+    required this.onMenu,
+    required this.onOpen,
+  });
 
   final TackDocument document;
   final VoidCallback onMenu;
+  final VoidCallback onOpen;
 
   @override
   Widget build(BuildContext context) {
     return TackCard(
       compact: true,
-      onTap: onMenu,
+      onTap: onOpen,
       child: Row(
         children: [
           Container(
@@ -694,14 +731,32 @@ class _DocumentRow extends StatelessWidget {
                     if (document.sizeLabel.isNotEmpty) document.sizeLabel,
                     if (document.isProcessing) 'being read',
                     if (document.status == DocumentStatus.failed)
-                      'did not upload',
+                      'needs attention',
                   ].join(' · '),
                   style: TackText.meta,
                 ),
               ],
             ),
           ),
-          TackIcon(TackIcons.more, size: 20, color: TackColors.muted),
+          Semantics(
+            label: 'Options for ${document.title}',
+            button: true,
+            child: GestureDetector(
+              onTap: onMenu,
+              behavior: HitTestBehavior.opaque,
+              child: SizedBox(
+                width: 44,
+                height: 44,
+                child: Center(
+                  child: TackIcon(
+                    TackIcons.more,
+                    size: 20,
+                    color: TackColors.muted,
+                  ),
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
