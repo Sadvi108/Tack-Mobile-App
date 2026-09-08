@@ -5,6 +5,7 @@ import {
   documentRequest,
   evaluateRequest,
   questionsRequest,
+  radarRequest,
   readRequest,
 } from "./requests.ts";
 
@@ -24,6 +25,11 @@ Deno.test("malformed feature requests are rejected without coercion", async () =
       [questionsRequest, { role: 42 }],
       [questionsRequest, { role: "Developer", count: "5" }],
       [questionsRequest, { role: "Developer", difficulty: "impossible" }],
+      [radarRequest, { query: 42 }],
+      [radarRequest, { remote: "true" }],
+      [radarRequest, { kind: "unknown" }],
+      [radarRequest, { limit: 51 }],
+      [radarRequest, { offset: -1 }],
       [evaluateRequest, {
         questionId: crypto.randomUUID(),
         answer: "a".repeat(10001),

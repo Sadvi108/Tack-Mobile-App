@@ -1,8 +1,6 @@
 -- An AI action and its durable job are one transaction. Clients cannot invoke
 -- these service-only primitives or choose the daily allowance.
-create or replace function public.ai_daily_limit()
-returns int language sql immutable set search_path = public
-as $$ select 3 $$;
+-- The existing ai_daily_limit() remains the sole allowance definition.
 
 create or replace function public.consume_quota(p_user_id uuid, p_bucket text, p_limit int)
 returns int language plpgsql security definer set search_path = public
@@ -37,7 +35,7 @@ create or replace function public.coach_allowance()
 returns jsonb language sql stable security definer set search_path = public
 as $$
   select jsonb_build_object(
-    'used', public.ai_daily_limit() - public.quota_remaining(auth.uid(), 'ai', 3),
+    'used', public.ai_daily_limit() - public.quota_remaining(auth.uid(), 'ai', null),
     'limit', public.ai_daily_limit(), 'timezone', 'Asia/Dhaka')
 $$;
 
@@ -143,7 +141,7 @@ begin
   if v_job.id is not null and v_job.status in ('pending', 'running', 'done') then
     return jsonb_build_object('jobId', v_job.id, 'duplicate', true,
       'status', v_job.status, 'threadId', v_job.payload->>'thread_id',
-      'remaining', public.quota_remaining(p_user_id, 'ai', 3));
+      'remaining', public.quota_remaining(p_user_id, 'ai', null));
   end if;
 
   if (select count(*) from public.jobs_queue where user_id = p_user_id
@@ -153,9 +151,9 @@ begin
     raise exception 'queue_busy';
   end if;
 
-  v_remaining := public.quota_remaining(p_user_id, 'ai', 3);
+  v_remaining := public.quota_remaining(p_user_id, 'ai', null);
   if v_paid then
-    v_remaining := public.consume_quota(p_user_id, 'ai', 3);
+    v_remaining := public.consume_quota(p_user_id, 'ai', null);
     if v_remaining < 0 then raise exception 'quota_exhausted'; end if;
   end if;
 

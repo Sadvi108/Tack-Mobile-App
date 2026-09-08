@@ -57,7 +57,7 @@ people's personal information.
 ## The AI features
 
 The coach, CV scoring, job-description analysis and interview practice use an
-AI model, limited to three actions a day. **AI output can be wrong.** Check
+AI model, with a shared daily allowance shown in the app. **AI output can be wrong.** Check
 anything that matters before acting on it. Your contact details are removed
 before your text is sent to the model — see the [Privacy Policy](PRIVACY.md).
 

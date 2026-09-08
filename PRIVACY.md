@@ -88,7 +88,7 @@ text is sent.** Email addresses, Bangladeshi phone numbers, long ID numbers and
 web links are extracted locally first; they are kept in our own database and
 never placed in the prompt.
 
-You get three AI actions per day, resetting at midnight in Bangladesh.
+Your daily AI allowance is shown in the app and resets at midnight in Bangladesh.
 Free checks and cached results do not spend an AI action. Nothing you do in Tack sends anything to a
 model unless you ask for it by using one of those features.
 

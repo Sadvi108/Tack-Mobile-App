@@ -1,7 +1,7 @@
 /**
  * Decides whether a question needs the model at all.
  *
- * The daily allowance is three, and it is spent only where language is
+ * The shared daily allowance is spent only where language is
  * genuinely required. Most of what a student asks a careers adviser is a
  * question about their own numbers — "what should I do next", "how am I
  * doing", "what am I missing" — and Tack has computed all of those already,

@@ -1,3 +1,4 @@
+import { radarRequest, readRequest } from "../_shared/util/requests.ts";
 import { requireUser, serviceClient } from "../_shared/util/auth.ts";
 import { fail, json, preflight } from "../_shared/util/http.ts";
 import { dedupe, searchAll } from "../_shared/radar/providers.ts";
@@ -14,7 +15,7 @@ import { dedupe, searchAll } from "../_shared/radar/providers.ts";
  *
  * No quota is charged. Nothing here calls a model: the boards are ordinary
  * HTTP and the fit score is set arithmetic in Postgres, so there is nothing to
- * ration and no reason to make a student spend one of three daily AI actions
+ * ration and no reason to make a student spend a daily AI action
  * looking at jobs.
  */
 Deno.serve(async (req) => {
@@ -24,27 +25,10 @@ Deno.serve(async (req) => {
   const auth = await requireUser(req);
   if (!auth) return fail("You are signed out. Log in and try again.", 401);
 
-  let body: {
-    query?: string;
-    location?: string;
-    remote?: boolean;
-    kind?: string;
-    refresh?: boolean;
-    limit?: number;
-    offset?: number;
-  };
-  try {
-    body = await req.json();
-  } catch {
-    return fail("That request could not be read.", 400);
-  }
-
-  const query = (body.query ?? "").trim().slice(0, 120);
-  const location = (body.location ?? "").trim().slice(0, 80);
-  const remote = typeof body.remote === "boolean" ? body.remote : undefined;
-  const kind = (body.kind ?? "").trim() || null;
-  const limit = Math.min(Math.max(body.limit ?? 20, 1), 50);
-  const offset = Math.max(body.offset ?? 0, 0);
+  const body = await readRequest(req, radarRequest);
+  if (body instanceof Response) return body;
+  const { query, location, remote, limit, offset } = body;
+  const kind = body.kind ?? null;
 
   const problems: Record<string, string> = {};
   let fetched = 0;

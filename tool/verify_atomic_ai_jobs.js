@@ -22,14 +22,18 @@ require('dotenv').config({ path: path.join(__dirname, '../supabase/.env'), quiet
     await db.query("insert into auth.users(id,email,raw_user_meta_data) values ($1,$2,'{}')", [uid, `atomic-${uid}@example.invalid`]);
     const enqueue = async (key, type = 'analyse_jd', payload = {}) => (await db.query(
       'select public.enqueue_student_job($1,$2,$3,$4) as result', [uid, type, payload, key])).rows[0].result;
+    const allowance = (await db.query('select public.ai_daily_limit() n')).rows[0].n;
     const first = await enqueue(`${uid}:one`);
-    assert.equal(first.remaining, 2);
+    assert.equal(first.remaining, allowance - 1);
     const twice = await enqueue(`${uid}:one`);
     assert.equal(twice.jobId, first.jobId);
-    assert.equal(twice.remaining, 2);
+    assert.equal(twice.remaining, allowance - 1);
     assert.equal(twice.duplicate, true);
-    assert.equal((await enqueue(`${uid}:two`)).remaining, 1);
-    assert.equal((await enqueue(`${uid}:three`)).remaining, 0);
+    for (let i=1;i<allowance;i++) {
+      const job=await enqueue(`${uid}:quota:${i}`);
+      assert.equal(job.remaining,allowance-i-1);
+      await db.query("update public.jobs_queue set status='done',result='{}' where id=$1",[job.jobId]);
+    }
     await db.query('savepoint expected_limit');
     await assert.rejects(() => enqueue(`${uid}:four`), /quota_exhausted/);
     await db.query('rollback to savepoint expected_limit');
@@ -68,6 +72,6 @@ require('dotenv').config({ path: path.join(__dirname, '../supabase/.env'), quiet
     await assert.rejects(() => db.query('select public.record_client_error($1,$2,$3,$4,$5)', ['student@email.test',null,{},'1.0.0','android']), /invalid_error_report/);
     await db.query('rollback to savepoint invalid_report');
     console.log('PASS: application creation/history is atomic and idempotent; stale edits conflict; error ingestion removes unknown properties and rejects raw messages.');
-    console.log('PASS: migration, three-action cap, duplicate identity, exact-once refunds, failed retry, cached refund, atomic coach thread/message, document ownership and client RPC denial.');
+    console.log('PASS: migration, database-defined allowance, duplicate identity, exact-once refunds, failed retry, cached refund, atomic coach thread/message, document ownership and client RPC denial.');
   } finally { await db.query('rollback'); await db.end(); }
 })().catch(e => { console.error(e.message); process.exitCode=1; });

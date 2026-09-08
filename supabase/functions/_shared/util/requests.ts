@@ -78,3 +78,20 @@ export async function readRequest<T>(
     reader.releaseLock();
   }
 }
+
+export const radarRequest = z.strictObject({
+  query: z.string().trim().max(120).default(""),
+  location: z.string().trim().max(80).default(""),
+  remote: z.boolean().optional(),
+  kind: z.enum([
+    "full_time",
+    "part_time",
+    "contract",
+    "internship",
+    "volunteer",
+    "other",
+  ]).optional(),
+  refresh: z.boolean().default(true),
+  limit: z.number().int().min(1).max(50).default(20),
+  offset: z.number().int().min(0).max(10000).default(0),
+});

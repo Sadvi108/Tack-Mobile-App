@@ -6,21 +6,6 @@ import { CompletionRequest, selectProvider } from "./provider.ts";
 import { validate } from "./schemas.ts";
 
 /**
- * A fallback, not the rule.
- *
- * The daily allowance lives in `ai_daily_limit()` in the database, which
- * `consume_quota` and `quota_remaining` read for themselves — a caller passing
- * a different number can no longer grant itself a different allowance. This
- * constant is only the optimistic value used before the first round trip, and
- * `p_limit` is passed for signature compatibility and ignored server-side.
- *
- * Nothing a student reads should name a number from here; the messages say
- * "today's AI actions" so there is one place to change it and no way for the
- * two to disagree.
- */
-export const DAILY_AI_QUOTA = 3;
-
-/**
  * The one bucket the allowance is counted in.
  *
  * It used to be two. The coach charged `ai` while everything routed through
@@ -64,12 +49,12 @@ export async function runCompletion(
   // a second time.
   options: { consumeQuota?: boolean } = {},
 ): Promise<GatewayOutcome> {
-  let remaining = DAILY_AI_QUOTA;
+  let remaining: number;
   if (options.consumeQuota ?? true) {
     const { data, error: quotaError } = await service.rpc("consume_quota", {
       p_user_id: userId,
       p_bucket: QUOTA_BUCKET,
-      p_limit: DAILY_AI_QUOTA,
+      p_limit: null,
     });
     if (quotaError) throw quotaError;
     if (data === -1) throw new QuotaExhausted();
@@ -161,7 +146,7 @@ export async function quotaRemaining(
   const { data, error } = await service.rpc("quota_remaining", {
     p_user_id: userId,
     p_bucket: QUOTA_BUCKET,
-    p_limit: DAILY_AI_QUOTA,
+    p_limit: null,
   });
   if (error || typeof data !== "number") throw new Error("quota_unavailable");
   return data;
