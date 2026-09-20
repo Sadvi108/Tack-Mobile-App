@@ -50,6 +50,17 @@ Deno.test("genuinely different openings are all kept", () => {
   assertEquals(out.length, 3);
 });
 
+Deno.test("job identifiers in query strings distinguish openings", () => {
+  assertEquals(
+    dedupe([
+      listing("https://jobs.example/view?jobid=1&utm_source=tack"),
+      listing("https://jobs.example/view?jobid=2"),
+      listing("https://jobs.example/view?jobid=1"),
+    ]).length,
+    2,
+  );
+});
+
 Deno.test("the first board asked wins, so the order is stable", () => {
   const a = listing("https://jobs.example/1", "From board A");
   const b = listing("https://jobs.example/1", "From board B");

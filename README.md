@@ -50,7 +50,7 @@ cd app && flutter analyze && flutter test
 ```
 
 ```bash
-cd supabase/functions && deno check analyze-jd/index.ts worker/index.ts interview/index.ts && deno test _shared/
+cd supabase/functions && deno check analyze-jd/index.ts worker/index.ts interview/index.ts && deno test --allow-env=JSEARCH_API_KEY _shared/
 ```
 
 ```bash

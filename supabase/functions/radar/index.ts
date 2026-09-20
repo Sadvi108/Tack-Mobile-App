@@ -36,7 +36,13 @@ Deno.serve(async (req) => {
   // Paging through what is already cached does not need the boards again.
   if (body.refresh !== false && offset === 0) {
     const service = serviceClient();
-    const results = await searchAll({ q: query, location, remote, limit: 40 });
+    const results = await searchAll({
+      q: query,
+      location,
+      remote,
+      kind: kind ?? undefined,
+      limit: 40,
+    });
     const listings = dedupe(results.flatMap((r) => r.listings));
 
     for (const r of results) {

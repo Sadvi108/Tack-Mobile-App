@@ -57,6 +57,11 @@ That check caught a real regression the day it was written.
 
 These need credentials or a dashboard, and cannot be done from the repository.
 
+**Radar Bangladesh update.** The local JSearch adapter and migration `0076`
+are ready for activation; see [RADAR_BANGLADESH.md](RADAR_BANGLADESH.md) for
+secret setup, deployment order, and live coverage checks. They have not been
+deployed as part of this update.
+
 **Secrets that are not set yet.** Names only — take the values from your own
 `supabase/.env`, and do not paste them into a chat, a commit, or a ticket:
 
@@ -66,9 +71,8 @@ supabase secrets set CAREERJET_API_KEY CAREERJET_LOCALE
 
 `CAREERJET_LOCALE` should be `en_BD`. Without the key, Radar still runs on the
 four free boards and says so on screen — "one board is off" — rather than
-showing an empty list as though there were no work in the world. Careerjet is
-the one that actually covers Bangladesh, so until it is set the feed is mostly
-senior roles abroad.
+showing an empty list as though there were no work in the world. Careerjet and the new JSearch adapter supply Bangladesh-focused searches.
+Without their server-side keys, local coverage remains limited.
 
 **Push notifications need a Firebase project.** Nothing about push works
 until then, and nothing breaks either: `send_push` jobs finish with

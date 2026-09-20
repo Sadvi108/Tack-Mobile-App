@@ -10,30 +10,38 @@ import 'radar_filter.dart';
 class RadarQuery {
   const RadarQuery({
     this.text = '',
-    this.location = '',
+    this.location = 'Dhaka',
+    this.workplace = RadarWorkplace.onsite,
     this.filter = RadarFilter.all,
   });
 
   final String text;
   final String location;
   final RadarFilter filter;
+  final RadarWorkplace workplace;
 
-  RadarQuery copyWith({String? text, String? location, RadarFilter? filter}) =>
-      RadarQuery(
-        text: text ?? this.text,
-        location: location ?? this.location,
-        filter: filter ?? this.filter,
-      );
+  RadarQuery copyWith({
+    String? text,
+    String? location,
+    RadarFilter? filter,
+    RadarWorkplace? workplace,
+  }) => RadarQuery(
+    text: text ?? this.text,
+    location: location ?? this.location,
+    filter: filter ?? this.filter,
+    workplace: workplace ?? this.workplace,
+  );
 
   @override
   bool operator ==(Object other) =>
       other is RadarQuery &&
       other.text == text &&
       other.location == location &&
-      other.filter == filter;
+      other.filter == filter &&
+      other.workplace == workplace;
 
   @override
-  int get hashCode => Object.hash(text, location, filter);
+  int get hashCode => Object.hash(text, location, filter, workplace);
 }
 
 /// The only thing that talks to the radar function.
@@ -45,16 +53,21 @@ class RadarRepository {
 
   final SupabaseClient _db;
 
-  Future<RadarResult> search(RadarQuery query, {int offset = 0}) async {
+  Future<RadarResult> search(
+    RadarQuery query, {
+    int offset = 0,
+    bool refresh = true,
+  }) async {
     try {
       final res = await _db.functions.invoke(
         'radar',
         body: {
           'query': query.text,
           'location': query.location,
-          'remote': ?query.filter.wantsRemote,
+          'remote': ?query.workplace.remoteValue,
           'kind': ?query.filter.kind,
           'offset': offset,
+          'refresh': refresh,
           'limit': 20,
         },
       );
@@ -104,9 +117,14 @@ final radarRepositoryProvider = Provider<RadarRepository>(
 /// calls [RadarQueryController.submit] when the student is done typing.
 class RadarQueryController extends Notifier<RadarQuery> {
   @override
-  RadarQuery build() => const RadarQuery();
+  RadarQuery build() {
+    ref.watch(currentUserProvider.select((user) => user?.id));
+    return const RadarQuery();
+  }
 
   void submit(RadarQuery query) => state = query;
+  void setWorkplace(RadarWorkplace workplace) =>
+      state = state.copyWith(workplace: workplace);
   void setFilter(RadarFilter filter) => state = state.copyWith(filter: filter);
 }
 
@@ -126,3 +144,21 @@ final radarResultsProvider = FutureProvider<RadarResult>((ref) async {
   final query = ref.watch(radarQueryProvider);
   return ref.watch(radarRepositoryProvider).search(query);
 });
+
+/// Immediate save feedback survives filtering and switching to Tracking.
+/// Reset when the signed-in account changes; the server remains authoritative.
+class RadarSavedController extends Notifier<Map<String, String>> {
+  @override
+  Map<String, String> build() {
+    ref.watch(currentUserProvider.select((user) => user?.id));
+    return const {};
+  }
+
+  void remember(String listingId, String applicationId) =>
+      state = {...state, listingId: applicationId};
+}
+
+final radarSavedProvider =
+    NotifierProvider<RadarSavedController, Map<String, String>>(
+      RadarSavedController.new,
+    );

@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 
-import '../../../design/tack.dart';
-import '../data/listing.dart';
+import 'package:tack/design/tack.dart';
+import '../application/radar_data.dart';
 
 /// One opening.
 ///
@@ -17,9 +17,11 @@ class ListingCard extends StatelessWidget {
     required this.onOpen,
     this.onSave,
     this.onTrack,
+    this.saving = false,
   });
 
   final Listing listing;
+  final bool saving;
 
   /// Opens the posting on the board it came from.
   final VoidCallback onOpen;
@@ -93,21 +95,15 @@ class ListingCard extends StatelessWidget {
           ],
 
           const SizedBox(height: TackSpace.md),
-          Row(
+          Wrap(
+            spacing: TackSpace.sm,
+            runSpacing: TackSpace.sm,
             children: [
-              if (listing.kindLabel case final kind?) ...[
+              if (listing.kindLabel case final kind?)
                 _Tag(kind, emphasis: true),
-                const SizedBox(width: TackSpace.sm),
-              ],
               _Tag(listing.sourceLabel),
-              if (posted != null) ...[
-                const SizedBox(width: TackSpace.sm),
-                _Tag(posted),
-              ],
-              if (listing.salary != null) ...[
-                const SizedBox(width: TackSpace.sm),
-                Flexible(child: _Tag(listing.salary!)),
-              ],
+              if (posted != null) _Tag(posted),
+              if (listing.salary != null) _Tag(listing.salary!),
             ],
           ),
 
@@ -116,7 +112,11 @@ class ListingCard extends StatelessWidget {
             children: [
               Expanded(
                 child: onSave != null
-                    ? TackButton.secondary('Save it', onPressed: onSave)
+                    ? TackButton.secondary(
+                        'Save it',
+                        onPressed: onSave,
+                        loading: saving,
+                      )
                     : TackButton.secondary(
                         'In your tracker',
                         onPressed: onTrack,
@@ -160,8 +160,8 @@ class _Fit extends StatelessWidget {
         label: 'Fit unknown',
         excludeSemantics: true,
         child: Container(
-          width: 46,
-          height: 46,
+          width: 48,
+          height: 48,
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: TackColors.sailWhite,
@@ -175,24 +175,24 @@ class _Fit extends StatelessWidget {
       );
     }
 
-    final (background, foreground) = fit >= 70
-        ? (TackColors.tealTint, TackColors.tealText)
+    // A ring rather than a filled dot: how much of the way round it goes is
+    // the fit, so 92 and 75 look different before either number is read.
+    final (track, arc, foreground) = fit >= 70
+        ? (TackColors.tealTint, TackColors.teal, TackColors.tealText)
         : fit >= 40
-        ? (TackColors.amberTint, TackColors.amberText)
-        : (TackColors.maroonTint, TackColors.maroon);
+        ? (TackColors.amberTint, TackColors.amber, TackColors.amberText)
+        : (TackColors.maroonTint, TackColors.maroonText, TackColors.maroonText);
 
     return Semantics(
       label: '$fit percent fit',
       excludeSemantics: true,
-      child: Container(
-        width: 46,
-        height: 46,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(color: background, shape: BoxShape.circle),
-        child: Text(
-          '$fit',
-          style: TackText.cardTitle.copyWith(color: foreground, fontSize: 15),
-        ),
+      child: ScoreRing(
+        score: fit,
+        size: 48,
+        strokeWidth: 4.5,
+        fill: arc,
+        track: track,
+        numberColor: foreground,
       ),
     );
   }

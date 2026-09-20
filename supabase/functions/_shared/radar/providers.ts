@@ -13,7 +13,10 @@
  * business model and not a student's problem.
  */
 
+import { jsearch } from "./jsearch.ts";
+
 export type Source =
+  | "jsearch"
   | "careerjet"
   | "aijobs"
   | "remotive"
@@ -44,6 +47,7 @@ export interface Query {
   location?: string;
   remote?: boolean;
   limit?: number;
+  kind?: string;
 }
 
 /**
@@ -251,7 +255,10 @@ export async function careerjet(query: Query): Promise<ProviderResult> {
         externalId: str(r.id) ?? await hashUrl(url),
         title,
         company: str(r.company),
-        location: locations,
+        location:
+          (Deno.env.get("CAREERJET_LOCALE") ?? "en_BD") === "en_BD" && locations
+            ? `${locations}, Bangladesh`
+            : locations,
         isRemote: /\bremote\b/i.test(`${title} ${locations ?? ""}`),
         employmentType: null,
         description: str(r.description),
@@ -470,6 +477,7 @@ export async function themuse(query: Query): Promise<ProviderResult> {
 }
 
 export const providers = [
+  jsearch,
   aiJobs,
   remotive,
   arbeitnow,
@@ -485,7 +493,10 @@ export const providers = [
  * others are returned regardless.
  */
 export async function searchAll(query: Query): Promise<ProviderResult[]> {
-  return await Promise.all(providers.map((p) => p(query)));
+  const selected = query.remote === false
+    ? providers.filter((p) => p !== remotive)
+    : providers;
+  return await Promise.all(selected.map((p) => p(query)));
 }
 
 /**
@@ -496,10 +507,25 @@ export function dedupe(listings: Listing[]): Listing[] {
   const seen = new Set<string>();
   const out: Listing[] = [];
   for (const listing of listings) {
-    const key = listing.url.replace(/[?#].*$/, "").replace(/\/+$/, "")
-      .toLowerCase();
-    if (seen.has(key)) continue;
+    let key: string;
+    try {
+      const url = new URL(listing.applyUrl ?? listing.url);
+      url.hash = "";
+      for (const name of [...url.searchParams.keys()]) {
+        if (/^utm_/i.test(name) || /^(gclid|fbclid)$/i.test(name)) {
+          url.searchParams.delete(name);
+        }
+      }
+      url.searchParams.sort();
+      url.pathname = url.pathname.replace(/\/+$/, "") || "/";
+      key = url.toString();
+    } catch {
+      key = listing.url;
+    }
+    const identity = `${listing.source}:${listing.externalId}`;
+    if (seen.has(key) || seen.has(identity)) continue;
     seen.add(key);
+    seen.add(identity);
     out.push(listing);
   }
   return out;

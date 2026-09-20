@@ -47,16 +47,27 @@ class _RadarScreenState extends ConsumerState<RadarScreen> {
   void _seedFromProfile(Profile? profile, String? pathTitle) {
     if (_seeded || profile == null) return;
     _seeded = true;
+    final current = ref.read(radarQueryProvider);
+    if (current != const RadarQuery() || _search.text.isNotEmpty) {
+      _search.text = current.text;
+      return;
+    }
     final seed = (profile.targetRole?.trim().isNotEmpty ?? false)
         ? profile.targetRole!.trim()
         : (pathTitle ?? '');
-    if (seed.isEmpty) return;
     _search.text = seed;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       ref
           .read(radarQueryProvider.notifier)
-          .submit(RadarQuery(text: seed, location: profile.cityName ?? ''));
+          .submit(
+            RadarQuery(
+              text: seed,
+              location: profile.cityName?.trim().isNotEmpty == true
+                  ? profile.cityName!.trim()
+                  : 'Dhaka',
+            ),
+          );
     });
   }
 
@@ -72,7 +83,7 @@ class _RadarScreenState extends ConsumerState<RadarScreen> {
         title: 'Radar',
         subtitle: _tracking
             ? 'Everything you have saved or sent.'
-            : 'Openings that match what you are building toward.',
+            : 'Find your next step, close to home.',
       ),
       scrollable: false,
       body: Column(
@@ -156,7 +167,7 @@ class _Segment extends StatelessWidget {
           child: AnimatedContainer(
             duration: TackMotion.fast,
             curve: TackMotion.curve,
-            height: 40,
+            height: TackSpace.tapTarget,
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: selected ? TackColors.maroon : TackColors.white,
@@ -188,55 +199,210 @@ class _Find extends ConsumerWidget {
     final query = ref.watch(radarQueryProvider);
     final results = ref.watch(radarResultsProvider);
 
-    void submit() => ref
-        .read(radarQueryProvider.notifier)
-        .submit(query.copyWith(text: controller.text.trim()));
+    void submit() {
+      final next = query.copyWith(text: controller.text.trim());
+      if (next == query) {
+        ref.invalidate(radarResultsProvider);
+      } else {
+        ref.read(radarQueryProvider.notifier).submit(next);
+      }
+    }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        TackTextField(
-          controller: controller,
-          hint: 'Role, or a company',
-          textInputAction: TextInputAction.search,
-          onSubmitted: (_) => submit(),
-          // Inside the field, not beside it. The chips took the row that used
-          // to hold a Search button, which left the keyboard's return key as
-          // the only way to run a search — invisible, and unreachable at all
-          // once the keyboard is dismissed.
-          suffix: _SearchButton(onTap: submit),
-        ),
-        const SizedBox(height: TackSpace.md),
-        CareerFieldPicker(
-          onPick: (path) {
-            controller.text = path.title;
-            ref
-                .read(radarQueryProvider.notifier)
-                .submit(query.copyWith(text: path.title));
-          },
-        ),
-        const SizedBox(height: TackSpace.md),
-        _FilterChips(
-          selected: query.filter,
-          counts: ref.watch(radarKindsProvider).value ?? const {},
-          onPick: (filter) =>
-              ref.read(radarQueryProvider.notifier).setFilter(filter),
-        ),
-        const SizedBox(height: TackSpace.lg),
-        Expanded(
-          child: results.when(
+    return RefreshIndicator(
+      color: TackColors.maroonText,
+      onRefresh: () async {
+        ref.invalidate(radarResultsProvider);
+        await ref.read(radarResultsProvider.future);
+        ref.invalidate(radarKindsProvider);
+      },
+      child: ListView(
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: EdgeInsets.zero,
+        children: [
+          TackCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Explore jobs in Bangladesh', style: TackText.cardTitle),
+                const SizedBox(height: TackSpace.md),
+                TackTextField(
+                  controller: controller,
+                  hint: 'Role, or a company',
+                  maxLength: 120,
+                  textInputAction: TextInputAction.search,
+                  onSubmitted: (_) => submit(),
+                  suffix: _SearchButton(
+                    onTap: () {
+                      FocusScope.of(context).unfocus();
+                      submit();
+                    },
+                  ),
+                ),
+                const SizedBox(height: TackSpace.sm),
+                TackButton.ghost(
+                  'Location: ${query.location.isEmpty ? 'All locations' : query.location}',
+                  onPressed: () async {
+                    final location = await showTackSheet<String>(
+                      context: context,
+                      title: 'Choose a location',
+                      child: _LocationPicker(initial: query.location),
+                    );
+                    if (location != null && context.mounted) {
+                      ref
+                          .read(radarQueryProvider.notifier)
+                          .submit(
+                            ref
+                                .read(radarQueryProvider)
+                                .copyWith(location: location),
+                          );
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: TackSpace.md),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                for (final workplace in RadarWorkplace.values) ...[
+                  if (workplace != RadarWorkplace.values.first)
+                    const SizedBox(width: TackSpace.sm),
+                  ChoiceChip(
+                    label: Text(workplace.label),
+                    labelStyle: TackText.body.copyWith(
+                      color: query.workplace == workplace
+                          ? TackColors.onBrand
+                          : TackColors.muted,
+                    ),
+                    selectedColor: TackColors.maroon,
+                    backgroundColor: TackColors.white,
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: TackRadius.pillAll,
+                    ),
+                    showCheckmark: false,
+                    selected: query.workplace == workplace,
+                    onSelected: (_) => ref
+                        .read(radarQueryProvider.notifier)
+                        .setWorkplace(workplace),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: TackSpace.sm),
+          _FilterChips(
+            selected: query.filter,
+            onPick: (filter) =>
+                ref.read(radarQueryProvider.notifier).setFilter(filter),
+          ),
+          const SizedBox(height: TackSpace.md),
+          CareerFieldPicker(
+            onPick: (path) {
+              controller.text = path.title;
+              ref
+                  .read(radarQueryProvider.notifier)
+                  .submit(query.copyWith(text: path.title));
+            },
+          ),
+          const SizedBox(height: TackSpace.md),
+          results.when(
             loading: () => const _Loading(),
             error: (_, _) => TackErrorState(
               body:
                   'Radar could not be loaded. Check your connection and try again.',
               onRetry: () => ref.invalidate(radarResultsProvider),
             ),
-            data: (result) => _Results(result: result),
+            data: (result) => _Results(
+              key: ValueKey((query, result)),
+              result: result,
+              onClear: () {
+                controller.clear();
+                ref
+                    .read(radarQueryProvider.notifier)
+                    .submit(query.copyWith(text: '', filter: RadarFilter.all));
+              },
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
+}
+
+class _LocationPicker extends StatefulWidget {
+  const _LocationPicker({required this.initial});
+  final String initial;
+  @override
+  State<_LocationPicker> createState() => _LocationPickerState();
+}
+
+class _LocationPickerState extends State<_LocationPicker> {
+  late final _controller = TextEditingController(text: widget.initial);
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: EdgeInsets.fromLTRB(
+      TackSpace.screen,
+      0,
+      TackSpace.screen,
+      MediaQuery.viewInsetsOf(context).bottom + TackSpace.lg,
+    ),
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Flexible(
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TackTextField(
+                  controller: _controller,
+                  label: 'City or district',
+                  hint: 'For example, Dhaka',
+                  maxLength: 80,
+                  textInputAction: TextInputAction.done,
+                  onSubmitted: (value) => Navigator.pop(context, value.trim()),
+                ),
+                const SizedBox(height: TackSpace.md),
+                Wrap(
+                  spacing: TackSpace.sm,
+                  runSpacing: TackSpace.sm,
+                  children: [
+                    for (final city in [
+                      'Dhaka',
+                      'Chattogram',
+                      'Sylhet',
+                      'Rajshahi',
+                      'Khulna',
+                      'Bangladesh',
+                    ])
+                      ActionChip(
+                        label: Text(city, style: TackText.body),
+                        onPressed: () => Navigator.pop(context, city),
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: TackSpace.lg),
+        TackButton(
+          'Use this location',
+          onPressed: () => Navigator.pop(context, _controller.text.trim()),
+        ),
+      ],
+    ),
+  );
 }
 
 /// The search affordance, inside the field on the right.
@@ -273,21 +439,11 @@ class _SearchButton extends StatelessWidget {
   }
 }
 
-/// The filter row.
-///
-/// Every chip carries how many listings sit behind it, and a chip with none is
-/// still shown but reads as empty rather than being hidden. Hiding it would
-/// leave a student wondering whether Tack does internships at all; showing
-/// "Volunteer 0" answers the question honestly.
+/// Employment type is independent of workplace and city.
 class _FilterChips extends StatelessWidget {
-  const _FilterChips({
-    required this.selected,
-    required this.counts,
-    required this.onPick,
-  });
+  const _FilterChips({required this.selected, required this.onPick});
 
   final RadarFilter selected;
-  final Map<String, int> counts;
   final void Function(RadarFilter filter) onPick;
 
   @override
@@ -309,9 +465,6 @@ class _FilterChips extends StatelessWidget {
               _Chip(
                 filter: filter,
                 selected: filter == selected,
-                count: filter == RadarFilter.all
-                    ? null
-                    : counts[filter.countKey],
                 onTap: () => onPick(filter),
               ),
             ],
@@ -326,22 +479,19 @@ class _Chip extends StatelessWidget {
   const _Chip({
     required this.filter,
     required this.selected,
-    required this.count,
     required this.onTap,
   });
 
   final RadarFilter filter;
   final bool selected;
-  final int? count;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final empty = count == 0;
     return Semantics(
       button: true,
       selected: selected,
-      label: count == null ? filter.label : '${filter.label}, $count listings',
+      label: filter.label,
       excludeSemantics: true,
       child: GestureDetector(
         onTap: onTap,
@@ -365,25 +515,9 @@ class _Chip extends StatelessWidget {
                 filter.label,
                 style: TackText.chip.copyWith(
                   fontSize: 14.5,
-                  color: selected
-                      ? TackColors.onBrand
-                      : empty
-                      ? TackColors.muted
-                      : TackColors.ink,
+                  color: selected ? TackColors.onBrand : TackColors.ink,
                 ),
               ),
-              if (count != null) ...[
-                const SizedBox(width: 6),
-                Text(
-                  '$count',
-                  style: TackText.pill.copyWith(
-                    fontSize: 12.5,
-                    color: selected
-                        ? const Color(0xCCFFFFFF)
-                        : TackColors.muted,
-                  ),
-                ),
-              ],
             ],
           ),
         ),
@@ -392,81 +526,157 @@ class _Chip extends StatelessWidget {
   }
 }
 
-class _Results extends ConsumerWidget {
-  const _Results({required this.result});
-
+class _Results extends ConsumerStatefulWidget {
+  const _Results({super.key, required this.result, required this.onClear});
   final RadarResult result;
+  final VoidCallback onClear;
+  @override
+  ConsumerState<_Results> createState() => _ResultsState();
+}
+
+class _ResultsState extends ConsumerState<_Results> {
+  late final List<Listing> _listings = [...widget.result.listings];
+  late int _offset = _listings.length;
+  late bool _hasMore = _listings.length == 20;
+  bool _loadingMore = false;
+  bool _pageFailed = false;
+  final Set<String> _saving = {};
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final listings = result.listings;
-    final filter = ref.watch(radarQueryProvider).filter;
-
-    return ListView(
-      padding: EdgeInsets.zero,
+  Widget build(BuildContext context) {
+    final query = ref.watch(radarQueryProvider);
+    final problems = widget.result.problems;
+    final saved = ref.watch(radarSavedProvider);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Said out loud rather than shown as an empty list. "Nothing found" and
-        // "the board that covers Bangladesh is not switched on" are different
-        // answers, and only one of them is the student's problem.
-        if (result.isMissingCareerjet) ...[
-          const _BoardNotice(),
-          const SizedBox(height: TackSpace.stackLoose),
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                '${_listings.length}${_hasMore ? '+' : ''} openings',
+                style: TackText.cardTitle,
+              ),
+            ),
+            TackButton.ghost(
+              'Refresh',
+              fullWidth: false,
+              onPressed: () => ref.invalidate(radarResultsProvider),
+            ),
+          ],
+        ),
+        Text(
+          '${query.workplace.label} · ${query.location.isEmpty ? 'All locations' : query.location} · Ranked by skill fit',
+          style: TackText.bodyMuted,
+        ),
+        const SizedBox(height: TackSpace.md),
+        if (problems.isNotEmpty) ...[
+          _BoardNotice(problems: problems),
+          const SizedBox(height: TackSpace.md),
         ],
-        if (listings.isEmpty)
+        if (_listings.isEmpty) ...[
           TackEmptyState(
-            title: filter == RadarFilter.all
-                ? 'Nothing matched that'
-                : 'No ${filter.label.toLowerCase()} right now',
-            // An empty filter is usually a fact about the boards, not about
-            // the student's search, and saying which is the difference between
-            // "try again tomorrow" and "try different words".
-            body: filter == RadarFilter.all
-                ? 'Try a broader search — a role rather than a full job title.'
-                : filter.emptyReason,
-          )
-        else
-          for (final listing in listings) ...[
+            title: query.filter == RadarFilter.all
+                ? 'Try a wider search'
+                : 'No ${query.filter.label.toLowerCase()} right now',
+            body: query.filter == RadarFilter.all
+                ? 'Try a shorter role name or choose another city. You can also explore remote work.'
+                : query.filter.emptyReason,
+          ),
+          TackButton.secondary(
+            'Clear role and job type',
+            onPressed: widget.onClear,
+          ),
+        ] else
+          for (final listing in _listings) ...[
             ListingCard(
               listing: listing,
+              saving: _saving.contains(listing.id),
               onOpen: () => _open(listing.applyUrl),
-              onSave: listing.isSaved
+              onSave: listing.isSaved || saved.containsKey(listing.id)
                   ? null
-                  : () => _save(context, ref, listing),
-              onTrack: listing.isSaved
+                  : () => _save(listing),
+              onTrack: listing.isSaved || saved.containsKey(listing.id)
                   ? () => context.push(
-                      Routes.application(listing.savedApplicationId!),
+                      Routes.application(
+                        saved[listing.id] ?? listing.savedApplicationId!,
+                      ),
                     )
                   : null,
             ),
             const SizedBox(height: TackSpace.stack),
           ],
+        if (_hasMore)
+          TackButton.secondary(
+            _pageFailed ? 'Try loading more again' : 'Load more openings',
+            loading: _loadingMore,
+            onPressed: _loadMore,
+          ),
         const SizedBox(height: TackSpace.xl),
       ],
     );
   }
 
-  Future<void> _open(String url) async {
-    final uri = Uri.tryParse(url);
-    if (uri == null) return;
-    await launchUrl(uri, mode: LaunchMode.externalApplication);
+  Future<void> _loadMore() async {
+    if (_loadingMore) return;
+    setState(() {
+      _loadingMore = true;
+      _pageFailed = false;
+    });
+    try {
+      final page = await ref
+          .read(radarRepositoryProvider)
+          .search(
+            ref.read(radarQueryProvider),
+            offset: _offset,
+            refresh: false,
+          );
+      if (!mounted) return;
+      setState(() {
+        _offset += page.listings.length;
+        final ids = _listings.map((l) => l.id).toSet();
+        _listings.addAll(page.listings.where((l) => ids.add(l.id)));
+        _hasMore = page.listings.length == 20;
+      });
+    } catch (_) {
+      if (mounted) setState(() => _pageFailed = true);
+    } finally {
+      if (mounted) setState(() => _loadingMore = false);
+    }
   }
 
-  Future<void> _save(
-    BuildContext context,
-    WidgetRef ref,
-    Listing listing,
-  ) async {
+  Future<void> _open(String url) async {
+    final uri = Uri.tryParse(url);
     try {
-      await ref.read(radarRepositoryProvider).save(listing.id);
-      ref
-        ..invalidate(radarResultsProvider)
-        ..invalidate(applicationCountsProvider)
-        ..invalidate(dashboardFeedProvider);
-      if (context.mounted) {
-        TackToast.show(context, message: 'Saved. It is in Tracking now.');
+      if (uri == null ||
+          !['https', 'http'].contains(uri.scheme) ||
+          !await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+        throw StateError('unavailable');
       }
+    } catch (_) {
+      if (mounted) {
+        TackToast.show(
+          context,
+          message: 'This posting could not be opened. Try again shortly.',
+        );
+      }
+    }
+  }
+
+  Future<void> _save(Listing listing) async {
+    if (!_saving.add(listing.id)) return;
+    setState(() {});
+    try {
+      final id = await ref.read(radarRepositoryProvider).save(listing.id);
+      if (!mounted) return;
+      ref.read(radarSavedProvider.notifier).remember(listing.id, id);
+      ref
+        ..invalidate(applicationCountsProvider)
+        ..invalidate(applicationsProvider)
+        ..invalidate(dashboardFeedProvider);
+      TackToast.show(context, message: 'Saved. It is in Tracking now.');
     } catch (e) {
-      if (context.mounted) {
+      if (mounted) {
         TackToast.show(
           context,
           message: e is Failure
@@ -474,12 +684,16 @@ class _Results extends ConsumerWidget {
               : 'That could not be saved. Try again in a moment.',
         );
       }
+    } finally {
+      if (mounted) setState(() => _saving.remove(listing.id));
     }
   }
 }
 
 class _BoardNotice extends StatelessWidget {
-  const _BoardNotice();
+  const _BoardNotice({required this.problems});
+
+  final Map<String, String> problems;
 
   @override
   Widget build(BuildContext context) {
@@ -497,15 +711,16 @@ class _BoardNotice extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'ONE BOARD IS OFF',
+            'Some sources are unavailable',
             style: TackText.monoLabelSmall.copyWith(
               color: TackColors.amberText,
             ),
           ),
           const SizedBox(height: TackSpace.sm),
           Text(
-            'Careerjet covers Bangladesh and is not switched on yet, so this list '
-            'is mostly roles abroad. It will fill out once it is connected.',
+            problems.containsKey('careerjet') && problems.containsKey('jsearch')
+                ? 'Bangladesh coverage is limited right now. You can still browse available postings and try again later.'
+                : 'Showing available postings. Some sources could not be refreshed; try again later.',
             style: TackText.bodyMuted,
           ),
         ],
@@ -526,6 +741,8 @@ class _Loading extends StatelessWidget {
   /// height.
   @override
   Widget build(BuildContext context) => ListView(
+    shrinkWrap: true,
+    physics: const NeverScrollableScrollPhysics(),
     padding: EdgeInsets.zero,
     children: const [
       TackSkeleton(height: 132, radius: 18),

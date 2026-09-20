@@ -1,4 +1,5 @@
 import 'package:drift/native.dart';
+import 'package:tack/core/supabase/client.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -60,6 +61,7 @@ List<Override> overrides(
     'volunteer': 0,
   },
 }) => [
+  currentUserProvider.overrideWith((ref) => null),
   localDbProvider.overrideWith((ref) {
     final db = LocalDb(NativeDatabase.memory());
     ref.onDispose(db.close);
@@ -184,8 +186,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('ONE BOARD IS OFF'), findsOneWidget);
-    expect(bodyText(tester), contains('Careerjet covers Bangladesh'));
+    expect(find.text('Some sources are unavailable'), findsOneWidget);
+    expect(bodyText(tester), contains('Some sources could not be refreshed'));
   });
 
   testWidgets('the two views swap without leaving the destination', (
@@ -244,14 +246,15 @@ void main() {
     for (final f in RadarFilter.values) {
       expect(
         find.text(f.label),
-        findsOneWidget,
+        findsWidgets,
         reason: '${f.label} should be offered as a filter',
       );
     }
-    // Counts come from what is actually cached, so a chip never promises
-    // listings that are not there.
-    expect(find.text('10'), findsOneWidget); // internships
-    expect(find.text('0'), findsOneWidget); // volunteer
+    // Global cache counts would misrepresent the active city and workplace.
+    expect(find.text('227'), findsNothing);
+    for (final workplace in RadarWorkplace.values) {
+      expect(find.text(workplace.label), findsOneWidget);
+    }
   });
 
   testWidgets('an empty filter blames the boards, not the student', (
@@ -275,10 +278,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('No volunteer right now'), findsOneWidget);
-    expect(
-      bodyText(tester),
-      contains('No board Tack reads publishes volunteer roles'),
-    );
+    expect(bodyText(tester), contains('check charities directly'));
   });
 
   testWidgets('the kind of work is named on the card', (tester) async {

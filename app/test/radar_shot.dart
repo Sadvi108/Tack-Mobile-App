@@ -10,41 +10,43 @@ import 'shot_util.dart';
 void main() {
   setUpAll(loadTackFonts);
 
-  testWidgets('radar with listings', (tester) async {
-    await shoot(
-      tester,
-      const RadarScreen(),
-      'radar',
-      const Size(390, 844),
-      overrides: fx.overrides(
-        RadarResult(
-          listings: [
-            fx.listing(),
-            fx.listing(
-              id: 'l2',
-              title: 'Remote React developer',
-              fit: 92,
-              asks: 5,
-              have: 5,
-              remote: true,
-              matched: const ['React', 'TypeScript', 'CSS', 'HTML', 'Git'],
-              missing: const [],
-            ),
-            fx.listing(
-              id: 'l3',
-              title: 'Marketing & Content Intern',
-              kind: 'internship',
-              fit: null,
-              asks: 0,
-              have: 0,
-              matched: const [],
-              missing: const [],
-            ),
-          ],
-          problems: const {},
+  for (final brightness in Brightness.values) {
+    testWidgets('radar with listings ${brightness.name}', (tester) async {
+      await shoot(
+        tester,
+        const RadarScreen(),
+        'radar-${brightness.name}',
+        brightness: brightness,
+        const Size(360, 800),
+        overrides: fx.overrides(
+          RadarResult(
+            listings: [
+              fx.listing(),
+              fx.listing(
+                id: 'l2',
+                title: 'Junior frontend developer',
+                fit: 92,
+                asks: 5,
+                have: 5,
+                matched: const ['React', 'TypeScript', 'CSS', 'HTML', 'Git'],
+                missing: const [],
+              ),
+              fx.listing(
+                id: 'l3',
+                title: 'Marketing & Content Intern',
+                kind: 'internship',
+                fit: null,
+                asks: 0,
+                have: 0,
+                matched: const [],
+                missing: const [],
+              ),
+            ],
+            problems: const {},
+          ),
         ),
-      ),
-      panels: const [0, 520],
-    );
-  });
+        panels: const [0, 520],
+      );
+    });
+  }
 }

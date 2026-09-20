@@ -89,7 +89,7 @@ Called by `roadmap/data/roadmap_repository.dart`, `paths/data/path_repository.da
 | Function | Returns | Notes |
 |---|---|---|
 | `radar_feed(p_query text, p_location text, p_remote boolean, p_limit int = 20, p_offset int = 0, p_kind text)` | `jsonb` | Ranked openings with a fit score against the caller's skills. Prefer the `radar` edge function, which refreshes the boards first. |
-| `radar_kinds()` | `jsonb` | Counts per employment kind, for the filter chips. |
+| `radar_kinds()` | `jsonb` | Global cache counts per employment kind; not scoped to a city. |
 | `save_listing(p_listing_id uuid)` | `uuid` | Saves an opening to the student's applications. |
 
 Called by `radar/data/radar_repository.dart`.
@@ -315,9 +315,11 @@ Fourteen trigger functions maintain invariants and are never called directly:
 | `remotive.com` | no | remote only |
 | `arbeitnow.com` | no | |
 | `themuse.com` | no | |
-| `search.api.careerjet.net` | **yes** | `CAREERJET_API_KEY`, plus `CAREERJET_LOCALE`. The only board with real Bangladesh coverage — without it the fit score has little to read. |
+| `api.openwebninja.com/jsearch/search` | **yes** | `JSEARCH_API_KEY` (direct OpenWeb Ninja key). Bangladesh location search; see [setup and limitations](RADAR_BANGLADESH.md). |
+| `search.api.careerjet.net` | **yes** | `CAREERJET_API_KEY`, plus `CAREERJET_LOCALE`. Bangladesh coverage with `en_BD`. |
 
-Results are deduplicated by URL hash. `broaden()` strips generic role words,
+Results are deduplicated by source identity and application URL, stripping only
+tracking parameters while preserving job IDs. `broaden()` strips generic role words,
 because both the boards and the SQL matched `"Backend developer"` as a phrase
 and returned nothing.
 
