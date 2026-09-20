@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../../design/tack.dart';
 import '../../profile/data/profile.dart';
@@ -98,7 +99,7 @@ class NextThreeActions extends StatelessWidget {
   }
 }
 
-class _ActionRow extends StatelessWidget {
+class _ActionRow extends StatefulWidget {
   const _ActionRow({required this.action, required this.onOpen, this.onTick});
 
   final NextAction action;
@@ -106,29 +107,160 @@ class _ActionRow extends StatelessWidget {
   final VoidCallback? onTick;
 
   @override
+  State<_ActionRow> createState() => _ActionRowState();
+}
+
+class _ActionRowState extends State<_ActionRow> {
+  /// Ticked here, before the write lands. The row leaves the list once the
+  /// feed reloads, and a box that stays empty for that second reads as a tap
+  /// that did not register — so the student taps again.
+  bool _ticked = false;
+
+  @override
+  void didUpdateWidget(_ActionRow old) {
+    super.didUpdateWidget(old);
+    // A different action has moved into this slot; it has not been ticked.
+    if (old.action.taskId != widget.action.taskId ||
+        old.action.title != widget.action.title) {
+      _ticked = false;
+    }
+  }
+
+  void _tick() {
+    if (_ticked) return;
+    HapticFeedback.lightImpact();
+    setState(() => _ticked = true);
+    widget.onTick!();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final action = widget.action;
+
     return TackTapRow(
-      onTap: onOpen,
-      padding: const EdgeInsets.symmetric(vertical: 11),
+      onTap: widget.onOpen,
+      padding: const EdgeInsets.symmetric(vertical: TackSpace.sm),
       child: Row(
         children: [
-          GestureDetector(
-            onTap: onTick,
-            behavior: HitTestBehavior.opaque,
-            child: Container(
-              width: 20,
-              height: 20,
+          // A roadmap step can be ticked where it is. Anything else is a thing
+          // to add to the profile, and an empty checkbox that does nothing
+          // when pressed is a small lie — so it gets a plus instead.
+          if (widget.onTick != null)
+            _TickBox(ticked: _ticked, title: action.title, onTick: _tick)
+          else
+            const _AddMark(),
+          Expanded(
+            child: AnimatedDefaultTextStyle(
+              duration: TackMotion.normal,
+              curve: TackMotion.curve,
+              style: _ticked
+                  ? TackText.rowTitle.copyWith(
+                      color: TackColors.muted,
+                      decoration: TextDecoration.lineThrough,
+                      decorationColor: TackColors.muted,
+                    )
+                  : TackText.rowTitle,
+              child: Text(action.title),
+            ),
+          ),
+          const SizedBox(width: TackSpace.sm),
+          TackPill.teal('+${action.points}'),
+        ],
+      ),
+    );
+  }
+}
+
+/// The checkbox, with a hit area four times the size of the box. A 22px target
+/// beside a row that also opens something means every near-miss navigates
+/// away instead of ticking.
+class _TickBox extends StatelessWidget {
+  const _TickBox({
+    required this.ticked,
+    required this.title,
+    required this.onTick,
+  });
+
+  final bool ticked;
+  final String title;
+  final VoidCallback onTick;
+
+  @override
+  Widget build(BuildContext context) {
+    // Its own node. Without container it merges into the row around it, and
+    // a screen reader hears one button that opens the step — never one that
+    // ticks it.
+    return Semantics(
+      container: true,
+      button: true,
+      checked: ticked,
+      label: 'Mark $title as done',
+      excludeSemantics: true,
+      child: GestureDetector(
+        onTap: onTick,
+        behavior: HitTestBehavior.opaque,
+        child: SizedBox(
+          width: TackSpace.tapTarget,
+          height: TackSpace.tapTarget,
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: AnimatedContainer(
+              duration: TackMotion.normal,
+              curve: TackMotion.curve,
+              width: 22,
+              height: 22,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: TackColors.strokeFaint, width: 1.5),
+                color: ticked ? TackColors.teal : TackColors.white,
+                borderRadius: BorderRadius.circular(7),
+                border: Border.all(
+                  color: ticked ? TackColors.teal : TackColors.strokeFaint,
+                  width: 1.5,
+                ),
+              ),
+              alignment: Alignment.center,
+              child: AnimatedScale(
+                scale: ticked ? 1 : 0,
+                duration: TackMotion.normal,
+                curve: Curves.easeOutBack,
+                child: TackIcon(
+                  TackIcons.check,
+                  size: 14,
+                  strokeWidth: 3,
+                  color: TackColors.onAccent,
+                ),
               ),
             ),
           ),
-          const SizedBox(width: TackSpace.md),
-          Expanded(child: Text(action.title, style: TackText.rowTitle)),
-          const SizedBox(width: TackSpace.sm),
-          TackPill('+${action.points}'),
-        ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AddMark extends StatelessWidget {
+  const _AddMark();
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: TackSpace.tapTarget,
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: Container(
+          width: 22,
+          height: 22,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: TackColors.maroonTint,
+            borderRadius: BorderRadius.circular(7),
+          ),
+          child: TackIcon(
+            TackIcons.plus,
+            size: 14,
+            strokeWidth: 2.6,
+            color: TackColors.maroonText,
+          ),
+        ),
       ),
     );
   }
@@ -144,11 +276,11 @@ class ApplicationFunnel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const cells = [
-      ('applied', 'Applied'),
-      ('assessment', 'Assessment'),
-      ('interview', 'Interview'),
-      ('offer', 'Offer'),
+    const stages = [
+      TackStatus.applied,
+      TackStatus.assessment,
+      TackStatus.interview,
+      TackStatus.offer,
     ];
 
     return TackCard(
@@ -156,30 +288,90 @@ class ApplicationFunnel extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Your applications', style: TackText.cardTitle),
-          const SizedBox(height: TackSpace.md),
           Row(
             children: [
-              for (final (key, label) in cells)
-                Expanded(
-                  child: Column(
-                    children: [
-                      Text(
-                        '${counts[key] ?? 0}',
-                        style: TackText.heroNumber.copyWith(fontSize: 27),
-                      ),
-                      const SizedBox(height: TackSpace.xs),
-                      Text(
-                        label,
-                        style: TackText.tabLabel,
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
-                ),
+              Expanded(
+                child: Text('Your applications', style: TackText.cardTitle),
+              ),
+              if (onTap != null) const TackCardArrow(),
             ],
           ),
+          const SizedBox(height: TackSpace.md),
+          // Two by two, not four across. A quarter of a 360px card is too
+          // narrow for "Assessment" at a readable size, and a label scaled
+          // down to fit was eight pixels tall.
+          for (var row = 0; row < 2; row++) ...[
+            if (row > 0) const SizedBox(height: TackSpace.sm),
+            Row(
+              children: [
+                for (var col = 0; col < 2; col++) ...[
+                  if (col > 0) const SizedBox(width: TackSpace.sm),
+                  Expanded(
+                    child: _Stage(
+                      status: stages[row * 2 + col],
+                      count: counts[stages[row * 2 + col].wire] ?? 0,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ],
         ],
+      ),
+    );
+  }
+}
+
+/// One stage of the funnel, tinted the way its status pill is everywhere else
+/// in the app — so "interview" is the same amber here as on the card it opens.
+///
+/// A stage with nothing in it goes neutral. The zero is still printed, so the
+/// colour is never the only thing saying so.
+class _Stage extends StatelessWidget {
+  const _Stage({required this.status, required this.count});
+
+  final TackStatus status;
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    final empty = count == 0;
+    final background = empty ? TackColors.sailWhite : status.background;
+    final foreground = empty ? TackColors.muted : status.foreground;
+
+    return Semantics(
+      label: '$count ${status.label.toLowerCase()}',
+      excludeSemantics: true,
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: TackSpace.md,
+          vertical: TackSpace.sm,
+        ),
+        decoration: BoxDecoration(
+          color: background,
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            TackCountUp(
+              count,
+              style: TackText.heroNumber.copyWith(
+                fontSize: 26,
+                color: foreground,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                status.label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TackText.pill.copyWith(color: foreground),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -206,9 +398,10 @@ class SectionHeading extends StatelessWidget {
         children: [
           Expanded(child: Text(title, style: TackText.sectionHeader)),
           if (actionLabel != null)
-            GestureDetector(
+            TackPressable(
               onTap: onAction,
-              behavior: HitTestBehavior.opaque,
+              scale: 1,
+              pressedOpacity: 0.55,
               child: ConstrainedBox(
                 constraints: const BoxConstraints(
                   minHeight: TackSpace.tapTarget,
@@ -259,7 +452,10 @@ class ReadinessBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // The whole card opens the breakdown, not only the link. The link is a
+    // line of 16px text; the card is the thing a thumb actually lands on.
     return TackCard(
+      onTap: onSeeBreakdown,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -276,24 +472,17 @@ class ReadinessBlock extends StatelessWidget {
                 const SizedBox(height: TackSpace.sm),
                 Text(_sentence, style: TackText.body),
                 const SizedBox(height: TackSpace.sm),
-                Semantics(
-                  button: true,
-                  child: GestureDetector(
-                    onTap: onSeeBreakdown,
-                    behavior: HitTestBehavior.opaque,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 6),
-                      child: Text(
-                        // Spelled out, as drawn: "See the nine" reads as a
-                        // sentence where "See the 9" reads as a label.
-                        'See the ${_word(areasCounted).toLowerCase()}  →',
-                        style: TackText.rowTitle.copyWith(
-                          color: TackColors.maroonText,
-                          decoration: TextDecoration.underline,
-                          decorationColor: TackColors.amber,
-                          decorationThickness: 2,
-                        ),
-                      ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  child: Text(
+                    // Spelled out, as drawn: "See the nine" reads as a
+                    // sentence where "See the 9" reads as a label.
+                    'See the ${_word(areasCounted).toLowerCase()}  →',
+                    style: TackText.rowTitle.copyWith(
+                      color: TackColors.maroonText,
+                      decoration: TextDecoration.underline,
+                      decorationColor: TackColors.amber,
+                      decorationThickness: 2,
                     ),
                   ),
                 ),
@@ -385,41 +574,38 @@ class _StartHereRow extends StatelessWidget {
         ? '${step.effortMinutes} min · +${step.points} points'
         : '${step.effortMinutes} min · builds your roadmap';
 
-    return Semantics(
-      button: true,
-      label: '${step.title}. $worth',
-      child: GestureDetector(
-        onTap: onTap,
-        behavior: HitTestBehavior.opaque,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: TackSpace.tapTarget),
-          child: Row(
-            children: [
-              SizedBox(
-                width: 34,
-                child: Text(
-                  index.toString().padLeft(2, '0'),
-                  style: TackText.monoLabel.copyWith(
-                    color: index == 1
-                        ? TackColors.maroonText
-                        : TackColors.muted,
-                  ),
+    return TackPressable(
+      onTap: onTap,
+      scale: 1,
+      pressedOpacity: 0.55,
+      semanticLabel: '${step.title}. $worth',
+      excludeSemantics: true,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: TackSpace.tapTarget),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 34,
+              child: Text(
+                index.toString().padLeft(2, '0'),
+                style: TackText.monoLabel.copyWith(
+                  color: index == 1 ? TackColors.maroonText : TackColors.muted,
                 ),
               ),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(step.title, style: TackText.rowTitle),
-                    const SizedBox(height: 2),
-                    Text(worth, style: TackText.meta),
-                  ],
-                ),
+            ),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(step.title, style: TackText.rowTitle),
+                  const SizedBox(height: 2),
+                  Text(worth, style: TackText.meta),
+                ],
               ),
-              const SizedBox(width: TackSpace.sm),
-              TackIcon(TackIcons.arrowRight, size: 18, color: TackColors.muted),
-            ],
-          ),
+            ),
+            const SizedBox(width: TackSpace.sm),
+            TackIcon(TackIcons.arrowRight, size: 18, color: TackColors.muted),
+          ],
         ),
       ),
     );

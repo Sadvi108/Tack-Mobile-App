@@ -54,8 +54,15 @@ class PathFitCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('YOUR TARGET', style: TackText.monoLabelSmall),
-          const SizedBox(height: TackSpace.sm),
+          Row(
+            children: [
+              Expanded(
+                child: Text('YOUR TARGET', style: TackText.monoLabelSmall),
+              ),
+              const TackCardArrow(),
+            ],
+          ),
+          const SizedBox(height: TackSpace.xs),
           Row(
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: TextBaseline.alphabetic,

@@ -121,92 +121,124 @@ class _InsightCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (background, accent) = switch (insight.tone) {
+    final (background, accent, glyph) = switch (insight.tone) {
       // Every one of these foregrounds is the audited text colour for its
       // family, never the fill. #C9B6BC and the raw teal and amber are strokes.
-      InsightTone.urgent => (TackColors.maroonTint, TackColors.maroonText),
-      InsightTone.positive => (TackColors.tealTint, TackColors.tealText),
-      InsightTone.opportunity => (TackColors.amberTint, TackColors.amberText),
-      InsightTone.neutral => (TackColors.white, TackColors.muted),
+      InsightTone.urgent => (
+        TackColors.maroonTint,
+        TackColors.maroonText,
+        TackIcons.alert,
+      ),
+      InsightTone.positive => (
+        TackColors.tealTint,
+        TackColors.tealText,
+        TackIcons.check,
+      ),
+      InsightTone.opportunity => (
+        TackColors.amberTint,
+        TackColors.amberText,
+        TackIcons.star,
+      ),
+      InsightTone.neutral => (
+        TackColors.white,
+        TackColors.muted,
+        TackIcons.info,
+      ),
     };
 
-    return Semantics(
-      button: insight.route != null,
-      label: '${insight.title}. ${insight.body}',
-      excludeSemantics: true,
-      child: GestureDetector(
-        onTap: insight.route == null ? null : onOpen,
-        behavior: HitTestBehavior.opaque,
-        child: Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: TackSpace.cardCompactX,
-            vertical: TackSpace.cardCompactY,
-          ),
-          decoration: BoxDecoration(
-            color: background,
-            borderRadius: TackRadius.cardAll,
-            border: insight.tone == InsightTone.neutral
-                ? Border.all(color: TackColors.line, width: 1)
-                : null,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    final card = Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: TackSpace.cardCompactX,
+        vertical: TackSpace.cardCompactY,
+      ),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: TackRadius.cardAll,
+        border: insight.tone == InsightTone.neutral
+            ? Border.all(color: TackColors.line, width: 1)
+            : null,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // The tone as a shape too, so "behind" and "going well" are not
+          // told apart by colour alone.
+          Row(
             children: [
-              Text(
-                insight.label,
-                style: TackText.monoLabelSmall.copyWith(color: accent),
-              ),
-              const SizedBox(height: TackSpace.sm),
-              Text(
-                insight.title,
-                style: TackText.cardTitle,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: TackSpace.xs),
-              // Flexible, not Expanded, and no Spacer beside it.
-              //
-              // Expanded forces the whole remaining height onto the Text, which
-              // then paints three lines into a box that fits two and a half and
-              // clips the last through the middle of the glyphs. Adding a
-              // Spacer to pin the action to the bottom made it worse: both flex
-              // children then split the space and the text got half of it.
-              //
-              // Flexible alone hands the Text a maximum and lets it take only
-              // what it needs, so it ellipsises honestly and the action sits
-              // directly under it.
-              Flexible(
+              TackIcon(glyph, size: 14, strokeWidth: 2.4, color: accent),
+              const SizedBox(width: 6),
+              Expanded(
                 child: Text(
-                  insight.body,
-                  style: TackText.bodyMuted,
-                  maxLines: 3,
+                  insight.label,
+                  maxLines: 1,
                   overflow: TextOverflow.ellipsis,
+                  style: TackText.monoLabelSmall.copyWith(color: accent),
                 ),
               ),
-              if (insight.ctaLabel != null) ...[
-                const SizedBox(height: TackSpace.sm),
-                Row(
-                  children: [
-                    Flexible(
-                      child: Text(
-                        insight.ctaLabel!,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TackText.pill.copyWith(
-                          color: accent,
-                          fontSize: 14.5,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: TackSpace.xs),
-                    TackIcon(TackIcons.arrowRight, size: 15, color: accent),
-                  ],
-                ),
-              ],
             ],
           ),
-        ),
+          const SizedBox(height: TackSpace.sm),
+          Text(
+            insight.title,
+            style: TackText.cardTitle,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: TackSpace.xs),
+          // Flexible, not Expanded, and no Spacer beside it.
+          //
+          // Expanded forces the whole remaining height onto the Text, which
+          // then paints three lines into a box that fits two and a half and
+          // clips the last through the middle of the glyphs. Adding a
+          // Spacer to pin the action to the bottom made it worse: both flex
+          // children then split the space and the text got half of it.
+          //
+          // Flexible alone hands the Text a maximum and lets it take only
+          // what it needs, so it ellipsises honestly and the action sits
+          // directly under it.
+          Flexible(
+            child: Text(
+              insight.body,
+              style: TackText.bodyMuted,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          if (insight.ctaLabel != null) ...[
+            const SizedBox(height: TackSpace.sm),
+            Row(
+              children: [
+                Flexible(
+                  child: Text(
+                    insight.ctaLabel!,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TackText.pill.copyWith(
+                      color: accent,
+                      fontSize: 14.5,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: TackSpace.xs),
+                TackIcon(TackIcons.arrowRight, size: 15, color: accent),
+              ],
+            ),
+          ],
+        ],
       ),
+    );
+
+    final label = '${insight.title}. ${insight.body}';
+    if (insight.route == null) {
+      return Semantics(label: label, excludeSemantics: true, child: card);
+    }
+    return TackPressable(
+      onTap: onOpen,
+      borderRadius: TackRadius.cardAll,
+      overlay: TackColors.pressOverlay,
+      semanticLabel: label,
+      excludeSemantics: true,
+      child: card,
     );
   }
 }

@@ -187,6 +187,41 @@ final _pairs = <Pair>[
     _body,
   ),
 
+  // --- while a finger is on a card. The overlay is a few percent, but it is
+  // laid over text, and a press that makes the words unreadable is a bug.
+  (
+    'ink on a pressed card',
+    () => TackColors.ink,
+    () => Color.alphaBlend(TackColors.pressOverlay, TackColors.white),
+    _body,
+  ),
+  (
+    'muted on a pressed card',
+    () => TackColors.muted,
+    () => Color.alphaBlend(TackColors.pressOverlay, TackColors.white),
+    _body,
+  ),
+  (
+    'onBrand on a pressed maroon card',
+    () => TackColors.onBrand,
+    () => Color.alphaBlend(TackColors.pressOverlayOnFill, TackColors.maroon),
+    _body,
+  ),
+
+  // --- the arrow that says a card opens something. A glyph, so 3:1.
+  (
+    'the card arrow on its well',
+    () => TackColors.muted,
+    () => TackColors.sailWhite,
+    _large,
+  ),
+  (
+    'the card arrow on its well on a maroon card',
+    () => TackColors.onBrand,
+    () => Color.alphaBlend(TackColors.onBrandWell, TackColors.maroon),
+    _large,
+  ),
+
   // --- boundaries: a control's edge has to be findable, not readable
   ('line2 against a card', () => TackColors.line2, () => TackColors.white, 1.3),
   (

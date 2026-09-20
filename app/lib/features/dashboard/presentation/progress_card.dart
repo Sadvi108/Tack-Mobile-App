@@ -36,22 +36,23 @@ class ProgressCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // The label, the change and the arrow share one row, so the
+          // headline below gets the card's full width. Beside the pill it
+          // wrapped at 360px.
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('LAST 12 WEEKS', style: TackText.monoLabelSmall),
-                    const SizedBox(height: TackSpace.sm),
-                    Text(_headline, style: TackText.cardTitle),
-                  ],
-                ),
+                child: Text('LAST 12 WEEKS', style: TackText.monoLabelSmall),
               ),
               if (weekChange != 0) _ChangePill(weekChange),
+              if (onTap != null) ...[
+                const SizedBox(width: TackSpace.sm),
+                const TackCardArrow(),
+              ],
             ],
           ),
+          const SizedBox(height: TackSpace.xs),
+          Text(_headline, style: TackText.cardTitle),
           const SizedBox(height: TackSpace.lg),
           _Sparkline(trend: trend),
           const SizedBox(height: TackSpace.md),
@@ -98,21 +99,37 @@ class _ChangePill extends StatelessWidget {
   Widget build(BuildContext context) {
     final up = change > 0;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      padding: const EdgeInsets.fromLTRB(8, 5, 10, 5),
       decoration: BoxDecoration(
         color: up ? TackColors.tealTint : TackColors.maroonTint,
         borderRadius: TackRadius.pillAll,
       ),
-      child: TackCountUp(
-        change.abs(),
-        prefix: up ? '+' : '−',
-        suffix: ' this week',
-        style: TackText.pill.copyWith(
-          color: up ? TackColors.tealText : TackColors.maroonText,
-        ),
-        semanticsLabel: up
-            ? 'Up $change points this week'
-            : 'Down ${change.abs()} points this week',
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Direction as a shape as well as a colour and a sign.
+          Transform.rotate(
+            angle: up ? -0.785 : 0.785,
+            child: TackIcon(
+              TackIcons.arrowRight,
+              size: 13,
+              strokeWidth: 2.6,
+              color: up ? TackColors.tealText : TackColors.maroonText,
+            ),
+          ),
+          const SizedBox(width: 3),
+          TackCountUp(
+            change.abs(),
+            prefix: up ? '+' : '−',
+            suffix: ' this week',
+            style: TackText.pill.copyWith(
+              color: up ? TackColors.tealText : TackColors.maroonText,
+            ),
+            semanticsLabel: up
+                ? 'Up $change points this week'
+                : 'Down ${change.abs()} points this week',
+          ),
+        ],
       ),
     );
   }

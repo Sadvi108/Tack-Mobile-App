@@ -337,12 +337,12 @@ class _Dashboard extends ConsumerWidget {
             // features that nothing in the app navigated to. They had routes
             // and screens and no door: the only way in was a deep link, which
             // is also why their back arrows had never worked.
+            // reveal() brings the gutter; wrapping this in padded() as well
+            // indented it twice, and it sat 20px inside every other card.
             reveal(
-              padded(
-                _GetReady(
-                  onInterview: () => context.push(Routes.interview),
-                  onAnalyse: () => context.push(Routes.analyser),
-                ),
+              _GetReady(
+                onInterview: () => context.push(Routes.interview),
+                onAnalyse: () => context.push(Routes.analyser),
               ),
             ),
             const SizedBox(height: TackSpace.stackLoose),
@@ -475,9 +475,11 @@ class _NextSevenDays extends StatelessWidget {
                     style: TackText.pill.copyWith(color: TackColors.onAccent),
                   ),
                 ),
+              const SizedBox(width: TackSpace.sm),
+              const TackCardArrow(onBrand: true),
             ],
           ),
-          const SizedBox(height: TackSpace.md),
+          const SizedBox(height: TackSpace.sm),
           if (rows.isEmpty)
             Text(
               // "Add two more" told a student with no applications at all that
@@ -494,40 +496,41 @@ class _NextSevenDays extends StatelessWidget {
               ),
             )
           else
+            // Rows touch, with no gap between them. The gap used to be padding
+            // outside each row's hit area, so a thumb landing between two dates
+            // opened the whole list instead of either one.
             for (final entry in rows)
-              Padding(
-                padding: const EdgeInsets.only(bottom: TackSpace.sm),
-                child: GestureDetector(
-                  onTap: () => onOpen(entry),
-                  behavior: HitTestBehavior.opaque,
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(minHeight: 30),
-                    child: Row(
-                      children: [
-                        SizedBox(
-                          width: 82,
-                          child: Text(
-                            entry.relativeTo(today),
-                            style: TackText.pill.copyWith(
-                              color: entry.isOverdue
-                                  ? TackColors.warnOnBrand
-                                  : TackColors.onBrand,
-                            ),
+              TackPressable(
+                onTap: () => onOpen(entry),
+                scale: 1,
+                pressedOpacity: 0.6,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(minHeight: 38),
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 82,
+                        child: Text(
+                          entry.relativeTo(today),
+                          style: TackText.pill.copyWith(
+                            color: entry.isOverdue
+                                ? TackColors.warnOnBrand
+                                : TackColors.onBrand,
                           ),
                         ),
-                        Expanded(
-                          child: Text(
-                            entry.title,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TackText.body.copyWith(
-                              color: TackColors.onBrand,
-                              fontSize: 15,
-                            ),
+                      ),
+                      Expanded(
+                        child: Text(
+                          entry.title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TackText.body.copyWith(
+                            color: TackColors.onBrand,
+                            fontSize: 15,
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -561,6 +564,8 @@ class _RoadmapProgressCard extends StatelessWidget {
                 ),
                 semanticsLabel: '${roadmap.percent} percent of your roadmap',
               ),
+              const SizedBox(width: TackSpace.sm),
+              const TackCardArrow(),
             ],
           ),
           const SizedBox(height: TackSpace.md),
@@ -606,29 +611,28 @@ class _CoachButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Semantics(
-      button: true,
-      label: 'Ask your coach',
+    return TackPressable(
+      onTap: onTap,
+      scale: 0.95,
+      borderRadius: const BorderRadius.all(TackRadius.buttonRound),
+      overlay: TackColors.pressOverlayOnFill,
+      semanticLabel: 'Ask your coach',
       excludeSemantics: true,
-      child: GestureDetector(
-        onTap: onTap,
-        behavior: HitTestBehavior.opaque,
-        child: Container(
-          height: 52,
-          padding: const EdgeInsets.symmetric(horizontal: 18),
-          decoration: BoxDecoration(
-            color: TackColors.maroon,
-            borderRadius: BorderRadius.all(TackRadius.buttonRound),
-            boxShadow: TackShadow.fab,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TackIcon(TackIcons.coach, size: 21, color: TackColors.onBrand),
-              const SizedBox(width: TackSpace.sm),
-              Text('Ask', style: TackText.button.copyWith(fontSize: 16)),
-            ],
-          ),
+      child: Container(
+        height: 52,
+        padding: const EdgeInsets.symmetric(horizontal: 18),
+        decoration: BoxDecoration(
+          color: TackColors.maroon,
+          borderRadius: BorderRadius.all(TackRadius.buttonRound),
+          boxShadow: TackShadow.fab,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TackIcon(TackIcons.coach, size: 21, color: TackColors.onBrand),
+            const SizedBox(width: TackSpace.sm),
+            Text('Ask', style: TackText.button.copyWith(fontSize: 16)),
+          ],
         ),
       ),
     );
@@ -725,9 +729,16 @@ class _Tool extends StatelessWidget {
     onTap: onTap,
     child: Row(
       children: [
-        Padding(
-          padding: const EdgeInsets.only(right: TackSpace.md),
-          child: TackIcon(icon, size: 21, color: TackColors.maroonText),
+        Container(
+          width: 40,
+          height: 40,
+          margin: const EdgeInsets.only(right: TackSpace.md),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: TackColors.maroonTint,
+            borderRadius: TackRadius.inputAll,
+          ),
+          child: TackIcon(icon, size: 20, color: TackColors.maroonText),
         ),
         Expanded(
           child: Column(

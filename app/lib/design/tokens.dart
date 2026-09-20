@@ -123,6 +123,29 @@ class TackColors {
   static Color get scrim =>
       _p(const Color(0x7323181C), const Color(0xA6000000));
 
+  // ------------------------------------------------------------ interaction
+  //
+  // Laid over a card while a finger is on it. Ink darkens a light surface and
+  // white lifts a dark one; either way the change is a few percent, enough to
+  // read as "this is under your thumb" without flashing a colour at anyone.
+  static Color get pressOverlay =>
+      _p(const Color(0x0D23181C), const Color(0x12FFFFFF));
+
+  /// The same, over a brand fill. Maroon is dark in both palettes, so only
+  /// darkening reads on it.
+  static const pressOverlayOnFill = Color(0x1F000000);
+
+  /// The hairline that separates a card from the page.
+  ///
+  /// Transparent in light mode, where [TackShadow.resting] and the white-on-
+  /// sail-white step already do it. In dark mode a shadow is black on
+  /// near-black and draws nothing, so a card at #1E1A19 on #141110 was a
+  /// rectangle nobody could see the edge of. [line] is the stroke that does.
+  static Color get cardStroke => _p(const Color(0x00000000), line);
+
+  /// The well behind an arrow sitting on a brand fill.
+  static const onBrandWell = Color(0x24FFFFFF);
+
   /// Always white, in both palettes: the text and icons that sit on a filled
   /// brand button or a maroon card, where the fill is dark in either mode.
   static const onBrand = Color(0xFFFFFFFF);
@@ -240,6 +263,16 @@ class TackMotion {
   /// The gap between one revealed card and the next. Small enough that the
   /// whole screen has settled inside a second.
   static const stagger = Duration(milliseconds: 55);
+
+  /// How far a tappable card shrinks under a finger. Two percent: on a
+  /// full-width card that is about seven pixels at each edge, which reads as
+  /// "pressed" without the card looking like it is falling away.
+  static const pressScale = 0.98;
+
+  /// How long a press takes to go in. A release waits for it to finish before
+  /// coming back out: a quick tap goes down and up inside one frame, and a
+  /// state that lasts one frame is feedback nobody sees.
+  static const pressIn = Duration(milliseconds: 90);
 }
 
 /// The narrowest screen the app must work on. Layout is checked against this,
