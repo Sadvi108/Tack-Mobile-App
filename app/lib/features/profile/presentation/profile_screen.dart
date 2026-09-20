@@ -3,13 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/failure.dart';
-import '../../../design/tack.dart';
+import 'package:tack/design/tack.dart';
 import '../../../routing/router.dart';
 import '../application/completeness.dart';
-import '../data/profile.dart';
-import '../data/profile_repository.dart';
-import '../data/profile_sections.dart';
-import '../data/profile_sections_repository.dart';
+import '../application/profile.dart';
+import '../application/profile_sections.dart';
+import 'skills_card.dart';
 import '../../../routing/tab_bar.dart';
 
 /// The profile.
@@ -108,7 +107,7 @@ class ProfileScreen extends ConsumerWidget {
               const SizedBox(height: TackSpace.stackLoose),
 
               if (!atSchool) ...[
-                _SkillsCard(skills: skills),
+                SkillsCard(skills: skills),
                 const SizedBox(height: TackSpace.stackLoose),
               ],
               _DirectionCard(profile: profile),
@@ -342,55 +341,6 @@ class _PersonalCard extends StatelessWidget {
               ],
             ),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SkillsCard extends ConsumerWidget {
-  const _SkillsCard({required this.skills});
-
-  final List<UserSkill> skills;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return TackCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              _HealthDot(
-                health: healthFor(ProfileSection.skills, skills.length),
-              ),
-              const SizedBox(width: TackSpace.sm),
-              Expanded(child: Text('Skills', style: TackText.cardTitle)),
-              Text('${skills.length}', style: TackText.meta),
-            ],
-          ),
-          if (skills.isEmpty) ...[
-            const SizedBox(height: TackSpace.sm),
-            Text(ProfileSection.skills.emptyHint, style: TackText.bodyMuted),
-          ] else
-            for (final skill in skills.take(12)) ...[
-              const SizedBox(height: TackSpace.md),
-              Row(
-                children: [
-                  Expanded(child: Text(skill.name, style: TackText.rowTitle)),
-                  Text(
-                    skill.proficiencyLabel,
-                    style: TackText.meta.copyWith(fontSize: 13),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 6),
-              TackProgressBar(value: skill.proficiency / 5, height: 5),
-            ],
-          if (skills.length > 12) ...[
-            const SizedBox(height: TackSpace.md),
-            Text('and ${skills.length - 12} more', style: TackText.meta),
-          ],
         ],
       ),
     );

@@ -33,8 +33,7 @@ class UserSkill {
   final String skillId;
   final String name;
 
-  /// 1 to 5. Shown as a bar, never as a number out of five — a student
-  /// rating themselves 2/5 should not read as a failing grade.
+  /// 1 to 5. Shown as a named confidence group, never a grade out of five.
   final int proficiency;
   final String source;
 
