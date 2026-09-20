@@ -84,8 +84,10 @@ The link looks like:
 https://testflight.apple.com/join/XXXXXXXX
 ```
 
-Anyone who opens it installs TestFlight and then Tack. It works on any iPhone,
-not only ones you have registered.
+Anyone who opens it installs TestFlight and then Tack. It works on any iPhone
+running iOS 15 or later, not only ones you have registered. That is the minimum
+Xcode 27 builds for, so a tester on iOS 13 or 14 has to update iOS first; every
+iPhone that ran iOS 13 can.
 
 ## 6. Make the QR
 
