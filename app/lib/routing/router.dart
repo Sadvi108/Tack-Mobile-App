@@ -64,7 +64,7 @@ final routerProvider = Provider<GoRouter>((ref) {
     initialLocation: Env.debugInitialRoute ?? Routes.splash,
     refreshListenable: refresh,
     redirect: (context, state) {
-      return sessionRedirect(
+      final destination = sessionRedirect(
         signedIn: ref.read(supabaseProvider).auth.currentSession != null,
         location: state.matchedLocation,
         recovering: ref.read(passwordRecoveryProvider),
@@ -73,6 +73,15 @@ final routerProvider = Provider<GoRouter>((ref) {
             .value
             ?.hasFinishedOnboarding,
       );
+      // Profile loading passes through splash. Resume the requested QA screen
+      // only after the normal auth and onboarding guards have allowed Home.
+      if (destination == Routes.home &&
+          state.matchedLocation == Routes.splash &&
+          Env.debugInitialRoute != null &&
+          Env.debugInitialRoute != Routes.splash) {
+        return Env.debugInitialRoute;
+      }
+      return destination;
     },
     routes: [
       GoRoute(
