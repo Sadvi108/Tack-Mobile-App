@@ -7,6 +7,7 @@ import '../../../design/tack.dart';
 import '../../coach/data/coach_repository.dart';
 import '../../../routing/router.dart';
 import '../application/analyser_controller.dart';
+import '../application/cv_coverage.dart';
 import '../data/analysis_models.dart';
 import '../data/analysis_repository.dart';
 
@@ -309,6 +310,7 @@ class _Result extends StatelessWidget {
           const SizedBox(height: TackSpace.md),
           _ChipCard(items: match.matched, teal: true),
           const SizedBox(height: TackSpace.stackLoose),
+          _CvCoverageCard(matched: match.matched),
         ],
 
         if (match.missing.isNotEmpty) ...[
@@ -331,6 +333,78 @@ class _Result extends StatelessWidget {
 
         const SizedBox(height: TackSpace.xl),
       ],
+    );
+  }
+}
+
+/// Whether hiring software can see the skills the student has. Free and
+/// deterministic: it reads the last CV check, never a model.
+class _CvCoverageCard extends ConsumerWidget {
+  const _CvCoverageCard({required this.matched});
+
+  final List<String> matched;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Optional context, so loading and errors draw nothing rather than a
+    // spinner or a failure under a result that already worked.
+    final latest = ref.watch(latestCvSkillsProvider);
+    if (!latest.hasValue) return const SizedBox.shrink();
+    final cvSkills = latest.value;
+
+    final Widget child;
+    if (cvSkills == null) {
+      child = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Can hiring software see these?', style: TackText.cardTitle),
+          const SizedBox(height: TackSpace.sm),
+          Text(
+            'Hiring software reads your CV, not your Tack profile. Run the '
+            'free CV check to see which of these your CV shows.',
+            style: TackText.bodyMuted,
+          ),
+          const SizedBox(height: TackSpace.md),
+          TackButton.secondary(
+            'Check my CV',
+            onPressed: () => context.go(Routes.vault),
+          ),
+        ],
+      );
+    } else {
+      final coverage = cvCoverage(matched, cvSkills);
+      child = coverage.hidden.isEmpty
+          ? Text(
+              'Your CV shows all ${coverage.shown.length} of these, so hiring '
+              'software can read them.',
+              style: TackText.body,
+            )
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Not on your CV yet', style: TackText.cardTitle),
+                const SizedBox(height: TackSpace.sm),
+                Text(
+                  'Your profile has these, but your last CV check did not '
+                  'find them. Hiring software reads only the CV, so add each '
+                  'one where you used it.',
+                  style: TackText.bodyMuted,
+                ),
+                const SizedBox(height: TackSpace.md),
+                Wrap(
+                  spacing: TackSpace.sm,
+                  runSpacing: TackSpace.sm,
+                  children: [
+                    for (final skill in coverage.hidden) TackPill.amber(skill),
+                  ],
+                ),
+              ],
+            );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: TackSpace.stackLoose),
+      child: TackCard(child: child),
     );
   }
 }

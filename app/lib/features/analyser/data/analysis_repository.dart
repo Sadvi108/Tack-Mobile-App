@@ -130,6 +130,28 @@ class AnalysisRepository {
     }
   }
 
+  /// Skills the newest CV check found, across the student's live documents.
+  /// Null when they have never checked a CV.
+  Future<List<String>?> latestCvSkills() async {
+    try {
+      final row = await _db
+          .from('cv_checks')
+          .select('skills, documents!inner(deleted_at)')
+          .eq('user_id', _uid)
+          .isFilter('documents.deleted_at', null)
+          .order('created_at', ascending: false)
+          .limit(1)
+          .maybeSingle();
+      if (row == null) return null;
+      return [
+        for (final s in (row['skills'] as List?) ?? const [])
+          if (s is String) s,
+      ];
+    } catch (e) {
+      throw Failure.from(e);
+    }
+  }
+
   /// Adds the skills a job wanted and the student does not have to the roadmap
   /// they are already following.
   Future<int> addMissingSkillsToRoadmap(List<String> missing) async {
