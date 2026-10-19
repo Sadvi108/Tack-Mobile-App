@@ -111,6 +111,10 @@ class StreakCard extends StatelessWidget {
           ),
           const SizedBox(height: TackSpace.md),
           Text(_sentence, style: TackText.bodyMuted),
+          if (streak.longest > 0) ...[
+            const SizedBox(height: TackSpace.lg),
+            _RhythmRow(rhythm: streak.rhythm),
+          ],
         ],
       ),
     );
@@ -128,6 +132,51 @@ class StreakCard extends StatelessWidget {
     }
     return 'Your longest run is ${streak.longest} days.';
   }
+}
+
+/// The forgiving half of the card. The squares above reset on a quiet day;
+/// this bar does not, so a student who works three evenings a week still sees
+/// that they are steady.
+class _RhythmRow extends StatelessWidget {
+  const _RhythmRow({required this.rhythm});
+
+  final Rhythm rhythm;
+
+  @override
+  Widget build(BuildContext context) {
+    final gained = rhythm.weekChange > 0
+        ? ', up ${rhythm.weekChange} this week'
+        : '';
+    return Semantics(
+      label: 'Rhythm ${rhythm.score} percent$gained. $_caption',
+      excludeSemantics: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(child: Text('Rhythm', style: TackText.rowTitle)),
+              if (rhythm.weekChange > 0) ...[
+                Text('+${rhythm.weekChange}', style: TackText.bodyMuted),
+                const SizedBox(width: TackSpace.sm),
+              ],
+              Text('${rhythm.score}%', style: TackText.rowTitle),
+            ],
+          ),
+          const SizedBox(height: TackSpace.sm),
+          TackProgressBar(value: rhythm.score / 100),
+          const SizedBox(height: TackSpace.sm),
+          Text(_caption, style: TackText.bodyMuted),
+        ],
+      ),
+    );
+  }
+
+  String get _caption => rhythm.isOnPace
+      ? '${rhythm.recentDays} active days in the last 7. '
+            'That keeps your rhythm rising.'
+      : '${rhythm.recentDays} of ${rhythm.target} active days in the last 7. '
+            'A quiet day only nudges your rhythm down.';
 }
 
 /// One square. Fades and lifts in as the row is laid down, then holds.

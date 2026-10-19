@@ -203,6 +203,7 @@ class Streak {
     required this.current,
     required this.longest,
     required this.days,
+    this.rhythm = Rhythm.none,
   });
 
   final int current;
@@ -210,6 +211,8 @@ class Streak {
 
   /// Active days inside the last 28, oldest first.
   final List<DateTime> days;
+
+  final Rhythm rhythm;
 
   static const empty = Streak(current: 0, longest: 0, days: []);
 
@@ -223,7 +226,49 @@ class Streak {
     current: _int(json['current']),
     longest: _int(json['longest']),
     days: [for (final day in (json['days'] as List?) ?? const []) ?_date(day)],
+    rhythm: Rhythm.fromJson(
+      (json['rhythm'] as Map?)?.cast<String, dynamic>() ?? const {},
+    ),
   );
+}
+
+/// How steadily the student shows up, 0–100, from `public.tack_rhythm`.
+///
+/// The streak resets on one quiet day; this does not. It is Loop Habit
+/// Tracker's habit-strength score with a target of three active days in seven:
+/// keeping that pace keeps it full, and a quiet week only costs about a fifth.
+class Rhythm {
+  const Rhythm({
+    required this.score,
+    required this.weekChange,
+    required this.recentDays,
+    required this.target,
+  });
+
+  final int score;
+
+  /// Points gained since seven days ago. Negative when the week was quiet.
+  final int weekChange;
+
+  /// Active days in the last seven, today included.
+  final int recentDays;
+
+  /// Active days in seven that keep the rhythm full.
+  final int target;
+
+  static const none = Rhythm(score: 0, weekChange: 0, recentDays: 0, target: 3);
+
+  bool get isOnPace => recentDays >= target;
+
+  factory Rhythm.fromJson(Map<String, dynamic> json) {
+    final target = _int(json['target']);
+    return Rhythm(
+      score: _int(json['score']).clamp(0, 100),
+      weekChange: _int(json['week_change']),
+      recentDays: _int(json['recent_days']).clamp(0, 7),
+      target: target > 0 ? target : none.target,
+    );
+  }
 }
 
 /// One week of the student's own activity, for the momentum comparison.

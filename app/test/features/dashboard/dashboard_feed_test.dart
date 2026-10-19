@@ -39,6 +39,7 @@ Map<String, dynamic> payload({Map<String, dynamic>? overrides}) => {
     'current': 3,
     'longest': 9,
     'days': ['2026-08-24', '2026-08-25', '2026-08-26'],
+    'rhythm': {'score': 64, 'week_change': 5, 'recent_days': 3, 'target': 3},
   },
   'this_week': {
     'tasks_done': 2,
@@ -267,6 +268,34 @@ void main() {
         const Streak(current: 0, longest: 0, days: []).isPersonalBest,
         isFalse,
       );
+    });
+  });
+
+  group('the rhythm', () {
+    test('comes through with the streak', () {
+      final rhythm = DashboardFeed.fromJson(payload()).streak.rhythm;
+      expect(rhythm.score, 64);
+      expect(rhythm.weekChange, 5);
+      expect(rhythm.recentDays, 3);
+      expect(rhythm.isOnPace, isTrue);
+    });
+
+    test('an older server without it reads as no rhythm yet', () {
+      final streak = Streak.fromJson({'current': 2, 'longest': 4});
+      expect(streak.rhythm.score, 0);
+      expect(streak.rhythm.target, 3);
+      expect(streak.rhythm.isOnPace, isFalse);
+    });
+
+    test('figures out of range are held to what the bar can draw', () {
+      final rhythm = Rhythm.fromJson({
+        'score': 140,
+        'recent_days': 12,
+        'target': 0,
+      });
+      expect(rhythm.score, 100);
+      expect(rhythm.recentDays, 7);
+      expect(rhythm.target, 3);
     });
   });
 }
