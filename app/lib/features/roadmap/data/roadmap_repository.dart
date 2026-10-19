@@ -181,18 +181,66 @@ class RoadmapRepository {
     }
   }
 
-  Future<void> deleteTask(String taskId) async {
+  /// Removes a custom step, or skips a template one. Both are soft deletes, so
+  /// the score, the milestone and the pace already leave the step out.
+  Future<void> deleteTask(String taskId) => _setDeleted(taskId, deleted: true);
+
+  /// Undoes a skip. The milestone trigger reopens a finished milestone if the
+  /// step comes back unticked.
+  Future<void> restoreTask(String taskId) =>
+      _setDeleted(taskId, deleted: false);
+
+  Future<void> _setDeleted(String taskId, {required bool deleted}) async {
     try {
       await _db
           .from('roadmap_tasks')
-          .update({'deleted_at': DateTime.now().toUtc().toIso8601String()})
+          .update({
+            'deleted_at': deleted
+                ? DateTime.now().toUtc().toIso8601String()
+                : null,
+          })
           .eq('id', taskId)
           .eq('user_id', _uid);
     } catch (e) {
       throw Failure.from(e);
     }
   }
+
+  /// Template steps the student skipped on one roadmap, in route order.
+  /// Custom steps are not listed: removing one of those is a real delete.
+  Future<List<RoadmapTask>> skippedTasks(String roadmapId) async {
+    try {
+      final rows = await _db
+          .from('roadmap_tasks')
+          .select('''
+            id, milestone_id, order_index, title, type, points, est_minutes,
+            due_date, is_done, is_custom, shared_with_roadmaps,
+            roadmap_milestones!inner(roadmap_id, order_index)
+          ''')
+          .eq('user_id', _uid)
+          .eq('roadmap_milestones.roadmap_id', roadmapId)
+          .eq('is_custom', false)
+          .not('deleted_at', 'is', null);
+      num milestone(Map<String, dynamic> row) =>
+          (row['roadmap_milestones'] as Map?)?['order_index'] as num? ?? 0;
+      num step(Map<String, dynamic> row) => row['order_index'] as num? ?? 0;
+      rows.sort((a, b) {
+        final byMilestone = milestone(a).compareTo(milestone(b));
+        return byMilestone != 0 ? byMilestone : step(a).compareTo(step(b));
+      });
+      return rows.map(RoadmapTask.fromRow).toList();
+    } catch (e) {
+      throw Failure.from(e);
+    }
+  }
 }
+
+/// Skipped template steps for one roadmap, for the "Skipped steps" sheet.
+final skippedTasksProvider = FutureProvider.autoDispose
+    .family<List<RoadmapTask>, String>(
+      (ref, roadmapId) =>
+          ref.watch(roadmapRepositoryProvider).skippedTasks(roadmapId),
+    );
 
 /// What Tack reads out of the student's own answers, and where it thinks they
 /// could go as a result.

@@ -91,7 +91,7 @@ class _RoadmapScreenState extends ConsumerState<RoadmapScreen> {
                   ),
                   const SizedBox(height: TackSpace.stack),
                   TackButton.ghost(
-                    'Remove this step',
+                    task.isCustom ? 'Remove this step' : 'Skip this step',
                     onPressed: () => Navigator.of(sheetContext).pop('delete'),
                   ),
                 ],
@@ -103,8 +103,6 @@ class _RoadmapScreenState extends ConsumerState<RoadmapScreen> {
     );
     if (action == null || !mounted) return;
 
-    final repository = ref.read(roadmapRepositoryProvider);
-
     if (action == 'due') {
       final picked = await showDatePicker(
         context: context,
@@ -114,7 +112,7 @@ class _RoadmapScreenState extends ConsumerState<RoadmapScreen> {
         lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
       );
       if (picked == null || !mounted) return;
-      await repository.setTaskDue(task.id, picked);
+      await ref.read(roadmapRepositoryProvider).setTaskDue(task.id, picked);
       ref.invalidate(roadmapsProvider);
       if (mounted) TackToast.show(context, message: 'Date moved.');
       return;
@@ -122,20 +120,96 @@ class _RoadmapScreenState extends ConsumerState<RoadmapScreen> {
 
     // Removing a step changes the score, because roadmap_progress is a
     // fraction of the steps that exist. Worth confirming.
+    //
+    // A template step is skipped rather than removed: it is the same soft
+    // delete, but it can come back from the Skipped steps list, so the copy
+    // says so instead of sounding final.
+    final skip = !task.isCustom;
     final sure = await confirmTackAction(
       context,
-      title: 'Remove this step?',
-      body:
-          'It comes off your roadmap and stops counting toward your readiness '
-          'score. You can add your own step back later.',
-      confirmLabel: 'Remove it',
+      title: skip ? 'Skip this step?' : 'Remove this step?',
+      body: skip
+          ? 'It leaves your roadmap and stops counting toward your readiness '
+                'score. You can bring it back from Skipped steps at any time.'
+          : 'It comes off your roadmap and stops counting toward your '
+                'readiness score. You can add your own step back later.',
+      confirmLabel: skip ? 'Skip it' : 'Remove it',
     );
     if (!sure || !mounted) return;
-    await repository.deleteTask(task.id);
-    ref
-      ..invalidate(roadmapsProvider)
-      ..invalidate(readinessProvider);
-    if (mounted) TackToast.show(context, message: 'Removed.');
+    await ref.read(roadmapRepositoryProvider).deleteTask(task.id);
+    _refreshAfterSkip();
+    if (!mounted) return;
+    TackToast.show(
+      context,
+      message: skip ? 'Skipped.' : 'Removed.',
+      actionLabel: skip ? 'Undo' : null,
+      onAction: skip ? () => _restore(task) : null,
+    );
+  }
+
+  Future<void> _restore(RoadmapTask task) async {
+    try {
+      await ref.read(roadmapRepositoryProvider).restoreTask(task.id);
+      _refreshAfterSkip();
+      if (mounted) TackToast.show(context, message: 'Back on your roadmap.');
+    } catch (e) {
+      if (!mounted) return;
+      TackToast.show(
+        context,
+        message: Failure.from(e).message,
+        kind: TackToastKind.error,
+      );
+    }
+  }
+
+  void _refreshAfterSkip() => ref
+    ..invalidate(roadmapsProvider)
+    ..invalidate(skippedTasksProvider)
+    ..invalidate(readinessProvider);
+
+  Future<void> _showSkipped(List<RoadmapTask> skipped) async {
+    final task = await showTackSheet<RoadmapTask>(
+      context: context,
+      title: 'Skipped steps',
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          TackSpace.screen,
+          0,
+          TackSpace.screen,
+          TackSpace.xl,
+        ),
+        child: Builder(
+          builder: (sheetContext) => Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'These are off your roadmap and do not count toward your '
+                'score. Bring one back if it turns out you need it.',
+                style: TackText.bodyMuted,
+              ),
+              const SizedBox(height: TackSpace.md),
+              for (final t in skipped)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: TackSpace.sm),
+                  child: Row(
+                    children: [
+                      Expanded(child: Text(t.title, style: TackText.rowTitle)),
+                      const SizedBox(width: TackSpace.md),
+                      TackButton.secondary(
+                        'Bring back',
+                        fullWidth: false,
+                        onPressed: () => Navigator.of(sheetContext).pop(t),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (task != null && mounted) await _restore(task);
   }
 
   /// Changing your mind. Nothing is destroyed — the roadmap is retired and
@@ -365,6 +439,16 @@ class _RoadmapScreenState extends ConsumerState<RoadmapScreen> {
               // reading what is left, not a control to put next to the number
               // that is meant to encourage them.
               const SizedBox(height: TackSpace.sm),
+              if (ref.watch(skippedTasksProvider(roadmap.id)).value
+                  case final skipped? when skipped.isNotEmpty) ...[
+                TackButton.ghost(
+                  skipped.length == 1
+                      ? '1 skipped step'
+                      : '${skipped.length} skipped steps',
+                  onPressed: () => _showSkipped(skipped),
+                ),
+                const SizedBox(height: TackSpace.sm),
+              ],
               TackButton.ghost(
                 'Stop following this path',
                 onPressed: () => _stopFollowing(roadmap),

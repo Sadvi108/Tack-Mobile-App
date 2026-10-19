@@ -103,8 +103,10 @@ PathSuggestion suggestion(
 List<Override> overrides(
   List<Roadmap> roadmaps, {
   PathAdvice advice = PathAdvice.empty,
+  List<RoadmapTask> skippedTasks = const [],
 }) => [
   pathAdviceProvider.overrideWith((ref) async => advice),
+  skippedTasksProvider.overrideWith((ref, roadmapId) async => skippedTasks),
   localDbProvider.overrideWith((ref) {
     final db = LocalDb(NativeDatabase.memory());
     ref.onDispose(db.close);
@@ -552,6 +554,60 @@ void main() {
 
       // Still on the roadmap, nothing changed.
       expect(find.byType(JourneyLine), findsNWidgets(3));
+    });
+  });
+
+  group('skipping a step', () {
+    testWidgets('a template step is skipped, and the confirm says it can '
+        'come back', (tester) async {
+      await pumpAt(
+        tester,
+        const RoadmapScreen(),
+        size: const Size(360, 2000),
+        overrides: overrides([roadmap()]),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.longPress(find.text('React basics'));
+      await tester.pumpAndSettle();
+      expect(find.text('Skip this step'), findsOneWidget);
+      expect(find.text('Remove this step'), findsNothing);
+
+      await tester.tap(find.text('Skip this step'));
+      await tester.pumpAndSettle();
+      expect(find.text('Skip this step?'), findsOneWidget);
+      expect(bodyText(tester), contains('bring it back from Skipped steps'));
+    });
+
+    testWidgets('skipped steps are listed with a way back', (tester) async {
+      await pumpAt(
+        tester,
+        const RoadmapScreen(),
+        size: const Size(360, 2000),
+        overrides: overrides([roadmap()], skippedTasks: [task('Bootstrap')]),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('1 skipped step'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('1 skipped step'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Skipped steps'), findsOneWidget);
+      expect(find.text('Bootstrap'), findsOneWidget);
+      expect(find.text('Bring back'), findsOneWidget);
+      expect(hasOverflow(tester), isFalse);
+    });
+
+    testWidgets('nothing skipped means no skipped list', (tester) async {
+      await pumpAt(
+        tester,
+        const RoadmapScreen(),
+        size: const Size(360, 2000),
+        overrides: overrides([roadmap()]),
+      );
+      await tester.pumpAndSettle();
+      expect(find.textContaining('skipped step'), findsNothing);
     });
   });
 }
