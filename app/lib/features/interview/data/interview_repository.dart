@@ -286,6 +286,32 @@ class InterviewRepository {
       throw Failure.from(e);
     }
   }
+
+  /// Answered questions due for practice today, at most ten.
+  Future<List<DueQuestion>> dueQuestions() async {
+    try {
+      final rows = await _db.rpc('interview_due');
+      return [
+        for (final row in (rows as List?) ?? const [])
+          if (row is Map) ?DueQuestion.fromJson(row.cast<String, dynamic>()),
+      ];
+    } catch (e) {
+      throw Failure.from(e);
+    }
+  }
+
+  /// Records a self-grade. Returns how many days until it comes back.
+  Future<int> review(String questionId, ReviewGrade grade) async {
+    try {
+      final result = await _db.rpc(
+        'review_interview_question',
+        params: {'p_question_id': questionId, 'p_grade': grade.name},
+      );
+      return ((result as Map?)?['interval_days'] as num?)?.toInt() ?? 1;
+    } catch (e) {
+      throw Failure.from(e);
+    }
+  }
 }
 
 final interviewRepositoryProvider = Provider<InterviewRepository>(
@@ -306,3 +332,11 @@ final interviewHistoryProvider = FutureProvider<List<InterviewSession>>((
 final companyPacksProvider = FutureProvider<List<CompanyPack>>(
   (ref) => ref.watch(interviewRepositoryProvider).companyPacks(),
 );
+
+/// What is due for practice today. Empty when signed out.
+final dueQuestionsProvider = FutureProvider.autoDispose<List<DueQuestion>>((
+  ref,
+) async {
+  if (ref.watch(currentUserProvider)?.id == null) return const [];
+  return ref.watch(interviewRepositoryProvider).dueQuestions();
+});

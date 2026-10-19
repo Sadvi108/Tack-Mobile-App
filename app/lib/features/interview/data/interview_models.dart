@@ -203,3 +203,62 @@ class CompanyPack {
         .toList(growable: false),
   );
 }
+
+/// How a student rates their own answer when a question comes back.
+enum ReviewGrade {
+  again,
+  hard,
+  good,
+  easy;
+
+  String get label => switch (this) {
+    ReviewGrade.again => 'Again',
+    ReviewGrade.hard => 'Hard',
+    ReviewGrade.good => 'Good',
+    ReviewGrade.easy => 'Easy',
+  };
+}
+
+/// An answered question that is due for practice, from `interview_due()`.
+class DueQuestion {
+  const DueQuestion({
+    required this.questionId,
+    required this.role,
+    required this.question,
+    this.answerText,
+    this.toImprove = const [],
+    this.modelAnswer,
+  });
+
+  final String questionId;
+  final String role;
+  final String question;
+  final String? answerText;
+  final List<String> toImprove;
+  final String? modelAnswer;
+
+  bool get hasNotes =>
+      (answerText?.isNotEmpty ?? false) ||
+      toImprove.isNotEmpty ||
+      (modelAnswer?.isNotEmpty ?? false);
+
+  /// Null when the row is missing what the screen cannot do without.
+  static DueQuestion? fromJson(Map<String, dynamic> json) {
+    final id = json['question_id'];
+    final question = json['question'];
+    if (id is! String || question is! String || question.trim().isEmpty) {
+      return null;
+    }
+    return DueQuestion(
+      questionId: id,
+      role: (json['role'] as String?) ?? '',
+      question: question,
+      answerText: json['answer_text'] as String?,
+      toImprove: [
+        for (final item in (json['to_improve'] as List?) ?? const [])
+          if (item is String && item.trim().isNotEmpty) item,
+      ],
+      modelAnswer: json['model_answer'] as String?,
+    );
+  }
+}
