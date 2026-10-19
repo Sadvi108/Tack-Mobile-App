@@ -68,7 +68,7 @@ is the last definition. "Called by" names the repository that uses it today.
 
 | Function | Returns | Notes |
 |---|---|---|
-| `dashboard_feed()` | `jsonb` | The entire home screen in one round trip — greeting, week, score, streak, insights, roadmap and applications. Replaced nine PostgREST reads. Days are Dhaka-local via `tack_today()`. |
+| `dashboard_feed()` | `jsonb` | The entire home screen in one round trip — greeting, week, score, streak, insights, roadmap and applications. Replaced nine PostgREST reads. Days are Dhaka-local via `tack_today()`. `streak.rhythm` is `{score, week_change, recent_days, target}` from the internal `tack_rhythm()` (0077). |
 | `tack_today()` | `date` | Today in Asia/Dhaka. The one definition of "today" the whole app shares. |
 
 Called by `dashboard/data/dashboard_repository.dart`.
@@ -117,6 +117,16 @@ SQL, where it is enforced by the query rather than by remembering to delete
 keys in the renderer.
 
 **The page is not served yet** — see DEPLOY.md.
+
+### Interview practice
+
+| Function | Returns | Notes |
+|---|---|---|
+| `interview_due()` | `jsonb` | Up to ten answered questions due for practice today (Dhaka), with the student's own answer and feedback notes. Free: no model, no quota. |
+| `review_interview_question(p_question_id uuid, p_grade text)` | `jsonb` | One self-grade (`again`, `hard`, `good`, `easy`). The schedule is SM-2 in `tack_next_review()`; returns `{due_on, interval_days}`. |
+
+Called by `interview/data/interview_repository.dart`. Rows in
+`interview_reviews` are written only by a trigger and this function (0078).
 
 ### Coach
 
