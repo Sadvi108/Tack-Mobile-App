@@ -98,6 +98,24 @@ void main() {
       expect(find.text('Practise again'), findsNothing);
     });
 
+    testWidgets('the cost of new practice is said before it starts', (
+      tester,
+    ) async {
+      // Home once called this "free — no daily limit". Feedback on an answer
+      // is a model call and spends an AI action; the student hears that
+      // here, next to the button, not afterwards.
+      await pumpAt(
+        tester,
+        const InterviewScreen(),
+        overrides: overrides(due: const []),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.textContaining('Feedback on each answer uses one AI action'),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('notes stay hidden until asked for, then a grade moves on', (
       tester,
     ) async {

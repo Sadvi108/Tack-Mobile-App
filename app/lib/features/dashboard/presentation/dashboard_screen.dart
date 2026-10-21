@@ -694,7 +694,9 @@ class _GetReady extends StatelessWidget {
             _Tool(
               icon: TackIcons.practice,
               title: 'Practise an interview',
-              body: 'Real questions for your role. Free — no daily limit.',
+              // Not "free": feedback on an answer is a model call and spends
+              // an AI action. The practice screen says so before it does.
+              body: 'Real questions for your role, and feedback on each answer.',
               onTap: onInterview,
             ),
             const TackDivider(),
