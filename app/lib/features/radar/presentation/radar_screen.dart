@@ -7,7 +7,6 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/failure.dart';
 import 'package:tack/design/tack.dart';
 import '../../../routing/router.dart';
-import '../../../routing/tab_bar.dart';
 import '../../applications/application/application_data.dart';
 import '../../applications/presentation/applications_screen.dart';
 import '../../dashboard/application/dashboard_data.dart';
@@ -78,7 +77,6 @@ class _RadarScreenState extends ConsumerState<RadarScreen> {
     _seedFromProfile(profile, feed?.primaryPathTitle);
 
     return TackScaffold(
-      bottomNav: const TackTabBar(current: Routes.radar),
       header: TackHeader(
         title: 'Radar',
         subtitle: _tracking

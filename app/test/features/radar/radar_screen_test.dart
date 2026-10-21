@@ -390,31 +390,4 @@ void main() {
 
     expect(tester.takeException(), isNull);
   });
-
-  testWidgets('the Radar tab label fits at 360px', (tester) async {
-    await pumpAt(
-      tester,
-      const RadarScreen(),
-      size: const Size(360, 900),
-      overrides: overrides(const RadarResult(listings: [])),
-    );
-    await tester.pumpAndSettle();
-
-    // Scoped to the bar: "Radar" is also the screen's own title, so an
-    // unscoped finder matches twice.
-    for (final tab in TackTabs.all) {
-      expect(
-        tester
-            .getSize(
-              find.descendant(
-                of: find.byType(TackBottomNav),
-                matching: find.text(tab.label),
-              ),
-            )
-            .width,
-        lessThanOrEqualTo(360 / 5),
-        reason: '${tab.label} is too wide',
-      );
-    }
-  });
 }

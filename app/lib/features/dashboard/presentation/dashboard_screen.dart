@@ -6,7 +6,6 @@ import '../../../core/analytics.dart';
 import '../../../core/offline/sync.dart';
 import '../../../design/tack.dart';
 import '../../../routing/router.dart';
-import '../../../routing/tab_bar.dart';
 import '../../paths/data/path_repository.dart';
 import '../../profile/data/profile.dart';
 import '../../roadmap/data/roadmap_repository.dart';
@@ -41,7 +40,6 @@ class DashboardScreen extends ConsumerWidget {
     return dashboard.when(
       loading: () => const _DashboardLoading(),
       error: (_, _) => TackScaffold(
-        bottomNav: const _Nav(),
         header: const TackHomeHeader(initials: '–'),
         body: TackErrorState(
           body:
@@ -106,7 +104,6 @@ class _Dashboard extends ConsumerWidget {
       // The body brings its own ListView so it can pull to refresh; the shell
       // must not wrap it in a second scroll view.
       scrollable: false,
-      bottomNav: const _Nav(),
       // The coach floats over the dashboard rather than taking a tab: the five
       // destinations are full at 360px, and asking a question is something a
       // student does *about* what they are looking at, not instead of it.
@@ -639,13 +636,6 @@ class _CoachButton extends StatelessWidget {
   }
 }
 
-class _Nav extends StatelessWidget {
-  const _Nav();
-
-  @override
-  Widget build(BuildContext context) => const TackTabBar(current: Routes.home);
-}
-
 class _DashboardLoading extends StatelessWidget {
   const _DashboardLoading();
 
@@ -653,7 +643,6 @@ class _DashboardLoading extends StatelessWidget {
   Widget build(BuildContext context) {
     return const TackScaffold(
       header: TackHomeHeader(initials: '–'),
-      bottomNav: _Nav(),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

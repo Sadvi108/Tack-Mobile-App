@@ -357,35 +357,9 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('every mode gets the same five destinations', (tester) async {
-      // The tab bar used to change with the year. It no longer does: a
-      // student's app should not change shape underneath them between one
-      // September and the next, and year-awareness lives in what each screen
-      // leads with.
-      for (final (mode, year) in [
-        (YearMode.explore, 1),
-        (YearMode.build, 2),
-        (YearMode.prove, 3),
-        (YearMode.launch, 4),
-      ]) {
-        await pumpAt(
-          tester,
-          const DashboardScreen(),
-          size: const Size(360, 800),
-          overrides: overridesFor(mode, year),
-        );
-        await tester.pumpAndSettle();
-
-        for (final label in ['Home', 'Roadmap', 'Radar', 'Vault', 'Profile']) {
-          expect(
-            find.text(label),
-            findsOneWidget,
-            reason: '$mode is missing the $label tab',
-          );
-        }
-        expect(find.text('Paths'), findsNothing, reason: 'paths is not a tab');
-      }
-    });
+    // The tab bar no longer changes with the year, and no longer belongs to
+    // this screen: the router's shell draws one bar from TackTabs.all for
+    // every mode. test/routing/tab_shell_test.dart holds it to 360px.
 
     testWidgets('the coach is reachable from home in every mode', (
       tester,
@@ -411,26 +385,6 @@ void main() {
           reason: '${mode.name} cannot reach the coach',
         );
         expect(tester.takeException(), isNull);
-      }
-    });
-
-    testWidgets('the five tabs fit at the 360px minimum', (tester) async {
-      await pumpAt(
-        tester,
-        const DashboardScreen(),
-        size: const Size(360, 800),
-        overrides: overridesFor(YearMode.explore, 1),
-      );
-      await tester.pumpAndSettle();
-
-      expect(tester.takeException(), isNull);
-      for (final label in ['Home', 'Roadmap', 'Radar', 'Vault', 'Profile']) {
-        final size = tester.getSize(find.text(label));
-        expect(
-          size.width,
-          lessThanOrEqualTo(360 / 5),
-          reason: '$label is too wide',
-        );
       }
     });
   });

@@ -3,6 +3,7 @@ import '../features/vault/presentation/cv_check_screen.dart';
 export 'routes.dart';
 import 'routes.dart';
 import 'session_redirect.dart';
+import 'tab_bar.dart';
 import '../features/auth/application/session_gate.dart';
 import '../features/profile/application/profile.dart';
 import 'package:flutter/widgets.dart';
@@ -59,8 +60,13 @@ class _AuthRefresh extends ChangeNotifier {
 final routerProvider = Provider<GoRouter>((ref) {
   final refresh = _AuthRefresh(ref);
   ref.onDispose(refresh.dispose);
+  // Screens opened from a tab cover the tab bar, as they always have. Anything
+  // declared outside the shell lands here by default; a route nested inside a
+  // branch names it to do the same.
+  final root = GlobalKey<NavigatorState>(debugLabel: 'root');
 
   return GoRouter(
+    navigatorKey: root,
     initialLocation: Env.debugInitialRoute ?? Routes.splash,
     refreshListenable: refresh,
     redirect: (context, state) {
@@ -112,9 +118,66 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: Routes.onboarding,
         builder: (context, state) => const IntakeScreen(),
       ),
-      GoRoute(
-        path: Routes.home,
-        builder: (context, state) => const DashboardScreen(),
+      // The five tabs, in the order of TackTabs.all.
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, shell) => TackTabShell(shell: shell),
+        branches: [
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: Routes.home,
+                builder: (context, state) => const DashboardScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: Routes.roadmap,
+                builder: (context, state) => const RoadmapScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: Routes.radar,
+                builder: (context, state) => const RadarScreen(),
+              ),
+              // Tracking is the second half of Radar, so the standalone list
+              // keeps the Radar tab lit. A single application covers the bar.
+              GoRoute(
+                path: Routes.applications,
+                builder: (context, state) => const ApplicationsScreen(),
+                routes: [
+                  GoRoute(
+                    path: ':id',
+                    parentNavigatorKey: root,
+                    builder: (context, state) => ApplicationDetailScreen(
+                      id: state.pathParameters['id']!,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: Routes.vault,
+                builder: (context, state) => const VaultScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: Routes.profile,
+                builder: (context, state) => const ProfileScreen(),
+              ),
+            ],
+          ),
+        ],
       ),
       GoRoute(
         path: Routes.paths,
@@ -128,31 +191,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         ],
       ),
       GoRoute(
-        path: Routes.roadmap,
-        builder: (context, state) => const RoadmapScreen(),
-      ),
-      GoRoute(
         path: Routes.coach,
         builder: (context, state) => const CoachScreen(),
-      ),
-      GoRoute(
-        path: Routes.radar,
-        builder: (context, state) => const RadarScreen(),
-      ),
-      GoRoute(
-        path: Routes.applications,
-        builder: (context, state) => const ApplicationsScreen(),
-        routes: [
-          GoRoute(
-            path: ':id',
-            builder: (context, state) =>
-                ApplicationDetailScreen(id: state.pathParameters['id']!),
-          ),
-        ],
-      ),
-      GoRoute(
-        path: Routes.profile,
-        builder: (context, state) => const ProfileScreen(),
       ),
       GoRoute(
         path: Routes.score,
@@ -162,10 +202,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/vault/check/:id',
         builder: (context, state) =>
             CvCheckScreen(documentId: state.pathParameters['id']!),
-      ),
-      GoRoute(
-        path: Routes.vault,
-        builder: (context, state) => const VaultScreen(),
       ),
       GoRoute(
         path: Routes.analyser,
