@@ -685,7 +685,8 @@ class _GetReady extends StatelessWidget {
               title: 'Practise an interview',
               // Not "free": feedback on an answer is a model call and spends
               // an AI action. The practice screen says so before it does.
-              body: 'Real questions for your role, and feedback on each answer.',
+              body:
+                  'Real questions for your role, and feedback on each answer.',
               onTap: onInterview,
             ),
             const TackDivider(),

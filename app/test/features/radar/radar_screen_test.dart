@@ -190,31 +190,32 @@ void main() {
     expect(bodyText(tester), contains('Careerjet is not set up yet'));
   });
 
-  testWidgets('both Bangladesh boards down names them and what is still shown', (
-    tester,
-  ) async {
-    await pumpAt(
-      tester,
-      const RadarScreen(),
-      size: const Size(360, 900),
-      overrides: overrides(
-        const RadarResult(
-          listings: [],
-          problems: {
-            'jsearch': 'not configured',
-            'careerjet': 'not configured',
-            'remotive': 'http 503',
-          },
+  testWidgets(
+    'both Bangladesh boards down names them and what is still shown',
+    (tester) async {
+      await pumpAt(
+        tester,
+        const RadarScreen(),
+        size: const Size(360, 900),
+        overrides: overrides(
+          const RadarResult(
+            listings: [],
+            problems: {
+              'jsearch': 'not configured',
+              'careerjet': 'not configured',
+              'remotive': 'http 503',
+            },
+          ),
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
+      );
+      await tester.pumpAndSettle();
 
-    final text = bodyText(tester);
-    expect(text, contains('Bangladesh coverage is limited right now'));
-    expect(text, contains('JSearch and Careerjet are not set up yet'));
-    expect(text, contains('Remotive could not be reached'));
-  });
+      final text = bodyText(tester);
+      expect(text, contains('Bangladesh coverage is limited right now'));
+      expect(text, contains('JSearch and Careerjet are not set up yet'));
+      expect(text, contains('Remotive could not be reached'));
+    },
+  );
 
   testWidgets('a cache that failed to write names no board', (tester) async {
     await pumpAt(

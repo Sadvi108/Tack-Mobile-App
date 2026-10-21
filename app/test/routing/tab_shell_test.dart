@@ -76,8 +76,10 @@ void main() {
     return router;
   }
 
-  Finder inBar(String label) =>
-      find.descendant(of: find.byType(TackBottomNav), matching: find.text(label));
+  Finder inBar(String label) => find.descendant(
+    of: find.byType(TackBottomNav),
+    matching: find.text(label),
+  );
 
   testWidgets('the bar sits at the bottom and leaves the tab its room', (
     tester,
@@ -89,10 +91,7 @@ void main() {
     final bar = tester.getRect(find.byType(TackBottomNav));
     expect(bar.bottom, 800);
     expect(bar.height, lessThan(120));
-    expect(
-      tester.getRect(find.text('Home screen')).bottom,
-      lessThan(bar.top),
-    );
+    expect(tester.getRect(find.text('Home screen')).bottom, lessThan(bar.top));
   });
 
   testWidgets('the five tabs fit at the 360px minimum', (tester) async {

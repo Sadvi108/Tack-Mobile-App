@@ -50,11 +50,7 @@ void main() {
 
     expect(
       tester.getSemantics(box),
-      isSemantics(
-        isButton: true,
-        hasCheckedState: true,
-        isChecked: false,
-      ),
+      isSemantics(isButton: true, hasCheckedState: true, isChecked: false),
     );
 
     await tester.tap(box);
