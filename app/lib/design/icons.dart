@@ -110,6 +110,16 @@ class TackIcons {
 
   static const logout =
       '<path d="M15 4h3.5A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5H15"/><path d="M11 16l4-4-4-4"/><path d="M15 12H4"/>';
+
+  /// The three theme choices. The sun is the one place a ring of rays is the
+  /// right drawing — it means brightness here, which is what it is.
+  static const sun =
+      '<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6 6 6M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4"/>';
+  static const moon =
+      '<path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5Z"/>';
+  static const phone =
+      '<rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M11 18.5h2"/>';
+
   static const star =
       '<path d="m12 4 2.5 5.2 5.5.8-4 3.9 1 5.6-5-2.7-5 2.7 1-5.6-4-3.9 5.5-.8z"/>';
 }

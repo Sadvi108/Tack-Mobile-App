@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../components/cards.dart';
+import '../components/glass.dart';
 import '../icons.dart';
 import '../theme.dart';
 import '../tokens.dart';
@@ -62,53 +64,70 @@ class TackScaffold extends StatelessWidget {
       child: Scaffold(
         backgroundColor: background ?? TackColors.sailWhite,
         resizeToAvoidBottomInset: true,
-        body: SafeArea(
-          bottom: false,
-          top: !onMaroonHeader,
-          child: Column(
-            children: [
-              ?header,
-              Expanded(
-                child: Stack(
-                  children: [
-                    Positioned.fill(
-                      child: scrollable
-                          ? SingleChildScrollView(
-                              padding: const EdgeInsets.only(
-                                bottom: TackSpace.xl,
-                              ),
-                              physics: const AlwaysScrollableScrollPhysics(),
-                              child: content,
-                            )
-                          : content,
-                    ),
-                    if (floatingAction != null)
-                      Positioned(
-                        right: TackSpace.screen,
-                        bottom: TackSpace.lg,
-                        child: floatingAction!,
-                      ),
-                  ],
-                ),
-              ),
-              if (pinnedCta != null)
-                Container(
-                  width: double.infinity,
-                  color: background ?? TackColors.sailWhite,
-                  padding: const EdgeInsets.fromLTRB(
-                    TackSpace.screen,
-                    TackSpace.md,
-                    TackSpace.screen,
-                    TackSpace.md,
-                  ),
-                  child: pinnedCta,
-                ),
-              ?bottomNav,
-              if (bottomNav == null)
-                SizedBox(height: MediaQuery.paddingOf(context).bottom),
-            ],
-          ),
+        body: Stack(
+          fit: StackFit.expand,
+          children: [
+            // The glass needs something behind it. A screen that brings its
+            // own background has chosen a flat page, and keeps it.
+            if (background == null) const TackAmbient(),
+            _body(context, content),
+          ],
         ),
+      ),
+    );
+  }
+
+  Widget _body(BuildContext context, Widget content) {
+    return SafeArea(
+      bottom: false,
+      top: !onMaroonHeader,
+      child: Column(
+        children: [
+          ?header,
+          Expanded(
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: scrollable
+                      ? SingleChildScrollView(
+                          padding: const EdgeInsets.only(bottom: TackSpace.xl),
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          child: content,
+                        )
+                      : content,
+                ),
+                if (floatingAction != null)
+                  Positioned(
+                    right: TackSpace.screen,
+                    bottom: TackSpace.lg,
+                    child: floatingAction!,
+                  ),
+              ],
+            ),
+          ),
+          if (pinnedCta != null)
+            Container(
+              width: double.infinity,
+              // A bar of glass over the page, with a hairline where the
+              // scrolling content passes under it.
+              decoration: BoxDecoration(
+                color: background ?? TackColors.glassBar,
+                border: background == null
+                    ? Border(top: BorderSide(color: TackColors.line))
+                    : null,
+              ),
+              padding: const EdgeInsets.fromLTRB(
+                TackSpace.screen,
+                TackSpace.md,
+                TackSpace.screen,
+                TackSpace.md,
+              ),
+              child: pinnedCta,
+            ),
+          ?bottomNav,
+          if (bottomNav == null)
+            SizedBox(height: MediaQuery.paddingOf(context).bottom),
+        ],
       ),
     );
   }
@@ -133,8 +152,9 @@ class TackHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: TackColors.sailWhite,
+    // No fill of its own: the header sits on the same page as the body, so the
+    // glows run behind both without a band across the top.
+    return Padding(
       padding: const EdgeInsets.fromLTRB(
         TackSpace.screen,
         TackSpace.sm,
@@ -151,26 +171,13 @@ class TackHeader extends StatelessWidget {
           Row(
             children: [
               if (onBack != null)
-                Semantics(
-                  button: true,
-                  label: 'Back',
-                  child: GestureDetector(
-                    onTap: onBack,
-                    behavior: HitTestBehavior.opaque,
-                    child: SizedBox(
-                      width: TackSpace.tapTarget,
-                      height: TackSpace.tapTarget,
-                      child: Center(
-                        child: TackIcon(
-                          TackIcons.chevronLeft,
-                          size: 24,
-                          color: TackColors.ink,
-                        ),
-                      ),
-                    ),
-                  ),
+                TackGlassIconButton(
+                  icon: TackIcons.chevronLeft,
+                  iconSize: 22,
+                  onTap: onBack,
+                  semanticLabel: 'Back',
                 ),
-              if (onBack != null) const SizedBox(width: TackSpace.xs),
+              if (onBack != null) const SizedBox(width: TackSpace.sm),
               Expanded(
                 child: Text(
                   title,
@@ -221,62 +228,27 @@ class TackHomeHeader extends StatelessWidget {
         children: [
           const TackWordmark(),
           const Spacer(),
-          if (onBellTap != null)
-            Semantics(
-              button: true,
-              label: unread > 0
+          if (onBellTap != null) ...[
+            TackGlassIconButton(
+              icon: TackIcons.bell,
+              onTap: onBellTap,
+              badge: unread > 0,
+              semanticLabel: unread > 0
                   ? '$unread unread notifications'
                   : 'Notifications',
-              child: GestureDetector(
-                onTap: onBellTap,
-                behavior: HitTestBehavior.opaque,
-                child: SizedBox(
-                  width: TackSpace.tapTarget,
-                  height: TackSpace.tapTarget,
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      TackIcon(TackIcons.bell, size: 22, color: TackColors.ink),
-                      if (unread > 0)
-                        Positioned(
-                          top: 8,
-                          right: 9,
-                          child: Container(
-                            width: 8,
-                            height: 8,
-                            decoration: BoxDecoration(
-                              color: TackColors.maroon,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ),
             ),
-          Semantics(
-            button: true,
-            label: 'Your profile',
-            child: GestureDetector(
-              onTap: onAvatarTap,
-              behavior: HitTestBehavior.opaque,
-              child: Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: TackColors.maroon,
-                  shape: BoxShape.circle,
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  initials,
-                  style: TackText.pill.copyWith(
-                    color: TackColors.white,
-                    fontSize: 14,
-                  ),
-                ),
-              ),
+            const SizedBox(width: TackSpace.xs),
+          ],
+          TackPressable(
+            onTap: onAvatarTap,
+            scale: 0.9,
+            borderRadius: const BorderRadius.all(Radius.circular(22)),
+            semanticLabel: 'Your profile',
+            excludeSemantics: true,
+            child: SizedBox(
+              width: TackSpace.tapTarget,
+              height: TackSpace.tapTarget,
+              child: Center(child: TackAvatar(initials: initials, size: 40)),
             ),
           ),
         ],
@@ -356,58 +328,186 @@ class TackBottomNav extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
 
+  static const _radius = BorderRadius.all(Radius.circular(24));
+  static const _height = 64.0;
+  static const _inset = 5.0;
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: TackColors.white,
-        border: Border(top: BorderSide(color: Color(0x1423181C))),
-      ),
+    final reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    final safeBottom = MediaQuery.paddingOf(context).bottom;
+
+    // A dock of glass floating above the bottom edge rather than a slab across
+    // it. The highlight behind the current tab slides to the one tapped, so a
+    // tab switch reads as moving across, not as the screen being replaced.
+    return Padding(
       padding: EdgeInsets.fromLTRB(
-        6,
-        TackSpace.sm,
-        6,
-        MediaQuery.paddingOf(context).bottom + 10,
+        TackSpace.md,
+        TackSpace.xs,
+        TackSpace.md,
+        safeBottom > 0 ? safeBottom : TackSpace.md,
       ),
-      child: Row(
-        children: [
-          for (var i = 0; i < tabs.length; i++)
-            Expanded(
-              child: Semantics(
-                button: true,
-                selected: i == currentIndex,
-                label: tabs[i].label,
-                child: GestureDetector(
-                  onTap: () => onTap(i),
-                  behavior: HitTestBehavior.opaque,
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(
-                      minHeight: TackSpace.tapTarget,
+      child: Container(
+        height: _height,
+        padding: const EdgeInsets.all(_inset),
+        decoration: BoxDecoration(
+          color: TackColors.glassBar,
+          borderRadius: _radius,
+          boxShadow: TackShadow.glassRaised,
+        ),
+        foregroundDecoration: TackGlass.rim(borderRadius: _radius),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final width = constraints.maxWidth / tabs.length;
+            return Stack(
+              children: [
+                if (currentIndex >= 0 && currentIndex < tabs.length)
+                  TweenAnimationBuilder<double>(
+                    tween: Tween(end: currentIndex.toDouble()),
+                    duration: reduceMotion ? Duration.zero : TackMotion.normal,
+                    curve: TackMotion.slideCurve,
+                    builder: (context, at, child) => Transform.translate(
+                      offset: Offset(at * width, 0),
+                      child: child,
                     ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        TackIcon(
-                          tabs[i].icon,
-                          size: 20,
-                          color: i == currentIndex
-                              ? TackColors.maroon
-                              : TackColors.muted,
+                    child: Container(
+                      width: width,
+                      height: double.infinity,
+                      decoration: BoxDecoration(
+                        color: TackColors.maroonTint,
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(19),
                         ),
-                        const SizedBox(height: 5),
-                        Text(
-                          tabs[i].label,
-                          style: i == currentIndex
-                              ? TackText.tabLabelActive
-                              : TackText.tabLabel,
-                        ),
-                      ],
+                      ),
                     ),
                   ),
+                Row(
+                  children: [
+                    for (var i = 0; i < tabs.length; i++)
+                      Expanded(
+                        child: _NavItem(
+                          tab: tabs[i],
+                          active: i == currentIndex,
+                          reduceMotion: reduceMotion,
+                          onTap: () {
+                            if (i != currentIndex) {
+                              HapticFeedback.selectionClick();
+                            }
+                            onTap(i);
+                          },
+                        ),
+                      ),
+                  ],
+                ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class _NavItem extends StatelessWidget {
+  const _NavItem({
+    required this.tab,
+    required this.active,
+    required this.reduceMotion,
+    required this.onTap,
+  });
+
+  final TackTab tab;
+  final bool active;
+  final bool reduceMotion;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      selected: active,
+      label: tab.label,
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: TackSpace.tapTarget),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // A small lift for the tab you are on: the icon grows into its
+              // highlight as the highlight arrives.
+              AnimatedScale(
+                scale: active && !reduceMotion ? 1.1 : 1,
+                duration: TackMotion.normal,
+                curve: TackMotion.slideCurve,
+                child: TackIcon(
+                  tab.icon,
+                  size: 20,
+                  strokeWidth: active ? 2.2 : 2,
+                  color: active ? TackColors.maroonText : TackColors.muted,
                 ),
               ),
-            ),
-        ],
+              const SizedBox(height: 4),
+              Text(
+                tab.label,
+                style: active ? TackText.tabLabelActive : TackText.tabLabel,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A student's initials in a maroon disc, ringed in the brand's warm end.
+///
+/// The ring is what makes it read as a person rather than as another button:
+/// every other round thing in the header is glass.
+class TackAvatar extends StatelessWidget {
+  const TackAvatar({super.key, required this.initials, this.size = 40});
+
+  final String initials;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final ring = size >= 64 ? 3.0 : 2.0;
+    return Container(
+      width: size,
+      height: size,
+      padding: EdgeInsets.all(ring),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [TackColors.amber, TackColors.maroon],
+        ),
+      ),
+      child: Container(
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(color: TackColors.sailWhite, width: ring),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color.alphaBlend(TackColors.brandGloss, TackColors.maroon),
+              TackColors.maroonDeep,
+            ],
+          ),
+        ),
+        child: Text(
+          initials,
+          style: TackText.cardTitle.copyWith(
+            color: TackColors.onBrand,
+            fontSize: size * 0.36,
+            height: 1,
+          ),
+        ),
       ),
     );
   }

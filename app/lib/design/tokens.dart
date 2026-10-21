@@ -166,6 +166,62 @@ class TackColors {
   /// amber does, at 6.6:1 and 5.4:1 — so "2 days late" on the week card is
   /// fixed rather than themed.
   static const warnOnBrand = Color(0xFFFAC775);
+
+  // ------------------------------------------------------------------ glass
+  //
+  // Tack's surfaces are frosted panes over a soft wash of its own colours. The
+  // wash is three static glows painted once behind the page (TackAmbient); a
+  // card is a translucent pane over it, lit from the top-left corner, with a
+  // bright rim where the light catches its edge.
+  //
+  // There is no live blur behind a card. A blur only shows when something sharp
+  // sits behind the glass, and nothing does — the wash is already as soft as a
+  // blur would make it. A BackdropFilter on every card in a scrolling list
+  // would resample the screen behind each one, every frame, to draw the same
+  // pixels: the per-frame cost TackMotion exists to keep out.
+  //
+  // The glows are pale on purpose. Page text sits straight on them, and muted
+  // on the rose glow at its strongest still has to clear AA — the contrast
+  // test composites each one over the page to check.
+
+  /// Behind the top of the page.
+  static Color get glowRose =>
+      _p(const Color(0x66EBC3CD), const Color(0x598E2440));
+
+  /// Behind the middle, on the left.
+  static Color get glowMint =>
+      _p(const Color(0x66BFE8D9), const Color(0x403F9C7E));
+
+  /// Behind the lower right. Kept clear of the bottom edge so the page meets
+  /// the tab bar's ground without a seam.
+  static Color get glowAmber =>
+      _p(const Color(0x55FBE3B5), const Color(0x33C9964A));
+
+  /// A pane at its lit corner.
+  static Color get glassHi =>
+      _p(const Color(0xD9FFFFFF), const Color(0xE62A2322));
+
+  /// The same pane at its far corner, where more of the page shows through.
+  static Color get glassLo =>
+      _p(const Color(0xA6FFFFFF), const Color(0xC71E1A19));
+
+  /// The tab bar and the pinned CTA bar. Denser than a card, because 11px
+  /// labels sit on it.
+  static Color get glassBar =>
+      _p(const Color(0xEBFFFFFF), const Color(0xF01E1A19));
+
+  /// The rim along a pane's edge. White in both palettes: on a light page it
+  /// is the highlight, on a dark one it is the only edge there is.
+  static Color get glassRim =>
+      _p(const Color(0xF2FFFFFF), const Color(0x1FFFFFFF));
+
+  /// The same rim on a brand pane, where full white would read as a border.
+  static const glassRimOnBrand = Color(0x2EFFFFFF);
+
+  /// The lit corner of a maroon pane. Six percent white and no more:
+  /// [warnOnBrand] on dark-mode maroon is the pair with least room, and it
+  /// still clears AA under this.
+  static const brandGloss = Color(0x0FFFFFFF);
 }
 
 class TackSpace {
@@ -237,6 +293,38 @@ class TackShadow {
   static const fab = <BoxShadow>[
     BoxShadow(color: Color(0x597A1B34), blurRadius: 16, offset: Offset(0, 6)),
   ];
+
+  /// Under a glass pane. Outer-only: a pane is translucent, and a shadow drawn
+  /// inside it would show through and grey the card it is meant to lift.
+  static const glass = <BoxShadow>[
+    BoxShadow(
+      color: Color(0x165E1428),
+      blurRadius: 24,
+      offset: Offset(0, 8),
+      blurStyle: BlurStyle.outer,
+    ),
+  ];
+
+  /// [raised], for a pane: the same lift, drawn only outside it.
+  static const glassRaised = <BoxShadow>[
+    BoxShadow(
+      color: Color(0x225E1428),
+      blurRadius: 28,
+      offset: Offset(0, 10),
+      blurStyle: BlurStyle.outer,
+    ),
+  ];
+
+  /// The glow under a primary button: the brand colour, not grey, so the
+  /// button looks lit rather than lifted.
+  static const brandGlow = <BoxShadow>[
+    BoxShadow(
+      color: Color(0x407A1B34),
+      blurRadius: 18,
+      offset: Offset(0, 6),
+      spreadRadius: -4,
+    ),
+  ];
 }
 
 /// Short and cheap. Anything that costs a repaint on a mid-range Android is
@@ -273,6 +361,11 @@ class TackMotion {
   /// coming back out: a quick tap goes down and up inside one frame, and a
   /// state that lasts one frame is feedback nobody sees.
   static const pressIn = Duration(milliseconds: 90);
+
+  /// For something that travels — the tab bar's highlight sliding to the tab
+  /// you picked, a segmented control's thumb. Fast out, soft landing, so the
+  /// eye follows it without it overshooting what was tapped.
+  static const slideCurve = Curves.easeOutCubic;
 }
 
 /// The narrowest screen the app must work on. Layout is checked against this,

@@ -2,10 +2,15 @@ import 'package:flutter/widgets.dart';
 
 import '../icons.dart';
 import '../tokens.dart';
+import 'glass.dart';
 
-/// The standard white card. [emphasised] swaps the resting shadow for a 1.5px
+/// The standard card: a pane of glass over the page. [emphasised] adds a 1.5px
 /// maroon border — the design uses a border rather than elevation to mark the
 /// single most important card on a screen.
+///
+/// A maroon [background] makes it a brand pane, lit the same way. Any other
+/// [background] is a plain tinted fill, because a tint is already saying
+/// something about the card and glass over it would blur what.
 ///
 /// Given an [onTap], the whole card becomes a [TackPressable]: it sinks a
 /// little and darkens under a finger, announces itself as a button, and can be
@@ -40,7 +45,25 @@ class TackCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final radius = compact ? TackRadius.listCardAll : TackRadius.cardAll;
-    final stroke = TackColors.cardStroke;
+    // Maroon is dark in both palettes, so only darkening reads on it.
+    final onFill =
+        background == TackColors.maroon || background == TackColors.maroonDeep;
+
+    final glass = TackGlass.pane(borderRadius: radius);
+    final Decoration decoration;
+    if (onFill) {
+      decoration = TackGlass.brand(borderRadius: radius);
+    } else if (background != null) {
+      decoration = BoxDecoration(color: background, borderRadius: radius);
+    } else if (emphasised) {
+      decoration = glass.copyWith(
+        border: Border.all(color: TackColors.maroonText, width: 1.5),
+      );
+    } else {
+      decoration = raised
+          ? glass.copyWith(boxShadow: TackShadow.glassRaised)
+          : glass;
+    }
 
     final content = Container(
       width: double.infinity,
@@ -50,35 +73,21 @@ class TackCard extends StatelessWidget {
             horizontal: compact ? TackSpace.cardCompactX : TackSpace.cardX,
             vertical: compact ? TackSpace.cardCompactY : TackSpace.cardY,
           ),
-      decoration: BoxDecoration(
-        color: background ?? TackColors.white,
-        borderRadius: radius,
-        border: emphasised
-            ? Border.all(color: TackColors.maroonText, width: 1.5)
-            : null,
-        boxShadow: emphasised
-            ? null
-            : raised
-            ? TackShadow.raised
-            : TackShadow.resting,
-      ),
-      // In the foreground so it costs no layout. A border in the decoration
-      // would push every card's content in by a pixel in one palette and not
-      // the other, and nothing should move when the theme changes.
-      foregroundDecoration: emphasised || background != null || stroke.a == 0
+      decoration: decoration,
+      // The rim, in the foreground so it costs no layout. A border in the
+      // decoration would push every card's content in by a pixel, and nothing
+      // should move when a card changes kind. An emphasised card's maroon
+      // border already is its edge, and a tinted card has none.
+      foregroundDecoration: emphasised || (background != null && !onFill)
           ? null
-          : BoxDecoration(
+          : TackGlass.rim(
               borderRadius: radius,
-              border: Border.all(color: stroke),
+              colour: onFill ? TackColors.glassRimOnBrand : null,
             ),
       child: child,
     );
 
     if (onTap == null) return content;
-
-    // Maroon is dark in both palettes, so only darkening reads on it.
-    final onFill =
-        background == TackColors.maroon || background == TackColors.maroonDeep;
 
     return TackPressable(
       onTap: onTap,
@@ -139,11 +148,20 @@ class TackPressable extends StatefulWidget {
 
 class _TackPressableState extends State<TackPressable>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(
-    vsync: this,
-    duration: TackMotion.pressIn,
-    reverseDuration: TackMotion.fast,
-  );
+  // Made in initState, not lazily. An inert pressable never touches it, and a
+  // lazy one was then first created in dispose — asking a deactivated element
+  // for its TickerMode, which asserts.
+  late final AnimationController _c;
+
+  @override
+  void initState() {
+    super.initState();
+    _c = AnimationController(
+      vsync: this,
+      duration: TackMotion.pressIn,
+      reverseDuration: TackMotion.fast,
+    );
+  }
 
   bool _held = false;
   bool _focused = false;
@@ -227,6 +245,13 @@ class _TackPressableState extends State<TackPressable>
       container: true,
       button: true,
       label: widget.semanticLabel,
+      // With [excludeSemantics] the gesture detector's own tap action is
+      // excluded along with the child's text, and a button a screen reader can
+      // name but not press is worse than one it cannot find — so it is given
+      // here instead. Only then: otherwise the detector's action and focus
+      // merge into this node as they are, and setting one here as well
+      // displaces the focus flag.
+      onTap: widget.excludeSemantics ? widget.onTap : null,
       excludeSemantics: widget.excludeSemantics,
       child: FocusableActionDetector(
         mouseCursor: SystemMouseCursors.click,
