@@ -571,7 +571,7 @@ class _ResultsState extends ConsumerState<_Results> {
         ),
         const SizedBox(height: TackSpace.md),
         if (problems.isNotEmpty) ...[
-          _BoardNotice(problems: problems),
+          _BoardNotice(result: widget.result),
           const SizedBox(height: TackSpace.md),
         ],
         if (_listings.isEmpty) ...[
@@ -691,9 +691,35 @@ class _ResultsState extends ConsumerState<_Results> {
 }
 
 class _BoardNotice extends StatelessWidget {
-  const _BoardNotice({required this.problems});
+  const _BoardNotice({required this.result});
 
-  final Map<String, String> problems;
+  final RadarResult result;
+
+  /// "A", "A and B", "A, B and C".
+  static String _join(List<String> names) => names.length < 2
+      ? names.join()
+      : '${names.sublist(0, names.length - 1).join(', ')} and ${names.last}';
+
+  /// Names the boards, because "some sources" tells nobody — student or
+  /// whoever runs Tack — whether to wait or to go and set a key.
+  String get _message {
+    final notSetUp = result.notSetUp;
+    final unreachable = result.unreachable;
+    if (notSetUp.isEmpty && unreachable.isEmpty) {
+      return 'Showing available postings. Some sources could not be '
+          'refreshed; try again later.';
+    }
+    return [
+      result.isMissingBangladesh
+          ? 'Bangladesh coverage is limited right now.'
+          : 'Showing postings from the other boards.',
+      if (notSetUp.isNotEmpty)
+        '${_join(notSetUp)} ${notSetUp.length == 1 ? 'is' : 'are'} not set '
+            'up yet.',
+      if (unreachable.isNotEmpty)
+        '${_join(unreachable)} could not be reached. Try again later.',
+    ].join(' ');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -717,12 +743,7 @@ class _BoardNotice extends StatelessWidget {
             ),
           ),
           const SizedBox(height: TackSpace.sm),
-          Text(
-            problems.containsKey('careerjet') && problems.containsKey('jsearch')
-                ? 'Bangladesh coverage is limited right now. You can still browse available postings and try again later.'
-                : 'Showing available postings. Some sources could not be refreshed; try again later.',
-            style: TackText.bodyMuted,
-          ),
+          Text(_message, style: TackText.bodyMuted),
         ],
       ),
     );

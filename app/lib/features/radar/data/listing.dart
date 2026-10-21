@@ -79,16 +79,7 @@ class Listing {
     _ => null,
   };
 
-  String get sourceLabel => switch (source) {
-    'jsearch' => 'JSearch',
-    'careerjet' => 'Careerjet',
-    'aijobs' => 'AI jobs',
-    'remotive' => 'Remotive',
-    'arbeitnow' => 'Arbeitnow',
-    'themuse' => 'The Muse',
-    'jobicy' => 'Jobicy',
-    _ => source,
-  };
+  String get sourceLabel => radarSourceLabel(source);
 
   /// "2 days ago", never a bare date.
   String? postedRelativeTo(DateTime now) {
@@ -139,6 +130,18 @@ class Listing {
   ];
 }
 
+/// A board's name as a student reads it, from the source id the server uses.
+String radarSourceLabel(String source) => switch (source) {
+  'jsearch' => 'JSearch',
+  'careerjet' => 'Careerjet',
+  'aijobs' => 'AI jobs',
+  'remotive' => 'Remotive',
+  'arbeitnow' => 'Arbeitnow',
+  'themuse' => 'The Muse',
+  'jobicy' => 'Jobicy',
+  _ => source,
+};
+
 /// What Radar answered with, including which boards could not be reached.
 class RadarResult {
   const RadarResult({required this.listings, this.problems = const {}});
@@ -152,6 +155,26 @@ class RadarResult {
   static const empty = RadarResult(listings: []);
 
   bool get isMissingCareerjet => problems.containsKey('careerjet');
+
+  /// JSearch and Careerjet are the only boards that search Bangladesh. With
+  /// both gone, what is left is remote and overseas work.
+  bool get isMissingBangladesh =>
+      problems.containsKey('jsearch') && problems.containsKey('careerjet');
+
+  /// Boards with no key on the server, by name.
+  List<String> get notSetUp => [
+    for (final e in problems.entries)
+      if (e.key != 'cache' && e.value == 'not configured')
+        radarSourceLabel(e.key),
+  ];
+
+  /// Boards that have a key but did not answer, by name. `cache` is Tack's own
+  /// store failing to write, not a board, so it is never named.
+  List<String> get unreachable => [
+    for (final e in problems.entries)
+      if (e.key != 'cache' && e.value != 'not configured')
+        radarSourceLabel(e.key),
+  ];
 
   factory RadarResult.fromJson(Map<String, dynamic> json) => RadarResult(
     listings: [
