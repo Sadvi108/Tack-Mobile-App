@@ -32,24 +32,10 @@ class ProfileScreen extends ConsumerWidget {
         // Settings rather than a sheet of two items. Documents and logging
         // out both live in there now, so keeping a second menu here would be
         // two places to look for the same things.
-        trailing: Semantics(
-          button: true,
-          label: 'Settings',
-          child: GestureDetector(
-            onTap: () => context.push(Routes.settings),
-            behavior: HitTestBehavior.opaque,
-            child: SizedBox(
-              width: TackSpace.tapTarget,
-              height: TackSpace.tapTarget,
-              child: Center(
-                child: TackIcon(
-                  TackIcons.settings,
-                  size: 22,
-                  color: TackColors.ink,
-                ),
-              ),
-            ),
-          ),
+        trailing: TackGlassIconButton(
+          icon: TackIcons.settings,
+          onTap: () => context.push(Routes.settings),
+          semanticLabel: 'Settings',
         ),
       ),
       body: profileAsync.when(
@@ -71,37 +57,7 @@ class ProfileScreen extends ConsumerWidget {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (completeness != null && !completeness.isComplete) ...[
-                TackCard(
-                  emphasised: true,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              'Profile ${completeness.percent}% complete',
-                              style: TackText.cardTitle,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: TackSpace.sm),
-                      TackProgressBar(
-                        value: completeness.percent / 100,
-                        height: 8,
-                      ),
-                      const SizedBox(height: TackSpace.md),
-                      // Names what to do, rather than only how far off it is.
-                      Text(completeness.sentence, style: TackText.bodyMuted),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: TackSpace.stackLoose),
-              ],
-
-              _PersonalCard(profile: profile),
+              _ProfileHero(profile: profile, completeness: completeness),
               const SizedBox(height: TackSpace.stackLoose),
 
               if (!atSchool) ...[
@@ -273,76 +229,188 @@ class _Field {
   final bool multiline;
 }
 
-class _PersonalCard extends StatelessWidget {
-  const _PersonalCard({required this.profile});
+/// Who this is, and how far the profile has to go.
+///
+/// Completeness is a ring around the avatar rather than a banner of its own: it
+/// is a fact about the person, and it reads as one at a glance. The sentence
+/// underneath still names what is missing, so it stays a to-do and not a
+/// scolding.
+class _ProfileHero extends StatelessWidget {
+  const _ProfileHero({required this.profile, required this.completeness});
 
   final Profile profile;
+  final ProfileCompleteness? completeness;
 
   @override
   Widget build(BuildContext context) {
+    final c = completeness;
+    final place = [
+      if (profile.cityName != null) profile.cityName!,
+      if (profile.countryName != null) profile.countryName!,
+    ].join(', ');
+
     return TackCard(
-      child: Row(
+      raised: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              color: TackColors.maroon,
-              shape: BoxShape.circle,
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              profile.initials,
-              style: TackText.cardTitle.copyWith(
-                color: TackColors.onBrand,
-                fontSize: 20,
+          Row(
+            children: [
+              _CompletenessRing(
+                initials: profile.initials,
+                percent: c?.percent,
               ),
-            ),
-          ),
-          const SizedBox(width: TackSpace.lg),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  profile.fullName ?? 'Add your name',
-                  style: TackText.cardTitle,
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  [
-                    if (profile.cityName != null) profile.cityName!,
-                    if (profile.countryName != null) profile.countryName!,
-                  ].join(', '),
-                  style: TackText.meta,
-                ),
-                if (profile.phone != null) ...[
-                  const SizedBox(height: 2),
-                  Text(profile.phone!, style: TackText.meta),
-                ],
-                const SizedBox(height: TackSpace.sm),
-                // The mode, and the stage it came from — the second explains
-                // the first, which otherwise reads as jargon.
-                Wrap(
-                  spacing: TackSpace.sm,
-                  runSpacing: 6,
+              const SizedBox(width: TackSpace.lg),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    TackPill(profile.mode.chipText),
-                    if (profile.stage != null)
-                      TackPill(
-                        profile.stage!.label,
-                        background: TackColors.line,
-                        foreground: TackColors.muted,
-                      ),
+                    Text(
+                      profile.fullName ?? 'Add your name',
+                      style: TackText.sectionHeader,
+                    ),
+                    if (place.isNotEmpty) ...[
+                      const SizedBox(height: 3),
+                      Text(place, style: TackText.meta),
+                    ],
+                    if (profile.phone != null) ...[
+                      const SizedBox(height: 2),
+                      Text(profile.phone!, style: TackText.meta),
+                    ],
                   ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
+          const SizedBox(height: TackSpace.md),
+          // The mode, and the stage it came from — the second explains the
+          // first, which otherwise reads as jargon.
+          Wrap(
+            spacing: TackSpace.sm,
+            runSpacing: 6,
+            children: [
+              TackPill(
+                profile.mode.chipText,
+                background: TackColors.maroonTint,
+                foreground: TackColors.maroonText,
+              ),
+              if (profile.stage != null)
+                TackPill(
+                  profile.stage!.label,
+                  background: TackColors.line,
+                  foreground: TackColors.muted,
+                ),
+            ],
+          ),
+          if (c != null && !c.isComplete) ...[
+            const SizedBox(height: TackSpace.lg),
+            const TackDivider(),
+            const SizedBox(height: TackSpace.lg),
+            Text('Profile ${c.percent}% complete', style: TackText.cardTitle),
+            const SizedBox(height: TackSpace.sm),
+            TackProgressBar(value: c.percent / 100, height: 8),
+            const SizedBox(height: TackSpace.md),
+            // Names what to do, rather than only how far off it is.
+            Text(c.sentence, style: TackText.bodyMuted),
+          ],
         ],
       ),
     );
   }
+}
+
+/// The avatar, ringed by how complete the profile is. The ring sweeps to its
+/// value once when the screen opens and then holds still.
+class _CompletenessRing extends StatelessWidget {
+  const _CompletenessRing({required this.initials, required this.percent});
+
+  final String initials;
+  final int? percent;
+
+  static const _size = 80.0;
+
+  @override
+  Widget build(BuildContext context) {
+    final reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    final target = (percent ?? 0) / 100;
+
+    Widget arc(double value) => CustomPaint(
+      size: const Size.square(_size),
+      painter: _ArcPainter(
+        value: value,
+        track: TackColors.line,
+        fill: TackColors.teal,
+      ),
+    );
+
+    return Semantics(
+      label: percent == null ? null : 'Profile $percent percent complete',
+      excludeSemantics: true,
+      child: SizedBox.square(
+        dimension: _size,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            if (percent != null)
+              reduceMotion
+                  ? arc(target)
+                  : TweenAnimationBuilder<double>(
+                      tween: Tween(begin: 0, end: target),
+                      duration: TackMotion.reveal,
+                      curve: TackMotion.revealCurve,
+                      builder: (context, v, _) => arc(v),
+                    ),
+            TackAvatar(initials: initials, size: 64),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ArcPainter extends CustomPainter {
+  const _ArcPainter({
+    required this.value,
+    required this.track,
+    required this.fill,
+  });
+
+  final double value;
+  final Color track;
+  final Color fill;
+
+  static const _stroke = 4.0;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = (Offset.zero & size).deflate(_stroke / 2);
+    canvas.drawArc(
+      rect,
+      0,
+      6.2832,
+      false,
+      Paint()
+        ..color = track
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = _stroke,
+    );
+    if (value <= 0) return;
+    canvas.drawArc(
+      rect,
+      -1.5708,
+      6.2832 * value.clamp(0.0, 1.0),
+      false,
+      Paint()
+        ..color = fill
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = _stroke
+        ..strokeCap = StrokeCap.round,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_ArcPainter old) =>
+      old.value != value || old.track != track || old.fill != fill;
 }
 
 class _SectionCard extends StatelessWidget {
@@ -369,20 +437,60 @@ class _SectionCard extends StatelessWidget {
             children: [
               _HealthDot(health: healthFor(section, entries.length)),
               const SizedBox(width: TackSpace.sm),
-              Expanded(child: Text(section.title, style: TackText.cardTitle)),
-              Semantics(
-                button: true,
-                label: '${section.saveVerb} ${section.title.toLowerCase()}',
-                child: GestureDetector(
-                  onTap: onAdd,
-                  behavior: HitTestBehavior.opaque,
-                  child: SizedBox(
-                    width: TackSpace.tapTarget,
-                    height: TackSpace.tapTarget,
-                    child: Center(
+              Expanded(
+                child: Row(
+                  children: [
+                    Flexible(
+                      child: Text(section.title, style: TackText.cardTitle),
+                    ),
+                    // How many, at a glance, without opening anything.
+                    if (entries.isNotEmpty) ...[
+                      const SizedBox(width: TackSpace.sm),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: TackColors.line,
+                          borderRadius: TackRadius.pillAll,
+                        ),
+                        child: Text(
+                          '${entries.length}',
+                          style: TackText.pill.copyWith(
+                            color: TackColors.muted,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              TackPressable(
+                onTap: onAdd,
+                scale: 0.88,
+                borderRadius: const BorderRadius.all(Radius.circular(22)),
+                semanticLabel:
+                    '${section.saveVerb} ${section.title.toLowerCase()}',
+                excludeSemantics: true,
+                child: SizedBox(
+                  width: TackSpace.tapTarget,
+                  height: TackSpace.tapTarget,
+                  child: Center(
+                    child: Container(
+                      width: 34,
+                      height: 34,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: TackColors.maroonTint,
+                        shape: BoxShape.circle,
+                      ),
                       child: TackIcon(
-                        TackIcons.plus,
-                        size: 20,
+                        section == ProfileSection.education
+                            ? TackIcons.edit
+                            : TackIcons.plus,
+                        size: 18,
+                        strokeWidth: 2.2,
                         color: TackColors.maroonText,
                       ),
                     ),
@@ -510,7 +618,7 @@ class _DirectionCard extends StatelessWidget {
               runSpacing: TackSpace.sm,
               children: [
                 for (final industry in profile.targetIndustry)
-                  TackPill(industry),
+                  TackPill.teal(industry),
               ],
             ),
           ],

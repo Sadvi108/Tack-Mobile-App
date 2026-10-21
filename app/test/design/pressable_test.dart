@@ -2,6 +2,7 @@
 // student wait for either. These are the properties screenshots cannot see:
 // they are all about what happens while a finger is down.
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tack/design/tack.dart';
@@ -109,6 +110,33 @@ void main() {
     semantics.dispose();
   });
 
+  testWidgets('a screen reader can press one that reads as a single label', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    var taps = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: TackPressable(
+              onTap: () => taps++,
+              semanticLabel: 'Ask your coach',
+              excludeSemantics: true,
+              child: const Text('Ask'),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final node = tester.getSemantics(find.bySemanticsLabel('Ask your coach'));
+    expect(node, isSemantics(isButton: true, hasTapAction: true));
+    node.owner!.performAction(node.id, SemanticsAction.tap);
+    expect(taps, 1);
+    semantics.dispose();
+  });
+
   testWidgets('a card with nothing to open is not a button', (tester) async {
     final semantics = tester.ensureSemantics();
     await _pumpCard(tester);
@@ -153,9 +181,26 @@ void main() {
       expect(foreground(tester), isNotNull);
     });
 
-    testWidgets('is left to the shadow in the light', (tester) async {
+    // A glass pane is translucent, so in the light the shadow alone no longer
+    // says where it stops: the bright rim does that in both palettes.
+    testWidgets('is drawn in the light too, as the rim of the glass', (
+      tester,
+    ) async {
       TackBrightness.set(Brightness.light);
       await _pumpCard(tester);
+      expect(foreground(tester), isNotNull);
+    });
+
+    testWidgets('is left to the maroon border on an emphasised card', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: TackCard(emphasised: true, child: Text('Next three')),
+          ),
+        ),
+      );
       expect(foreground(tester), isNull);
     });
   });

@@ -43,6 +43,21 @@ typedef Pair = (
   double min,
 );
 
+/// The three glows behind the page, by where they sit.
+final _glows = <(String, Color Function())>[
+  ('rose', () => TackColors.glowRose),
+  ('mint', () => TackColors.glowMint),
+  ('amber', () => TackColors.glowAmber),
+];
+
+/// The page where a glow is at its strongest.
+Color _underGlow(Color glow) => Color.alphaBlend(glow, TackColors.sailWhite);
+
+/// A glass pane at its thinnest corner, over the page where a glow is at its
+/// strongest. The worst case a card's text can land on.
+Color _glassOver(Color glow) =>
+    Color.alphaBlend(TackColors.glassLo, _underGlow(glow));
+
 final _pairs = <Pair>[
   // --- body text on the two surfaces
   ('ink on a card', () => TackColors.ink, () => TackColors.white, _body),
@@ -244,6 +259,108 @@ final _pairs = <Pair>[
     () => TackColors.maroonText,
     () => TackColors.white,
     _large,
+  ),
+
+  // --- the glass. Text sits straight on the glowing page (greetings, section
+  // headings) and on panes over it, and the glows are what move the ground
+  // under both. Each pair is checked where its glow is strongest.
+  for (final (where, glow) in _glows) ...[
+    (
+      'ink on the page under the $where glow',
+      () => TackColors.ink,
+      () => _underGlow(glow()),
+      _body,
+    ),
+    (
+      'muted on the page under the $where glow',
+      () => TackColors.muted,
+      () => _underGlow(glow()),
+      _body,
+    ),
+    (
+      'maroonText on the page under the $where glow',
+      () => TackColors.maroonText,
+      () => _underGlow(glow()),
+      _body,
+    ),
+    (
+      'ink on glass over the $where glow',
+      () => TackColors.ink,
+      () => _glassOver(glow()),
+      _body,
+    ),
+    (
+      'muted on glass over the $where glow',
+      () => TackColors.muted,
+      () => _glassOver(glow()),
+      _body,
+    ),
+    (
+      'maroonText on glass over the $where glow',
+      () => TackColors.maroonText,
+      () => _glassOver(glow()),
+      _body,
+    ),
+    (
+      'tealText on glass over the $where glow',
+      () => TackColors.tealText,
+      () => _glassOver(glow()),
+      _body,
+    ),
+    (
+      'amberText on glass over the $where glow',
+      () => TackColors.amberText,
+      () => _glassOver(glow()),
+      _body,
+    ),
+    (
+      'dangerText on glass over the $where glow',
+      () => TackColors.dangerText,
+      () => _glassOver(glow()),
+      _body,
+    ),
+    (
+      'muted on a pressed glass card over the $where glow',
+      () => TackColors.muted,
+      () => Color.alphaBlend(TackColors.pressOverlay, _glassOver(glow())),
+      _body,
+    ),
+  ],
+  (
+    'muted on the tab bar',
+    () => TackColors.muted,
+    () => Color.alphaBlend(TackColors.glassBar, TackColors.sailWhite),
+    _body,
+  ),
+  (
+    'maroonText on the tab bar',
+    () => TackColors.maroonText,
+    () => Color.alphaBlend(TackColors.glassBar, TackColors.sailWhite),
+    _body,
+  ),
+  (
+    'onBrand on the lit corner of a maroon pane',
+    () => TackColors.onBrand,
+    () => Color.alphaBlend(TackColors.brandGloss, TackColors.maroon),
+    _body,
+  ),
+  (
+    'warnOnBrand on the lit corner of a maroon pane',
+    () => TackColors.warnOnBrand,
+    () => Color.alphaBlend(TackColors.brandGloss, TackColors.maroon),
+    _body,
+  ),
+  (
+    'a danger glyph in a neutral icon well',
+    () => TackColors.dangerText,
+    () => TackColors.line,
+    _large,
+  ),
+  (
+    'an unpicked segment on its track',
+    () => TackColors.muted,
+    () => TackColors.line,
+    _body,
   ),
 ];
 

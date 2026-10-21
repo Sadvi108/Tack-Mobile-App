@@ -18,11 +18,11 @@ class ModeChip extends StatelessWidget {
     // The chip warms from amber to maroon as a student gets closer to working.
     final (background, foreground) = switch (mode) {
       YearMode.discover => (TackColors.amberTint, TackColors.amberText),
-      YearMode.graduate => (TackColors.maroonTint, TackColors.maroon),
+      YearMode.graduate => (TackColors.maroonTint, TackColors.maroonText),
       YearMode.explore => (TackColors.amberTint, TackColors.amberText),
       YearMode.build => (TackColors.tealTint, TackColors.tealText),
       YearMode.prove => (TackColors.tealDeepTint, TackColors.tealText),
-      YearMode.launch => (TackColors.maroonTint, TackColors.maroon),
+      YearMode.launch => (TackColors.maroonTint, TackColors.maroonText),
     };
 
     return Container(

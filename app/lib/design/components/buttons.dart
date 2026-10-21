@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../tokens.dart';
 import '../typography.dart';
@@ -107,6 +108,8 @@ class _TackButtonState extends State<TackButton> {
     late final Color background;
     late final Color foreground;
     Border? border;
+    Gradient? gradient;
+    List<BoxShadow>? glow;
 
     switch (v) {
       case TackButtonVariant.primary:
@@ -116,8 +119,23 @@ class _TackButtonState extends State<TackButton> {
             ? TackColors.maroonDeep
             : TackColors.maroon;
         foreground = enabled ? TackColors.onBrand : TackColors.muted;
+        if (enabled) {
+          // Lit like the brand panes, and darker under a finger: the gradient
+          // slides towards maroonDeep rather than swapping to it.
+          gradient = LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: _pressed
+                ? [TackColors.maroonDeep, TackColors.maroonDeep]
+                : [
+                    Color.alphaBlend(TackColors.brandGloss, TackColors.maroon),
+                    TackColors.maroonDeep,
+                  ],
+          );
+          glow = _pressed ? null : TackShadow.brandGlow;
+        }
       case TackButtonVariant.secondary:
-        background = TackColors.white;
+        background = TackColors.glassHi;
         foreground = enabled ? TackColors.maroonText : TackColors.muted;
         border = Border.all(
           color: !enabled
@@ -173,6 +191,8 @@ class _TackButtonState extends State<TackButton> {
             ],
           );
 
+    final reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+
     return Semantics(
       button: true,
       enabled: enabled,
@@ -181,22 +201,40 @@ class _TackButtonState extends State<TackButton> {
         onTapDown: enabled ? (_) => setState(() => _pressed = true) : null,
         onTapUp: enabled ? (_) => setState(() => _pressed = false) : null,
         onTapCancel: enabled ? () => setState(() => _pressed = false) : null,
-        onTap: enabled ? widget.onPressed : null,
-        child: AnimatedContainer(
+        onTap: enabled
+            ? () {
+                // A tick under the thumb for the actions that commit
+                // something. Ghost and secondary buttons are the way out of a
+                // flow, and buzzing on "Cancel" would be noise.
+                if (v == TackButtonVariant.primary ||
+                    v == TackButtonVariant.amber) {
+                  HapticFeedback.lightImpact();
+                }
+                widget.onPressed!();
+              }
+            : null,
+        child: AnimatedScale(
+          scale: _pressed && !reduceMotion ? 0.97 : 1,
           duration: TackMotion.fast,
           curve: TackMotion.curve,
-          width: widget.fullWidth ? double.infinity : null,
-          height: height,
-          padding: widget.fullWidth
-              ? null
-              : const EdgeInsets.symmetric(horizontal: TackSpace.xl),
-          decoration: BoxDecoration(
-            color: background,
-            borderRadius: radius,
-            border: border,
+          child: AnimatedContainer(
+            duration: TackMotion.fast,
+            curve: TackMotion.curve,
+            width: widget.fullWidth ? double.infinity : null,
+            height: height,
+            padding: widget.fullWidth
+                ? null
+                : const EdgeInsets.symmetric(horizontal: TackSpace.xl),
+            decoration: BoxDecoration(
+              color: gradient == null ? background : null,
+              gradient: gradient,
+              borderRadius: radius,
+              border: border,
+              boxShadow: glow,
+            ),
+            alignment: Alignment.center,
+            child: child,
           ),
-          alignment: Alignment.center,
-          child: child,
         ),
       ),
     );
@@ -222,14 +260,30 @@ class TackFab extends StatelessWidget {
       button: true,
       label: semanticLabel,
       child: GestureDetector(
-        onTap: onPressed,
+        onTap: () {
+          HapticFeedback.lightImpact();
+          onPressed();
+        },
         child: Container(
           height: 58,
           width: 58,
           decoration: BoxDecoration(
-            color: TackColors.maroon,
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color.alphaBlend(TackColors.brandGloss, TackColors.maroon),
+                TackColors.maroonDeep,
+              ],
+            ),
             shape: BoxShape.circle,
             boxShadow: TackShadow.fab,
+          ),
+          foregroundDecoration: const BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.fromBorderSide(
+              BorderSide(color: TackColors.glassRimOnBrand),
+            ),
           ),
           alignment: Alignment.center,
           child: child,

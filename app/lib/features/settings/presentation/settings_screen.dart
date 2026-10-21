@@ -31,6 +31,7 @@ class SettingsScreen extends ConsumerStatefulWidget {
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   String? _version;
   bool _deleting = false;
+  bool _syncing = false;
 
   @override
   void initState() {
@@ -146,36 +147,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
   }
 
-  Future<void> _pickAppearance() async {
-    final current = ref.read(appearanceProvider).value ?? Appearance.system;
-    final picked = await showTackSheet<Appearance>(
-      context: context,
-      title: 'Appearance',
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(
-          TackSpace.screen,
-          0,
-          TackSpace.screen,
-          TackSpace.xl,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            for (final option in Appearance.values) ...[
-              _AppearanceOption(
-                appearance: option,
-                selected: option == current,
-                onTap: () => Navigator.of(context).pop(option),
-              ),
-              if (option != Appearance.values.last)
-                const SizedBox(height: TackSpace.stack),
-            ],
-          ],
-        ),
-      ),
-    );
-    if (picked == null) return;
-    await ref.read(appearanceProvider.notifier).choose(picked);
+  /// Shown while a manual sync is in flight, so the tap visibly did
+  /// something even when there was nothing to send.
+  Future<void> _syncNow() async {
+    if (_syncing) return;
+    setState(() => _syncing = true);
+    try {
+      await ref.read(syncServiceProvider).flush();
+    } finally {
+      if (mounted) setState(() => _syncing = false);
+    }
   }
 
   @override
@@ -194,33 +175,37 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          _AccountCard(
+            name: profile?.fullName,
+            email: user?.email,
+            initials: profile?.initials ?? '–',
+          ),
+          const SizedBox(height: TackSpace.stackLoose),
+
           _Section('ACCOUNT'),
           TackCard(
             child: Column(
               children: [
-                _Row(
-                  label: 'Signed in as',
-                  value: user?.email ?? 'Not signed in',
-                ),
                 if (profile?.phone case final phone?) ...[
-                  const TackDivider(),
                   _Row(
+                    icon: TackIcons.phone,
+                    tone: _Tone.blue,
                     label: 'Phone',
                     value: '${profile?.dialCode ?? ''} $phone'.trim(),
                   ),
+                  const _Divider(),
                 ],
-                if (profile?.fullName case final name?) ...[
-                  const TackDivider(),
-                  _Row(label: 'Name', value: name),
-                ],
-                const TackDivider(),
                 _Tap(
+                  icon: TackIcons.shield,
+                  tone: _Tone.maroon,
                   label: 'Change password',
                   hint: 'You will need your current one',
                   onTap: _changePassword,
                 ),
-                const TackDivider(),
+                const _Divider(),
                 _Tap(
+                  icon: TackIcons.edit,
+                  tone: _Tone.teal,
                   label: 'Edit your details',
                   hint: 'Name, phone, university, skills',
                   onTap: () => context.go(Routes.profile),
@@ -230,12 +215,40 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
           const SizedBox(height: TackSpace.stackLoose),
 
+          // Three answers, all on screen: picking one is a tap, and the page
+          // repaints in it straight away, so the choice explains itself.
           _Section('APPEARANCE'),
           TackCard(
-            child: _Tap(
-              label: 'Theme',
-              hint: appearance.label,
-              onTap: _pickAppearance,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TackSegmented<Appearance>(
+                  segments: [
+                    for (final option in Appearance.values)
+                      TackSegment(
+                        value: option,
+                        label: _short(option),
+                        icon: switch (option) {
+                          Appearance.system => TackIcons.phone,
+                          Appearance.light => TackIcons.sun,
+                          Appearance.dark => TackIcons.moon,
+                        },
+                      ),
+                  ],
+                  selected: appearance,
+                  onChanged: (picked) =>
+                      ref.read(appearanceProvider.notifier).choose(picked),
+                ),
+                const SizedBox(height: TackSpace.md),
+                AnimatedSwitcher(
+                  duration: TackMotion.normal,
+                  child: Text(
+                    appearance.blurb,
+                    key: ValueKey(appearance),
+                    style: TackText.meta,
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: TackSpace.stackLoose),
@@ -245,29 +258,41 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             child: Column(
               children: [
                 _Row(
+                  icon: TackIcons.clock,
+                  tone: queued == 0 ? _Tone.neutral : _Tone.amber,
                   label: 'Waiting to sync',
                   value: queued == 0
                       ? 'Nothing'
                       : '$queued ${queued == 1 ? 'change' : 'changes'}',
                 ),
-                const TackDivider(),
+                const _Divider(),
                 _Tap(
+                  icon: TackIcons.file,
+                  tone: _Tone.blue,
                   label: 'Review saved changes',
                   hint: 'Resolve changes made on two devices',
                   onTap: () => context.push('/settings/sync'),
                 ),
-                const TackDivider(),
+                const _Divider(),
                 _Tap(
+                  icon: TackIcons.refresh,
+                  tone: _Tone.teal,
                   label: 'Try syncing now',
                   hint: 'Saved changes stay here until they are sent',
-                  onTap: () async {
-                    await ref.read(syncServiceProvider).flush();
-                  },
+                  busy: _syncing,
+                  onTap: _syncNow,
                 ),
-                const TackDivider(),
-                _Row(label: 'Connection', value: online ? 'Online' : 'Offline'),
-                const TackDivider(),
+                const _Divider(),
+                _Row(
+                  icon: online ? TackIcons.check : TackIcons.offline,
+                  tone: online ? _Tone.teal : _Tone.amber,
+                  label: 'Connection',
+                  value: online ? 'Online' : 'Offline',
+                ),
+                const _Divider(),
                 _Tap(
+                  icon: TackIcons.vault,
+                  tone: _Tone.maroon,
                   label: 'Your documents',
                   hint: 'CVs and certificates you have uploaded',
                   onTap: () => context.go(Routes.vault),
@@ -293,26 +318,46 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             child: Column(
               children: [
                 if (_version case final version?) ...[
-                  _Row(label: 'Version', value: version),
-                  const TackDivider(),
+                  _Row(
+                    icon: TackIcons.info,
+                    tone: _Tone.neutral,
+                    label: 'Version',
+                    value: version,
+                  ),
+                  const _Divider(),
                 ],
-                _Row(label: 'Made for', value: 'Bangladeshi students'),
-                const TackDivider(),
+                _Row(
+                  icon: TackIcons.star,
+                  tone: _Tone.amber,
+                  label: 'Made for',
+                  value: 'Bangladeshi students',
+                ),
+                const _Divider(),
+                // These three leave the app, and say so with their arrow.
                 _Tap(
+                  icon: TackIcons.shield,
+                  tone: _Tone.blue,
                   label: 'Privacy policy',
                   hint: 'What we hold, and what leaves our database',
+                  external: true,
                   onTap: () => PolicyLinks.open(context, PolicyLinks.privacy),
                 ),
-                const TackDivider(),
+                const _Divider(),
                 _Tap(
+                  icon: TackIcons.coach,
+                  tone: _Tone.teal,
                   label: 'Support and account deletion',
                   hint: 'Contact Tack or request deletion outside the app',
+                  external: true,
                   onTap: () => PolicyLinks.open(context, PolicyLinks.support),
                 ),
-                const TackDivider(),
+                const _Divider(),
                 _Tap(
+                  icon: TackIcons.file,
+                  tone: _Tone.neutral,
                   label: 'Terms of use',
                   hint: 'What Tack promises, and what it does not',
+                  external: true,
                   onTap: () => PolicyLinks.open(context, PolicyLinks.terms),
                 ),
               ],
@@ -320,8 +365,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
           const SizedBox(height: TackSpace.stackLoose),
 
-          TackButton.ghost('Log out', onPressed: _signOut),
-          const SizedBox(height: TackSpace.stackLoose),
+          TackCard(
+            child: _Tap(
+              icon: TackIcons.logout,
+              tone: _Tone.maroon,
+              label: 'Log out',
+              emphasis: true,
+              onTap: _signOut,
+            ),
+          ),
+          const SizedBox(height: TackSpace.xl),
 
           // Last, and visually quiet. It has to be findable — Play requires a
           // route to it, and a student who wants out should not have to email
@@ -332,11 +385,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'This removes your profile, your roadmap, your applications '
-                  'and every document you have uploaded. It cannot be undone '
-                  'and there is no way to get any of it back.',
-                  style: TackText.bodyMuted,
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const _Well(icon: TackIcons.trash, tone: _Tone.danger),
+                    const SizedBox(width: TackSpace.lg),
+                    Expanded(
+                      child: Text(
+                        'This removes your profile, your roadmap, your '
+                        'applications and every document you have uploaded. '
+                        'It cannot be undone and there is no way to get any '
+                        'of it back.',
+                        style: TackText.bodyMuted,
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: TackSpace.md),
                 TackButton.secondary(
@@ -352,6 +415,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
     );
   }
+
+  /// Short enough for three to sit side by side at 360px. The sentence under
+  /// the control says the rest.
+  static String _short(Appearance appearance) => switch (appearance) {
+    Appearance.system => 'Auto',
+    Appearance.light => 'Light',
+    Appearance.dark => 'Dark',
+  };
 
   /// Typed, not tapped.
   ///
@@ -465,9 +536,100 @@ class _Section extends StatelessWidget {
   );
 }
 
-class _Row extends StatelessWidget {
-  const _Row({required this.label, required this.value});
+/// Who is signed in, at the top of the page where somebody checking it looks
+/// first.
+class _AccountCard extends StatelessWidget {
+  const _AccountCard({
+    required this.name,
+    required this.email,
+    required this.initials,
+  });
 
+  final String? name;
+  final String? email;
+  final String initials;
+
+  @override
+  Widget build(BuildContext context) {
+    return TackCard(
+      raised: true,
+      child: Row(
+        children: [
+          TackAvatar(initials: initials, size: 52),
+          const SizedBox(width: TackSpace.lg),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(name ?? 'Signed in as', style: TackText.cardTitle),
+                const SizedBox(height: 3),
+                Text(email ?? 'Not signed in', style: TackText.meta),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The colour family of a row's icon. The glyph is always the text colour of
+/// its tint, so every well is a pair the contrast test already holds to AA.
+enum _Tone { maroon, teal, amber, blue, neutral, danger }
+
+class _Well extends StatelessWidget {
+  const _Well({required this.icon, required this.tone});
+
+  final String icon;
+  final _Tone tone;
+
+  static const size = 36.0;
+
+  @override
+  Widget build(BuildContext context) {
+    final (well, glyph) = switch (tone) {
+      _Tone.maroon => (TackColors.maroonTint, TackColors.maroonText),
+      _Tone.teal => (TackColors.tealTint, TackColors.tealText),
+      _Tone.amber => (TackColors.amberTint, TackColors.amberText),
+      _Tone.blue => (TackColors.blueTint, TackColors.blueText),
+      _Tone.neutral => (TackColors.line, TackColors.muted),
+      _Tone.danger => (TackColors.line, TackColors.dangerText),
+    };
+    return ExcludeSemantics(
+      child: Container(
+        width: size,
+        height: size,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: well,
+          borderRadius: TackRadius.inputAll,
+        ),
+        child: TackIcon(icon, size: 19, color: glyph),
+      ),
+    );
+  }
+}
+
+/// Lines up with the text, not the icon, the way a list with leading icons
+/// is divided everywhere else on a phone.
+class _Divider extends StatelessWidget {
+  const _Divider();
+
+  @override
+  Widget build(BuildContext context) =>
+      const TackDivider(indent: _Well.size + TackSpace.lg);
+}
+
+class _Row extends StatelessWidget {
+  const _Row({
+    required this.icon,
+    required this.tone,
+    required this.label,
+    required this.value,
+  });
+
+  final String icon;
+  final _Tone tone;
   final String label;
   final String value;
 
@@ -486,57 +648,85 @@ class _Row extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: TackSpace.md),
-      child: stacked
-          // Full width, or the column shrinks to its widest line and the card
-          // centres it, leaving the email adrift in the middle of the row.
-          ? SizedBox(
-              width: double.infinity,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(label, style: TackText.rowTitle),
-                  const SizedBox(height: 3),
-                  Text(value, style: TackText.meta),
-                ],
-              ),
-            )
-          : Row(
-              children: [
-                Expanded(child: Text(label, style: TackText.rowTitle)),
-                const SizedBox(width: TackSpace.md),
-                Flexible(
-                  child: Text(
-                    value,
-                    style: TackText.meta,
-                    textAlign: TextAlign.right,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+      child: Row(
+        children: [
+          _Well(icon: icon, tone: tone),
+          const SizedBox(width: TackSpace.lg),
+          Expanded(
+            child: stacked
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(label, style: TackText.rowTitle),
+                      const SizedBox(height: 3),
+                      Text(value, style: TackText.meta),
+                    ],
+                  )
+                : Row(
+                    children: [
+                      Expanded(child: Text(label, style: TackText.rowTitle)),
+                      const SizedBox(width: TackSpace.md),
+                      // Its own width, not half the row: a short value split
+                      // evenly with its label wrapped both of them.
+                      Text(value, style: TackText.meta, maxLines: 1),
+                    ],
                   ),
-                ),
-              ],
-            ),
+          ),
+        ],
+      ),
     );
   }
 }
 
 class _Tap extends StatelessWidget {
-  const _Tap({required this.label, required this.onTap, this.hint});
+  const _Tap({
+    required this.icon,
+    required this.tone,
+    required this.label,
+    required this.onTap,
+    this.hint,
+    this.external = false,
+    this.busy = false,
+    this.emphasis = false,
+  });
 
+  final String icon;
+  final _Tone tone;
   final String label;
   final String? hint;
   final VoidCallback onTap;
 
+  /// Opens something outside the app: an arrow out, not a chevron in.
+  final bool external;
+
+  /// Working on it: a spinner where the chevron was.
+  final bool busy;
+
+  /// The label in the brand colour, for the one row that is an action rather
+  /// than a place.
+  final bool emphasis;
+
   @override
   Widget build(BuildContext context) => TackTapRow(
-    onTap: onTap,
+    onTap: busy ? null : onTap,
     padding: const EdgeInsets.symmetric(vertical: TackSpace.md),
     child: Row(
       children: [
+        _Well(icon: icon, tone: tone),
+        const SizedBox(width: TackSpace.lg),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label, style: TackText.rowTitle),
+              Text(
+                label,
+                style: emphasis
+                    ? TackText.rowTitle.copyWith(
+                        color: TackColors.maroonText,
+                        fontWeight: FontWeight.w600,
+                      )
+                    : TackText.rowTitle,
+              ),
               if (hint case final h?) ...[
                 const SizedBox(height: 2),
                 Text(h, style: TackText.meta),
@@ -544,73 +734,23 @@ class _Tap extends StatelessWidget {
             ],
           ),
         ),
-        TackIcon(
-          TackIcons.chevronRight,
-          size: 18,
-          color: TackColors.strokeFaint,
-        ),
+        const SizedBox(width: TackSpace.sm),
+        if (busy)
+          SizedBox(
+            width: 18,
+            height: 18,
+            child: CircularProgressIndicator(
+              strokeWidth: 2.2,
+              valueColor: AlwaysStoppedAnimation(TackColors.tealText),
+            ),
+          )
+        else
+          TackIcon(
+            external ? TackIcons.externalLink : TackIcons.chevronRight,
+            size: 18,
+            color: external ? TackColors.muted : TackColors.strokeFaint,
+          ),
       ],
     ),
   );
-}
-
-class _AppearanceOption extends StatelessWidget {
-  const _AppearanceOption({
-    required this.appearance,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final Appearance appearance;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      button: true,
-      selected: selected,
-      child: GestureDetector(
-        onTap: onTap,
-        behavior: HitTestBehavior.opaque,
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(
-            horizontal: TackSpace.lg,
-            vertical: TackSpace.md,
-          ),
-          decoration: BoxDecoration(
-            color: TackColors.white,
-            borderRadius: TackRadius.listCardAll,
-            border: Border.all(
-              color: selected ? TackColors.maroon : TackColors.line,
-              width: selected ? 1.5 : 1,
-            ),
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(appearance.label, style: TackText.rowTitle),
-                    const SizedBox(height: 2),
-                    Text(appearance.blurb, style: TackText.meta),
-                  ],
-                ),
-              ),
-              // A tick, not only a border: colour is never the only signal.
-              if (selected)
-                TackIcon(
-                  TackIcons.check,
-                  size: 18,
-                  color: TackColors.maroonText,
-                  strokeWidth: 3,
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }

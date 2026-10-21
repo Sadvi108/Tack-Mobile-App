@@ -98,6 +98,31 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Dark'), findsOneWidget);
+    // The three choices are all on screen, so the one in force has to say so
+    // itself: as the selected segment, and in the sentence under it.
+    expect(
+      tester.getSemantics(find.bySemanticsLabel('Dark')),
+      matchesSemantics(
+        label: 'Dark',
+        isButton: true,
+        hasSelectedState: true,
+        isSelected: true,
+        hasTapAction: true,
+      ),
+    );
+    expect(find.text('Always dark, whatever your phone is set to'), findsOne);
+  });
+
+  testWidgets('a theme is one tap, with no sheet in between', (tester) async {
+    await pumpAt(tester, const SettingsScreen(), overrides: overrides());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Light'));
+    await tester.pumpAndSettle();
+
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getString('tack.appearance'), 'light');
+    expect(find.text('Always light, whatever your phone is set to'), findsOne);
   });
 
   testWidgets('fits the 360px floor with nothing overflowing', (tester) async {

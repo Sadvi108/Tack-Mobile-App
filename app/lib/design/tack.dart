@@ -5,6 +5,7 @@ export 'components/buttons.dart';
 export 'components/cards.dart';
 export 'components/feedback.dart';
 export 'components/fields.dart';
+export 'components/glass.dart';
 export 'components/indicators.dart';
 export 'components/pickers.dart';
 export 'components/pills.dart';

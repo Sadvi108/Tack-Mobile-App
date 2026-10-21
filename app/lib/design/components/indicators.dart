@@ -46,7 +46,9 @@ class ScoreRing extends StatelessWidget {
             strokeWidth: strokeWidth,
             fill: fill ?? TackColors.teal,
             track: track ?? TackColors.line,
-            background: background ?? TackColors.white,
+            // Clear unless asked for: the ring sits on glass, and a solid
+            // disc inside it would read as a sticker on the pane.
+            background: background ?? const Color(0x00000000),
           ),
           child: Center(
             child: Column(
@@ -97,11 +99,13 @@ class _RingPainter extends CustomPainter {
     final centre = rect.center;
     final radius = (size.shortestSide - strokeWidth) / 2;
 
-    canvas.drawCircle(
-      centre,
-      size.shortestSide / 2,
-      Paint()..color = background,
-    );
+    if (background.a > 0) {
+      canvas.drawCircle(
+        centre,
+        size.shortestSide / 2,
+        Paint()..color = background,
+      );
+    }
     canvas.drawCircle(
       centre,
       radius,
@@ -117,7 +121,16 @@ class _RingPainter extends CustomPainter {
         2 * math.pi * ratio,
         false,
         Paint()
-          ..color = fill
+          // The arc brightens towards its head, so the eye reads which way
+          // the score is going and not only how far it got.
+          ..shader = SweepGradient(
+            colors: [
+              fill.withValues(alpha: fill.a * 0.55),
+              fill,
+            ],
+            stops: [0, ratio.clamp(0.05, 1.0)],
+            transform: const GradientRotation(-math.pi / 2),
+          ).createShader(Rect.fromCircle(center: centre, radius: radius))
           ..style = PaintingStyle.stroke
           ..strokeWidth = strokeWidth
           ..strokeCap = StrokeCap.round,
@@ -127,7 +140,10 @@ class _RingPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_RingPainter old) =>
-      old.ratio != ratio || old.fill != fill || old.track != track;
+      old.ratio != ratio ||
+      old.fill != fill ||
+      old.track != track ||
+      old.background != background;
 }
 
 /// A flat progress bar. Used for roadmap progress, skill proficiency and the

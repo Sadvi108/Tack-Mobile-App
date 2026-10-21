@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 
 import '../../../design/tack.dart';
@@ -46,6 +48,10 @@ class _TackRevealState extends State<TackReveal>
 
   bool _started = false;
 
+  /// Held so it can be cancelled: a card scrolled past and disposed before
+  /// its turn should not leave a timer behind it.
+  Timer? _delay;
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -58,13 +64,14 @@ class _TackRevealState extends State<TackReveal>
     }
     // Staggered rather than simultaneous. Six cards arriving together reads as
     // a flash; six arriving 55ms apart reads as a list being laid down.
-    Future<void>.delayed(TackMotion.stagger * widget.index, () {
+    _delay = Timer(TackMotion.stagger * widget.index, () {
       if (mounted) _c.forward();
     });
   }
 
   @override
   void dispose() {
+    _delay?.cancel();
     _c.dispose();
     super.dispose();
   }
