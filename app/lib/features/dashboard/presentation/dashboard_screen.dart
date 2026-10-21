@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import '../../../core/analytics.dart';
 import '../../../core/offline/sync.dart';
@@ -133,9 +134,28 @@ class _Dashboard extends ConsumerWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  ModeChip(mode),
+                  Row(
+                    children: [
+                      ModeChip(mode),
+                      const Spacer(),
+                      // Today, in the chrome face: the dashboard is a page a
+                      // student opens every day, and it should look like it
+                      // knows which one.
+                      Text(
+                        DateFormat(
+                          'EEE d MMM',
+                        ).format(feed.today).toUpperCase(),
+                        style: TackText.monoLabelSmall,
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: TackSpace.md),
-                  Text('Hi ${profile.firstName}', style: TackText.screenTitle),
+                  Text(
+                    (profile.fullName ?? '').trim().isEmpty
+                        ? _hello(DateTime.now())
+                        : '${_hello(DateTime.now())}, ${profile.firstName}',
+                    style: TackText.screenTitle,
+                  ),
                   const SizedBox(height: TackSpace.xs),
                   Text(_greeting(mode), style: TackText.bodyMuted),
                 ],
@@ -369,6 +389,14 @@ class _Dashboard extends ConsumerWidget {
         );
     context.push(route);
   }
+
+  /// By the student's clock, not the server's: "good evening" at nine in the
+  /// morning in Dhaka would be the app not knowing where it is.
+  static String _hello(DateTime now) => now.hour < 12
+      ? 'Good morning'
+      : now.hour < 17
+      ? 'Good afternoon'
+      : 'Good evening';
 
   static String _greeting(YearMode mode) => switch (mode) {
     YearMode.discover =>
@@ -621,10 +649,12 @@ class _CoachButton extends StatelessWidget {
       child: Container(
         height: 52,
         padding: const EdgeInsets.symmetric(horizontal: 18),
-        decoration: BoxDecoration(
-          color: TackColors.maroon,
-          borderRadius: BorderRadius.all(TackRadius.buttonRound),
-          boxShadow: TackShadow.fab,
+        decoration: TackGlass.brand(
+          borderRadius: const BorderRadius.all(TackRadius.buttonRound),
+        ).copyWith(boxShadow: TackShadow.fab),
+        foregroundDecoration: TackGlass.rim(
+          borderRadius: const BorderRadius.all(TackRadius.buttonRound),
+          colour: TackColors.glassRimOnBrand,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -688,21 +718,35 @@ class _GetReady extends StatelessWidget {
     children: [
       Text('When it gets real', style: TackText.sectionHeader),
       const SizedBox(height: TackSpace.md),
-      TackCard(
-        child: Column(
+      // Two panes side by side rather than two rows in one card: each is a
+      // whole thing to press, and a thumb finds a tile faster than a line.
+      IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _Tool(
-              icon: TackIcons.practice,
-              title: 'Practise an interview',
-              body: 'Real questions for your role. Free — no daily limit.',
-              onTap: onInterview,
+            Expanded(
+              child: _ToolTile(
+                icon: TackIcons.practice,
+                title: 'Practise an interview',
+                // Not "free": feedback on an answer is a model call and spends
+                // an AI action. The practice screen says so before it does.
+                body:
+                    'Real questions for your role, and feedback on each answer.',
+                wellColour: TackColors.maroonTint,
+                iconColour: TackColors.maroonText,
+                onTap: onInterview,
+              ),
             ),
-            const TackDivider(),
-            _Tool(
-              icon: TackIcons.file,
-              title: 'Check a job description',
-              body: 'Paste one in and see what you already match.',
-              onTap: onAnalyse,
+            const SizedBox(width: TackSpace.stack),
+            Expanded(
+              child: _ToolTile(
+                icon: TackIcons.file,
+                title: 'Check a job description',
+                body: 'Paste one in and see what you already match.',
+                wellColour: TackColors.tealTint,
+                iconColour: TackColors.tealText,
+                onTap: onAnalyse,
+              ),
             ),
           ],
         ),
@@ -711,46 +755,51 @@ class _GetReady extends StatelessWidget {
   );
 }
 
-class _Tool extends StatelessWidget {
-  const _Tool({
+class _ToolTile extends StatelessWidget {
+  const _ToolTile({
     required this.icon,
     required this.title,
     required this.body,
+    required this.wellColour,
+    required this.iconColour,
     required this.onTap,
   });
 
   final String icon;
   final String title;
   final String body;
+  final Color wellColour;
+  final Color iconColour;
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) => TackTapRow(
+  Widget build(BuildContext context) => TackCard(
+    compact: true,
     onTap: onTap,
-    child: Row(
+    padding: const EdgeInsets.all(TackSpace.lg),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          width: 40,
-          height: 40,
-          margin: const EdgeInsets.only(right: TackSpace.md),
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: TackColors.maroonTint,
-            borderRadius: TackRadius.inputAll,
-          ),
-          child: TackIcon(icon, size: 20, color: TackColors.maroonText),
+        Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: wellColour,
+                borderRadius: TackRadius.buttonAll,
+              ),
+              child: TackIcon(icon, size: 22, color: iconColour),
+            ),
+            const Spacer(),
+            const TackCardArrow(),
+          ],
         ),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title, style: TackText.rowTitle),
-              const SizedBox(height: 2),
-              Text(body, style: TackText.meta),
-            ],
-          ),
-        ),
-        TackIcon(TackIcons.chevronRight, size: 18, color: TackColors.muted),
+        const SizedBox(height: TackSpace.md),
+        Text(title, style: TackText.rowTitle),
+        const SizedBox(height: TackSpace.xs),
+        Text(body, style: TackText.meta),
       ],
     ),
   );
