@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -70,6 +72,53 @@ class AnalysisRepository {
         .limit(1)
         .maybeSingle();
     return row?['id'] as String?;
+  }
+
+  /// Fires whenever the job's row changes, and once as soon as the live
+  /// connection is up, so a job that finished before it opened is not missed.
+  ///
+  /// Each event is only a hint to call [poll]: nothing is read from the
+  /// change itself, and Row Level Security decides who hears it. The socket
+  /// is open only while someone listens, and errors when it cannot be.
+  Stream<void> jobChanges(String jobId) {
+    final uid = _uid;
+    RealtimeChannel? channel;
+    late final StreamController<void> changes;
+    changes = StreamController<void>(
+      onListen: () {
+        channel = _db
+            .channel('jobs:$uid:$jobId')
+            .onPostgresChanges(
+              event: PostgresChangeEvent.update,
+              schema: 'public',
+              table: 'jobs_queue',
+              filter: PostgresChangeFilter(
+                type: PostgresChangeFilterType.eq,
+                column: 'id',
+                value: jobId,
+              ),
+              callback: (_) => changes.add(null),
+            )
+            .subscribe((status, error) {
+              if (changes.isClosed) return;
+              switch (status) {
+                case RealtimeSubscribeStatus.subscribed:
+                  changes.add(null);
+                case RealtimeSubscribeStatus.channelError:
+                case RealtimeSubscribeStatus.timedOut:
+                  changes.addError(Failure.from(error ?? status));
+                case RealtimeSubscribeStatus.closed:
+                  break;
+              }
+            });
+      },
+      onCancel: () async {
+        final open = channel;
+        channel = null;
+        if (open != null) await _db.removeChannel(open);
+      },
+    );
+    return changes.stream;
   }
 
   /// Polls a queued job. Returns null while it is still running.

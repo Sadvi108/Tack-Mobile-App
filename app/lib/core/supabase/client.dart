@@ -15,8 +15,9 @@ Future<void> initSupabase() async {
       authFlowType: AuthFlowType.pkce,
       autoRefreshToken: true,
     ),
-    // Realtime is off by default: an always-open socket is a battery and data
-    // cost the app has not yet earned.
+    // Realtime is not always on: an always-open socket is a battery and data
+    // cost the app has not yet earned. The analyser opens one only while it
+    // follows a job, and the client closes it once no channel is left.
     realtimeClientOptions: const RealtimeClientOptions(eventsPerSecond: 2),
   );
   CrashReporting.connect(Analytics(Supabase.instance.client));
