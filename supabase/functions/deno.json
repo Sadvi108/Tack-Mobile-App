@@ -19,7 +19,7 @@
     "zod": "npm:zod@4.1.12"
   },
   "tasks": {
-    "check": "deno check analyze-jd/index.ts worker/index.ts interview/index.ts score-cv/index.ts cv-check/index.ts radar/index.ts coach/index.ts delete-account/index.ts profile/index.ts policies/index.ts",
+    "check": "deno check analyze-jd/index.ts worker/index.ts interview/index.ts interview-prep/index.ts score-cv/index.ts cv-check/index.ts radar/index.ts coach/index.ts delete-account/index.ts profile/index.ts policies/index.ts",
     "test": "deno test --allow-env=JSEARCH_API_KEY _shared/ profile/render_test.ts",
     "lint": "deno lint",
     "fmt": "deno fmt --check"

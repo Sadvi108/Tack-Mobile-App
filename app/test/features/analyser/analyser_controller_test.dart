@@ -38,9 +38,13 @@ class _FakeRepository extends AnalysisRepository {
   AnalysisState? result;
   int reads = 0;
 
+  String? submittedJobId;
+
   @override
-  Future<AnalysisState> submit(String text) async =>
-      const AnalysisQueued('job-1');
+  Future<AnalysisState> submit(String text, {String? jobId}) async {
+    submittedJobId = jobId;
+    return const AnalysisQueued('job-1');
+  }
 
   @override
   Future<String?> latestJob() async => latest;
@@ -133,9 +137,7 @@ void main() {
       container.dispose();
     });
 
-    testWidgets('lets the connection go once the result is in', (
-      tester,
-    ) async {
+    testWidgets('lets the connection go once the result is in', (tester) async {
       final repository = _FakeRepository();
       final container = _containerWith(repository);
 
@@ -181,6 +183,20 @@ void main() {
       expect(repository.changes.hasListener, isFalse);
       container.dispose();
     });
+  });
+
+  testWidgets('checking a saved job carries its id to the server', (
+    tester,
+  ) async {
+    final repository = _FakeRepository();
+    final container = _containerWith(repository);
+
+    await container
+        .read(analyserControllerProvider.notifier)
+        .analyse('A job', jobId: 'job-row-1');
+
+    expect(repository.submittedJobId, 'job-row-1');
+    container.dispose();
   });
 
   testWidgets('picks up a job left running when the analyser reopens', (

@@ -151,6 +151,54 @@ export const cvParseShape: Shape = {
   warnings: "string[]",
 };
 
+export const prepBriefSchema = {
+  type: "object",
+  properties: {
+    talking_points: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          point: { type: "string" },
+          evidence: { type: "string" },
+        },
+        required: ["point", "evidence"],
+      },
+    },
+    likely_questions: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          question: { type: "string" },
+          why: { type: "string" },
+        },
+        required: ["question", "why"],
+      },
+    },
+    questions_to_ask: { type: "array", items: { type: "string" } },
+    gaps: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          skill: { type: "string" },
+          how_to_prepare: { type: "string" },
+        },
+        required: ["skill", "how_to_prepare"],
+      },
+    },
+  },
+  required: ["talking_points", "likely_questions", "questions_to_ask", "gaps"],
+} as const;
+
+export const prepBriefShape: Shape = {
+  talking_points: "object[]",
+  likely_questions: "object[]",
+  questions_to_ask: "string[]",
+  gaps: "object[]",
+};
+
 export const answerFeedbackShape: Shape = {
   score: "number",
   went_well: "string[]",

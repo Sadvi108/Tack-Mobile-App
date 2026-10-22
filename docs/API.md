@@ -160,8 +160,10 @@ Called by `onboarding/data/draft_repository.dart`, `vault/data/document_reposito
 | `upsert_company(raw_name text)` | `uuid` | Finds or creates a company, normalising the name so "Grameenphone Ltd." and "grameenphone" are one row. |
 | `normalise_company_name(raw text)` | `text` | The normalisation on its own. |
 | `is_valid_status_transition(from_s, to_s)` | `boolean` | Whether an application may move between two statuses. |
+| `application_checklist(p_application uuid)` | `jsonb` | `{items, next_step}` for one of the caller's applications (0082, 0083). Rules in precedence order: `APP-DATE` (saved, posting closes within 3 days), `APP-PRACTICE` (interview, no practice answered in 7 days), `APP-PREP` (interview, no prep brief), `APP-CV` (no live CV attached), `APP-JD` (a description of 80+ characters the caller has not checked, matched by `tack_text_hash`), `APP-FOLLOW` (applied, no change in 21 days). Empty for an offer or a rejection. |
 
-Called by `applications/data/application_repository.dart`.
+Called by `applications/data/application_repository.dart` and
+`applications/data/checklist_repository.dart`.
 
 ### Pure helpers
 
@@ -238,6 +240,21 @@ The app follows a queued job over Realtime rather than polling:
 change is only a hint: the app then reads the row through the normal
 RLS-scoped query. A safety read runs every 30 seconds, every 3 seconds once
 the socket drops, and the app gives up after 12 minutes.
+
+### `interview-prep`
+
+```json
+{ "applicationId": "uuid" }
+```
+
+An interview prep brief for an application at the interview stage (`409
+not_at_interview` otherwise). A brief built from the same inputs — the role,
+the posting, the student's skills and projects — comes back `200 {status:
+"ready", brief, cached: true}` and free. Otherwise `202` with a job id. The
+worker keeps only talking points whose evidence names one of the student's
+skills or projects as a whole word (`_shared/prep/evidence.ts`); fewer than two
+and the job ends `{skipped: "ungrounded"}` with the action refunded. Stored in
+`interview_prep_briefs`, which a student can read and not write.
 
 ### `interview`
 

@@ -5,7 +5,12 @@ import {
   answerFeedbackSchema,
   answerFeedbackShape,
   interviewQuestionsSchema,
+  prepBriefSchema,
+  prepBriefShape,
 } from "../ai/schemas.ts";
+import { PREP_SYSTEM } from "../ai/prep_prompt.ts";
+import { loadPrepInputs, prepHash, prepPrompt } from "../prep/inputs.ts";
+import { groundBrief, isGrounded, type PrepBrief } from "../prep/evidence.ts";
 
 export const conversationHandlers: Record<string, Handler> = {
   coach_reply: async (service, job) => {
@@ -139,5 +144,56 @@ export const conversationHandlers: Record<string, Handler> = {
     });
     if (error) throw error;
     return { feedback, quotaRemaining: outcome.remaining };
+  },
+  /**
+   * The interview prep brief. A result with `cached` or `skipped` in it is
+   * refunded by the queue's trigger, so a brief the student already has, or
+   * one the evidence gate would not stand behind, costs them nothing.
+   */
+  interview_prep: async (service, job) => {
+    if (!job.user_id) throw new Error("user_required");
+    const applicationId = job.payload.application_id as string;
+    const inputs = await loadPrepInputs(service, job.user_id, applicationId);
+    if (!inputs) return { skipped: "not_at_interview" };
+    const hash = await prepHash(inputs);
+
+    const { data: existing } = await service.from("interview_prep_briefs")
+      .select("id, brief").eq("application_id", applicationId)
+      .eq("input_hash", hash).eq("user_id", job.user_id).maybeSingle();
+    if (existing) {
+      return { briefId: existing.id, brief: existing.brief, cached: true };
+    }
+
+    const outcome = await runCompletion(
+      service,
+      job.user_id,
+      {
+        feature: "interview_prep",
+        system: PREP_SYSTEM,
+        user: prepPrompt(inputs),
+        schema: prepBriefSchema,
+        temperature: 0.4,
+      },
+      prepBriefShape,
+      ["talking_points", "likely_questions", "questions_to_ask", "gaps"],
+      { consumeQuota: false },
+    );
+    const { brief, dropped } = groundBrief(outcome.data as PrepBrief, {
+      skills: inputs.skills,
+      projects: inputs.projects.map((p) => p.title),
+    });
+    if (!isGrounded(brief)) return { skipped: "ungrounded", dropped };
+
+    const { data: saved, error } = await service.from("interview_prep_briefs")
+      .upsert({
+        user_id: job.user_id,
+        application_id: applicationId,
+        input_hash: hash,
+        brief,
+        job_id: job.id,
+      }, { onConflict: "application_id,input_hash" })
+      .select("id").single();
+    if (error) throw error;
+    return { briefId: saved.id, brief, dropped };
   },
 };

@@ -247,6 +247,39 @@ function mockFixture(feature: string, input: string): unknown {
           "Name the situation in one sentence, spend most of the answer on what you " +
           "personally did, and finish with the outcome.",
       };
+    case "interview_prep": {
+      // Backed by whatever skills the prompt lists, so the evidence gate keeps
+      // these and the mock exercises the same path the real model does.
+      const listed = input.match(/^Your skills: (.+)$/m)?.[1] ?? "";
+      const skills = listed === "None listed"
+        ? []
+        : listed.split(", ").filter(Boolean);
+      return {
+        talking_points: skills.slice(0, 3).map((s) => ({
+          point: `You can bring ${s} to this role from day one`,
+          evidence: `You list ${s} on your profile`,
+        })),
+        likely_questions: [
+          {
+            question: "Tell me about a project you are proud of.",
+            why: "Almost every first interview opens with it.",
+          },
+          {
+            question: "Why do you want to work here?",
+            why: "They want to know you read about them.",
+          },
+        ],
+        questions_to_ask: [
+          "What would my first month look like?",
+          "How will you know I am doing well?",
+        ],
+        gaps: [{
+          skill: "Presenting",
+          how_to_prepare:
+            "Say a two-minute summary of your best project out loud.",
+        }],
+      };
+    }
     default:
       return { echo: input.slice(0, 120) };
   }

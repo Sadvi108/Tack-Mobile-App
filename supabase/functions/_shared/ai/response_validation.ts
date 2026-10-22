@@ -48,6 +48,15 @@ const schemas: Record<string, z.ZodType> = {
     model_answer: text.optional(),
   }),
   coach_chat: z.strictObject({ reply: z.string().trim().min(1).max(2000) }),
+  interview_prep: z.strictObject({
+    talking_points: z.array(z.strictObject({ point: label, evidence: label }))
+      .max(10),
+    likely_questions: z.array(z.strictObject({ question: label, why: label }))
+      .max(10),
+    questions_to_ask: z.array(label).max(10),
+    gaps: z.array(z.strictObject({ skill: label, how_to_prepare: label }))
+      .max(10),
+  }),
 };
 
 /** No input values in errors: these codes are safe to record in telemetry. */
