@@ -232,6 +232,13 @@ re-uploading your own CV should not spend one of three daily actions.
 Same shape as `score-cv`. An identical description already analysed is served
 from the content-addressed cache at `200`, free.
 
+The app follows a queued job over Realtime rather than polling:
+`postgres_changes` on `jobs_queue`, `UPDATE`, filtered to `id=eq.<jobId>`
+(published in 0079). RLS decides who hears a change, the same as a select. A
+change is only a hint: the app then reads the row through the normal
+RLS-scoped query. A safety read runs every 30 seconds, every 3 seconds once
+the socket drops, and the app gives up after 12 minutes.
+
 ### `interview`
 
 Two actions, chosen by the **path**, not by a field in the body:
