@@ -304,11 +304,26 @@ Never granted to `authenticated`, and deliberately so:
   `derive_career_field`, `tack_activity`, `tack_week_summary`.
 - **Radar indexing** — `extract_listing_skills`, `reindex_listing_skills`,
   `reindex_listings`, `prune_job_listings`.
-- **Notifications** — `notify`, `enqueue_daily_digest`. `notify()` is the only
+- **Notifications** — `notify`, `enqueue_daily_digest(today)`. `notify()` is the only
   way a notification is made: it writes the in-app row *and* enqueues the push
   in one transaction, deduplicated on a key, so the phone can never announce
   something the inbox cannot show. A student who could call it could put a
   message in somebody else's inbox, so they cannot.
+- **The Monday brief** (0080, 0081) — `weekly_brief_items(user, today)` ranks
+  at most three things for one student: closing 100 (a saved application whose
+  posting closes within three days — `jobs.closes_at`, never the student's own
+  reminder), interview stage 90 (a dated next step within a week, in the
+  student's words), steps late 80, new matches 70, practice due 60 (deleted
+  sessions excluded), quiet roadmap 50, plus 5 for each extra reason on the
+  same item. Deadlines and interviews only for prove, launch and graduate. The
+  push body is the fixed "why" line; item titles, which hold what the student
+  typed, stay in the in-app payload. `enqueue_weekly_brief(dry_run = true, today, only)`
+  is a dry run unless told otherwise; `nightly_maintenance` runs it for real
+  on Mondays, before the digest, and both use the key `digest:<user>:<date>`,
+  so a student gets one of them a day. `listing_fit(user, listing)` is the
+  radar's fit for one listing; `tool/verify_weekly_brief.js` holds it to
+  `radar_feed`. The digest delivers at 09:00 Dhaka the morning it runs; before
+  0080 it asked for the morning after.
 
 `tack_week_summary` is the cautionary one: it was granted, then revoked in
 `0047`, because it took a user id as an argument.

@@ -4,6 +4,38 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/failure.dart';
 import '../../../core/supabase/client.dart';
 
+/// One line of the Monday brief: what needs attention, why, and where to go.
+class BriefItem {
+  const BriefItem({
+    required this.title,
+    required this.why,
+    required this.route,
+  });
+
+  final String title;
+  final String why;
+  final String route;
+
+  /// The only places a brief item can point. The server writes the route, but
+  /// a tap still never follows one this app did not expect — exact screens,
+  /// or one application by its id.
+  static const _screens = {'/roadmap', '/interview', '/radar'};
+  static final _application = RegExp(
+    r'^/applications/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
+    caseSensitive: false,
+  );
+
+  static BriefItem? fromJson(Object? raw) {
+    if (raw is! Map) return null;
+    final title = raw['title'];
+    final why = raw['why'];
+    final route = raw['route'];
+    if (title is! String || why is! String || route is! String) return null;
+    if (!_screens.contains(route) && !_application.hasMatch(route)) return null;
+    return BriefItem(title: title, why: why, route: route);
+  }
+}
+
 class TackNotification {
   const TackNotification({
     required this.id,
@@ -12,6 +44,7 @@ class TackNotification {
     required this.createdAt,
     this.body,
     this.readAt,
+    this.payload = const {},
   });
 
   final String id;
@@ -20,8 +53,18 @@ class TackNotification {
   final String? body;
   final DateTime createdAt;
   final DateTime? readAt;
+  final Map<String, dynamic> payload;
 
   bool get isUnread => readAt == null;
+
+  /// The Monday brief's ranked items, strongest first. Empty for every other
+  /// kind of notification, and for a brief whose payload is not what the
+  /// server writes.
+  List<BriefItem> get briefItems {
+    final items = payload['items'];
+    if (items is! List) return const [];
+    return [for (final raw in items) ?BriefItem.fromJson(raw)];
+  }
 
   /// Where tapping it should take the student.
   ///
@@ -34,6 +77,7 @@ class TackNotification {
     'deadline' => '/applications',
     'score_changed' => '/score',
     'step_due' => '/roadmap',
+    'weekly_brief' => '/notifications',
     _ => '/home',
   };
 
@@ -47,6 +91,10 @@ class TackNotification {
             DateTime.tryParse('${row['created_at']}')?.toLocal() ??
             DateTime.now(),
         readAt: DateTime.tryParse('${row['read_at']}')?.toLocal(),
+        payload: switch (row['payload']) {
+          final Map<String, dynamic> map => map,
+          _ => const {},
+        },
       );
 }
 
