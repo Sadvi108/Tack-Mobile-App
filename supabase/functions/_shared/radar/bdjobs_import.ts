@@ -1,21 +1,57 @@
 import type { Handler } from "../jobs/handlers.ts";
+import { z } from "zod";
+import { hasSupportedApifyRows, normalizeApifyJobs } from "./apify_sources.ts";
 import {
   BDJOBS_MAX_AGE_MS,
   BDJOBS_PAGE_SIZE,
   bdjobsPageSchema,
   latestBdjobsRun,
-  normalizeBdjobs,
   readBdjobsPage,
 } from "./bdjobs.ts";
+
+/** Keep the original single-task setting compatible; isolate each task's failures. */
+export function apifyJobTasks(multiple?: string, legacy?: string): string[] {
+  const tasks = [
+    ...new Set(
+      [...(multiple ?? "").split(/[\s,]+/), legacy?.trim() ?? ""].filter(
+        Boolean,
+      ),
+    ),
+  ];
+  return z.array(z.string().regex(/^[A-Za-z0-9]{1,100}$/)).max(8).parse(tasks);
+}
 
 /** Each page is a separate durable, replay-safe job, within the worker budget. */
 export const importBdjobs: Handler = async (service, job) => {
   const token = Deno.env.get("APIFY_API_TOKEN");
-  const taskId = Deno.env.get("APIFY_BDJOBS_TASK_ID");
-  if (!token || !taskId) return { skipped: "bdjobs not configured" };
-  const first = Object.keys(job.payload).length === 0;
-  const page = first
-    ? await latestBdjobsRun(token, taskId)
+  const tasks = apifyJobTasks(
+    Deno.env.get("APIFY_JOB_TASK_IDS"),
+    Deno.env.get("APIFY_BDJOBS_TASK_ID"),
+  );
+  if (!token || !tasks.length) return { skipped: "bdjobs not configured" };
+  if (Object.keys(job.payload).length === 0) {
+    // A task's failed/empty collection must not prevent another from importing.
+    const slot = new Date().toISOString().slice(0, 13);
+    for (const taskId of tasks) {
+      const { error } = await service.from("jobs_queue").upsert({
+        type: "import_bdjobs",
+        payload: { taskId },
+        idempotency_key: `apify:task:${taskId}:${slot}`,
+      }, { onConflict: "idempotency_key", ignoreDuplicates: true });
+      if (error) throw new Error("bdjobs_enqueue_failed");
+    }
+    return { queuedTasks: tasks.length };
+  }
+  const first = "taskId" in job.payload;
+  const task = first
+    ? z.strictObject({ taskId: z.string().regex(/^[A-Za-z0-9]{1,100}$/) })
+      .parse(job.payload)
+    : null;
+  if (task && !tasks.includes(task.taskId)) {
+    return { skipped: "task removed from configuration" };
+  }
+  const page = task
+    ? await latestBdjobsRun(token, task.taskId)
     : bdjobsPageSchema.parse(job.payload);
   if (Date.now() - Date.parse(page.finishedAt) > BDJOBS_MAX_AGE_MS) {
     return { skipped: "bdjobs run is stale" };
@@ -33,11 +69,17 @@ export const importBdjobs: Handler = async (service, job) => {
   }
 
   const rows = await readBdjobsPage(token, page);
-  const listings = normalizeBdjobs(rows, page.finishedAt);
-  if (rows.length && !listings.length) throw new Error("bdjobs_no_valid_rows");
+  const listings = normalizeApifyJobs(page.actorId, rows, page.finishedAt);
+  if (
+    rows.length && !listings.length &&
+    !hasSupportedApifyRows(page.actorId, rows, page.finishedAt)
+  ) {
+    throw new Error("bdjobs_no_valid_rows");
+  }
   if (listings.length) {
-    const { error } = await service.rpc("cache_bdjobs_page", {
+    const { error } = await service.rpc("cache_apify_job_page", {
       p_rows: listings.map((listing) => ({
+        source: listing.source,
         external_id: listing.externalId,
         title: listing.title,
         company_name: listing.company,

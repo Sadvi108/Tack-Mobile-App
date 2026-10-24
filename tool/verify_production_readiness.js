@@ -115,7 +115,7 @@ async function main() {
     warn(present('FCM_SERVICE_ACCOUNT'), 'Push server configuration',
       'Required if push is in release scope; mobile registration and APNs also need verification.');
     warn(present('JSEARCH_API_KEY') || present('CAREERJET_API_KEY') ||
-      (present('APIFY_API_TOKEN') && present('APIFY_BDJOBS_TASK_ID')), 'Bangladesh search source configured',
+      (present('APIFY_API_TOKEN') && (present('APIFY_BDJOBS_TASK_ID') || present('APIFY_JOB_TASK_IDS'))), 'Bangladesh search source configured',
       'Local sourcing needs a configured provider and a relevance/freshness review.');
   }
 }

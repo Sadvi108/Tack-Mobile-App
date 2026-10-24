@@ -15,8 +15,14 @@ The [Apify Bdjobs integration](BDJOBS_APIFY.md) adds background imports from a
 dedicated job-search task. The supplied `getdataforme/bdjobs-details-spider`
 requires existing job URLs and cannot discover all vacancies. The selected
 `scrapingmonkey/bdjobs-scraper` supports discovery; collection limits still apply.
-The integration is prepared locally and needs credentials, task configuration
-and deployment before it can populate the feed. Browsing never starts paid runs.
+Production job-source migrations and the import worker were deployed on
+25 October 2026. Apify credentials and saved tasks are still missing, so the
+new sources cannot yet populate the feed. Browsing never starts paid runs.
+
+The [Store review and additional adapters](APIFY_BANGLADESH_JOBS.md) expand
+this to Vero/Hipersoft Bdjobs schemas and Bangladesh Bdjobs/LinkedIn rows from
+the reviewed multi-board Actor. Multiple tasks import independently into the
+shared cache. They still need configuration and live verification.
 
 ## Additional API
 
@@ -46,8 +52,10 @@ request is made. “Load more” reads the existing Supabase cache, not the paid
 
 ## Activation
 
-The integration is implemented locally. It has not been deployed or tested
-against live JSearch data; no JSearch key was present in the local configuration.
+The JSearch adapter is included in production `radar` v8 as of 25 October 2026,
+and migration `0076` is applied. It has not been validated against live JSearch
+data; no JSearch key was present in the local configuration. The following
+steps also cover activation in another environment.
 
 1. Obtain a direct OpenWeb Ninja key for JSearch and put `JSEARCH_API_KEY` in
    Supabase Edge Function secrets using the dashboard or existing secure secret
@@ -73,7 +81,7 @@ flutter analyze
 flutter test
 cd ../supabase/functions
 deno check radar/index.ts
-deno test --allow-env=JSEARCH_API_KEY,APIFY_API_TOKEN,APIFY_BDJOBS_TASK_ID _shared/radar/
+deno test --allow-env=JSEARCH_API_KEY,APIFY_API_TOKEN,APIFY_BDJOBS_TASK_ID,APIFY_JOB_TASK_IDS _shared/radar/
 ```
 
 Provider tests use network fixtures, including an explicit false work-location

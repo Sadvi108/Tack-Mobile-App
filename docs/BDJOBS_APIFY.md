@@ -1,5 +1,10 @@
 # Bdjobs vacancies through Apify
 
+The [expanded Store review](APIFY_BANGLADESH_JOBS.md) adds Vero, Hipersoft and a
+restricted multi-board adapter alongside ScrapingMonkey, with multiple saved
+tasks, LinkedIn support and additional `0092`/`0093` deployment steps. The
+original single-task setting below remains compatible.
+
 ## What was verified
 
 On 25 October 2026, the public Apify metadata and deployed input schemas were
@@ -30,7 +35,7 @@ cannot prove today's coverage, extraction quality or successful paid execution.
    worker reads the dedicated task's latest **successful** run. It does not
    start, restart or pay for an actor run.
 3. Each 100-row page is a durable queue job. Retries reuse the same dataset and
-   offset. `cache_bdjobs_page` atomically upserts source/job IDs and reindexes
+   offset. `cache_apify_job_page` atomically upserts source/job IDs and reindexes
    skills; older datasets cannot overwrite newer rows. Queued page identities
    are unique per run/offset. Invalid rows are counted and skipped; a nonempty
    page with no valid job rows fails visibly instead of claiming a valid feed.
@@ -61,9 +66,11 @@ as unavailable. An empty cache is not represented as proof there are no jobs.
 
 ## Activation
 
-The implementation and migrations are prepared locally. They have not been
-deployed by this change, and an installed app needs an updated build for the
-new default/filter label behavior.
+Production migrations `0090`–`0093` and the import worker were deployed on
+25 October 2026. See the [deployment verification](APIFY_BANGLADESH_JOBS.md)
+for function versions and live checks. Apify credentials/saved tasks are still
+missing; an installed app needs an updated build for the new default/filter
+label behavior. The steps below also describe setup for another environment.
 
 1. Create a **dedicated saved task** from `scrapingmonkey/bdjobs-scraper` in
    Apify. Use job-search mode, not company or detail mode. Begin with a bounded
@@ -87,16 +94,19 @@ new default/filter label behavior.
    ID is the saved task's opaque ID, not the Actor slug or a run/dataset ID.
    Keep the token out of chat, files, Flutter defines and URLs. The worker uses
    the token in an Authorization header and only performs bounded GET reads.
-3. Apply the two migrations in order, in separate transactions:
+3. Apply unapplied migrations in order, in separate transactions:
 
    ```sh
    node tool/migrate.js 0090_bdjobs_source
    node tool/migrate.js 0091_bdjobs_import
+   node tool/migrate.js 0092_linkedin_source
+   node tool/migrate.js 0093_apify_job_sources
    ```
 
    `0090` commits the enum value before `0091` uses it. `0091` adds cache
    metadata, service-only import functions, the hourly import schedule and the
-   updated feed. Existing RLS policies stay in place.
+   updated feed. `0092`/`0093` add the expanded shared importer used by the
+   current worker. Existing RLS policies stay in place.
 4. Deploy **worker**, **radar** and **policies** using the existing deployment
    procedure in [DEPLOY.md](DEPLOY.md). Worker remains cron-secret protected;
    do not enable gateway JWT verification on that endpoint. Deploy the worker
@@ -148,7 +158,7 @@ flutter analyze
 flutter test
 ```
 
-Implementation checks: **557 Flutter tests**, **162 backend tests**, clean
-Flutter analysis/backend type checks/format/lint, and **nine temporary SQL
+Current checks: **558 Flutter tests**, **172 backend tests**, clean
+Flutter analysis/backend type checks/format/lint, and **13 temporary SQL
 contract checks** passed. Real paid collection and deployed end-to-end import
 remain activation gates requiring the configured token/task.

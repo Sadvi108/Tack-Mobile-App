@@ -83,6 +83,7 @@ class Listing {
 
   String get sourceLabel => switch (source) {
     'bdjobs' => 'Bdjobs',
+    'linkedin' => 'LinkedIn',
     'jsearch' => 'JSearch',
     'careerjet' => 'Careerjet',
     'aijobs' => 'AI jobs',

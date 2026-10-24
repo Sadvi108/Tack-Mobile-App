@@ -12,10 +12,14 @@ is historical. Run `node tool/verify_production_readiness.js` for read-only auth
 and integration configuration checks; a passing preflight does not replace the
 device and operations acceptance gates in that review.
 
-**Bdjobs source:** the new importer, migrations `0090`/`0091` and mobile source
-changes are prepared locally. Follow [Bdjobs activation](BDJOBS_APIFY.md) for
-the dedicated Apify search task, server secrets, ordered migration/deployment
-and live verification. The implementation does not itself activate paid scraping.
+**Bangladesh job backend — 25 October 2026:** migrations `0090`–`0093`
+are applied to production (93 total). The worker and privacy functions are
+updated, the service-only cache RPC is installed, and the hourly import cron is
+active. See the [Apify integration](APIFY_BANGLADESH_JOBS.md) for current
+function versions, deployment verification and remaining activation gates.
+Apify credentials and dedicated saved search tasks still need configuration;
+no live vacancies have been imported. Install an updated Flutter build for the
+new source labels and workplace behavior.
 
 ## What is already live
 
@@ -68,10 +72,10 @@ That check caught a real regression the day it was written.
 
 These need credentials or a dashboard, and cannot be done from the repository.
 
-**Radar Bangladesh update.** The local JSearch adapter and migration `0076`
-are ready for activation; see [RADAR_BANGLADESH.md](RADAR_BANGLADESH.md) for
-secret setup, deployment order, and live coverage checks. They have not been
-deployed as part of this update.
+**Radar Bangladesh update.** Migration `0076` is applied and the JSearch
+adapter is included in deployed `radar` v8 (25 October 2026). See
+[RADAR_BANGLADESH.md](RADAR_BANGLADESH.md) for provider credentials and live
+coverage checks; deployment alone does not establish source availability.
 
 **Secrets that are not set yet.** Names only — take the values from your own
 `supabase/.env`, and do not paste them into a chat, a commit, or a ticket:
