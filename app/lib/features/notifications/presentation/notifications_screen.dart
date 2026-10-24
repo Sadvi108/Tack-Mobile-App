@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../design/tack.dart';
 import '../../../routing/router.dart';
 import '../data/notification_repository.dart';
+import 'weekly_brief_sheet.dart';
 
 class NotificationsScreen extends ConsumerWidget {
   const NotificationsScreen({super.key});
@@ -62,7 +63,26 @@ class NotificationsScreen extends ConsumerWidget {
                         .read(notificationRepositoryProvider)
                         .markRead(notification.id);
                     ref.invalidate(notificationsProvider);
-                    if (context.mounted) context.go(notification.route);
+                    if (!context.mounted) return;
+
+                    // The Monday brief is a short list, not a destination: it
+                    // opens in place and each item goes where it points.
+                    final items = notification.briefItems;
+                    if (items.isEmpty) {
+                      context.go(notification.route);
+                      return;
+                    }
+                    final route = await showTackSheet<String>(
+                      context: context,
+                      title: notification.title,
+                      child: Builder(
+                        builder: (sheetContext) => WeeklyBriefSheet(
+                          items: items,
+                          onOpen: (r) => Navigator.of(sheetContext).pop(r),
+                        ),
+                      ),
+                    );
+                    if (route != null && context.mounted) context.go(route);
                   },
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,

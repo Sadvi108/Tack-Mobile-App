@@ -16,6 +16,7 @@
 import { jsearch } from "./jsearch.ts";
 
 export type Source =
+  | "bdjobs"
   | "jsearch"
   | "careerjet"
   | "aijobs"
@@ -39,6 +40,9 @@ export interface Listing {
   category: string | null;
   level: string | null;
   postedAt: string | null;
+  workplaceKnown?: boolean;
+  expiresAt?: string | null;
+  seenAt?: string;
 }
 
 export interface Query {

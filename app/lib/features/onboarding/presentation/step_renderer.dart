@@ -135,6 +135,7 @@ class _TextFieldState extends ConsumerState<_TextField> {
       label: field.label,
       hint: field.hint,
       helperText: field.help,
+      errorText: widget.state.errorFor(field),
       controller: _controller,
       maxLines: widget.lines,
       minLines: widget.lines > 1 ? widget.lines : null,
@@ -296,6 +297,12 @@ class _ChipFieldState extends ConsumerState<_ChipField> {
                 final next = {...selected};
                 next.contains(value) ? next.remove(value) : next.add(value);
                 controller.answer(field.key, next.toList());
+                // Skills are stored by id and activities by a stored word;
+                // the names ride along so the review can show them.
+                controller.answer('${field.key}__labels', {
+                  for (final option in all)
+                    if (next.contains(option.value)) option.value: option.label,
+                });
               },
               onAddOwn: (label) {
                 controller.answer('${field.key}__custom', [...custom, label]);
@@ -425,11 +432,12 @@ class _RowsField extends ConsumerWidget {
       context: context,
       title: field.label,
       child: Padding(
-        padding: EdgeInsets.fromLTRB(
+        // The sheet makes room for the keyboard itself (TackSheetBody).
+        padding: const EdgeInsets.fromLTRB(
           TackSpace.screen,
           0,
           TackSpace.screen,
-          MediaQuery.viewInsetsOf(context).bottom + TackSpace.xl,
+          TackSpace.xl,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,

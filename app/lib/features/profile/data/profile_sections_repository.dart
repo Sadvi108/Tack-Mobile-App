@@ -40,7 +40,7 @@ class ProfileSectionsRepository {
             .select()
             .eq('user_id', _uid)
             .isFilter('deleted_at', null)
-            .order('semester_order'),
+            .order('semester_order', ascending: true),
         _db
             .from('projects')
             .select()

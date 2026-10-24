@@ -14,6 +14,7 @@ class Listing {
     this.company,
     this.location,
     this.isRemote = false,
+    this.workplaceKnown = true,
     this.salary,
     this.level,
     this.postedAt,
@@ -42,6 +43,7 @@ class Listing {
   final String? company;
   final String? location;
   final bool isRemote;
+  final bool workplaceKnown;
   final String? salary;
   final String? level;
   final DateTime? postedAt;
@@ -108,6 +110,7 @@ class Listing {
     company: _text(json['company']),
     location: _text(json['location']),
     isRemote: json['remote'] == true,
+    workplaceKnown: json['workplace_known'] != false,
     salary: _text(json['salary']),
     level: _text(json['level']),
     postedAt: DateTime.tryParse('${json['posted_at']}')?.toLocal(),
@@ -132,6 +135,7 @@ class Listing {
 
 /// A board's name as a student reads it, from the source id the server uses.
 String radarSourceLabel(String source) => switch (source) {
+  'bdjobs' => 'Bdjobs',
   'jsearch' => 'JSearch',
   'careerjet' => 'Careerjet',
   'aijobs' => 'AI jobs',
@@ -156,24 +160,30 @@ class RadarResult {
 
   bool get isMissingCareerjet => problems.containsKey('careerjet');
 
-  /// JSearch and Careerjet are the only boards that search Bangladesh. With
-  /// both gone, what is left is remote and overseas work.
+  /// Bdjobs, JSearch and Careerjet are the boards that search Bangladesh. With
+  /// all three gone, what is left is remote and overseas work.
   bool get isMissingBangladesh =>
-      problems.containsKey('jsearch') && problems.containsKey('careerjet');
+      problems.containsKey('bdjobs') &&
+      problems.containsKey('jsearch') &&
+      problems.containsKey('careerjet');
 
   /// Boards with no key on the server, by name.
-  List<String> get notSetUp => [
-    for (final e in problems.entries)
-      if (e.key != 'cache' && e.value == 'not configured')
-        radarSourceLabel(e.key),
-  ];
+  List<String> get notSetUp => _named((p) => p == 'not configured');
 
-  /// Boards that have a key but did not answer, by name. `cache` is Tack's own
-  /// store failing to write, not a board, so it is never named.
-  List<String> get unreachable => [
+  /// Boards Tack imports on a schedule rather than asks live — Bdjobs — whose
+  /// last import is too old to show. Nothing failed just now, so "could not be
+  /// reached" would be the wrong thing to say.
+  List<String> get notRefreshed => _named((p) => p == 'not refreshed');
+
+  /// Boards that have a key but did not answer, by name.
+  List<String> get unreachable =>
+      _named((p) => p != 'not configured' && p != 'not refreshed');
+
+  /// `cache` is Tack's own store failing to write, not a board, so it is never
+  /// named.
+  List<String> _named(bool Function(String problem) test) => [
     for (final e in problems.entries)
-      if (e.key != 'cache' && e.value != 'not configured')
-        radarSourceLabel(e.key),
+      if (e.key != 'cache' && test(e.value)) radarSourceLabel(e.key),
   ];
 
   factory RadarResult.fromJson(Map<String, dynamic> json) => RadarResult(

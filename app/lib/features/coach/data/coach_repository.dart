@@ -60,7 +60,7 @@ class CoachRepository {
           .select()
           .eq('thread_id', id)
           .eq('user_id', _uid)
-          .order('created_at');
+          .order('created_at', ascending: true);
       return (id, rows.map(ChatMessage.fromRow).toList());
     } catch (e) {
       throw Failure.from(e);

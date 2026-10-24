@@ -702,8 +702,9 @@ class _BoardNotice extends StatelessWidget {
   /// whoever runs Tack — whether to wait or to go and set a key.
   String get _message {
     final notSetUp = result.notSetUp;
+    final notRefreshed = result.notRefreshed;
     final unreachable = result.unreachable;
-    if (notSetUp.isEmpty && unreachable.isEmpty) {
+    if (notSetUp.isEmpty && notRefreshed.isEmpty && unreachable.isEmpty) {
       return 'Showing available postings. Some sources could not be '
           'refreshed; try again later.';
     }
@@ -714,6 +715,9 @@ class _BoardNotice extends StatelessWidget {
       if (notSetUp.isNotEmpty)
         '${_join(notSetUp)} ${notSetUp.length == 1 ? 'is' : 'are'} not set '
             'up yet.',
+      if (notRefreshed.isNotEmpty)
+        '${_join(notRefreshed)} ${notRefreshed.length == 1 ? 'has' : 'have'} '
+            'not refreshed recently.',
       if (unreachable.isNotEmpty)
         '${_join(unreachable)} could not be reached. Try again later.',
     ].join(' ');

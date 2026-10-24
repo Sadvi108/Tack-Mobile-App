@@ -50,8 +50,8 @@ class OptionRepository {
     final rows = await _db
         .from('countries')
         .select('id, name, dial_code')
-        .order('sort_order')
-        .order('name');
+        .order('sort_order', ascending: true)
+        .order('name', ascending: true);
     return rows
         .map(
           (r) => PickerOption(
@@ -69,7 +69,7 @@ class OptionRepository {
         .from('cities')
         .select('id, name')
         .eq('country_id', countryId)
-        .order('sort_order');
+        .order('sort_order', ascending: true);
     return rows
         .map(
           (r) => PickerOption(
@@ -87,7 +87,7 @@ class OptionRepository {
         .from('universities')
         .select('id, name, short_name')
         .eq('is_active', true)
-        .order('name');
+        .order('name', ascending: true);
     return rows
         .map(
           (r) => PickerOption(
@@ -104,8 +104,8 @@ class OptionRepository {
         .from(table)
         .select('slug, name')
         .eq('is_active', true)
-        .order('category')
-        .order('sort_order');
+        .order('category', ascending: true)
+        .order('sort_order', ascending: true);
     return rows
         .map(
           (r) => PickerOption(
@@ -121,8 +121,8 @@ class OptionRepository {
         .from('skills')
         .select('id, name')
         .eq('is_active', true)
-        .order('category')
-        .order('name');
+        .order('category', ascending: true)
+        .order('name', ascending: true);
     return rows
         .map(
           (r) => PickerOption(
@@ -138,7 +138,7 @@ class OptionRepository {
         .from('career_fields')
         .select('slug, name')
         .eq('is_active', true)
-        .order('sort_order');
+        .order('sort_order', ascending: true);
     return [
       for (final r in rows)
         PickerOption(

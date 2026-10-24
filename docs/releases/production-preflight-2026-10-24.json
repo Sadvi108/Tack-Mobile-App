@@ -1,0 +1,102 @@
+{
+  "checkedAt": "2026-10-24T17:48:10.725Z",
+  "scope": "Read-only configuration checks; not full production approval",
+  "summary": {
+    "pass": 7,
+    "fail": 5,
+    "warn": 6,
+    "unknown": 0
+  },
+  "checks": [
+    {
+      "status": "PASS",
+      "name": "Email confirmation required",
+      "detail": "Email/password signup must require confirmation."
+    },
+    {
+      "status": "PASS",
+      "name": "Visible OAuth providers enabled",
+      "detail": "The release UI offers Google and GitHub."
+    },
+    {
+      "status": "PASS",
+      "name": "Anonymous accounts disabled",
+      "detail": "The app expects identified accounts."
+    },
+    {
+      "status": "FAIL",
+      "name": "Custom SMTP configured",
+      "detail": "A production sender and sender address are required; delivery still needs an inbox test."
+    },
+    {
+      "status": "FAIL",
+      "name": "Email capacity configured",
+      "detail": "Raise the default two-per-hour limit after SMTP setup; size capacity for the pilot."
+    },
+    {
+      "status": "FAIL",
+      "name": "Mobile callback allow-listed",
+      "detail": "Allow the exact callback registered by both native apps."
+    },
+    {
+      "status": "FAIL",
+      "name": "Production site URL",
+      "detail": "Set a reachable HTTPS fallback URL controlled by Tack."
+    },
+    {
+      "status": "FAIL",
+      "name": "Server password minimum matches app",
+      "detail": "The server must enforce the app minimum of eight characters."
+    },
+    {
+      "status": "WARN",
+      "name": "Leaked-password protection",
+      "detail": "Enable when available, or document the chosen alternative."
+    },
+    {
+      "status": "WARN",
+      "name": "Authentication abuse protection",
+      "detail": "Define and test signup/recovery abuse controls before the public launch."
+    },
+    {
+      "status": "WARN",
+      "name": "Server password-change reauthentication",
+      "detail": "Client-only reauthentication can be bypassed by a direct API caller."
+    },
+    {
+      "status": "WARN",
+      "name": "Password-change security email",
+      "detail": "Enable and verify the account security notification."
+    },
+    {
+      "status": "PASS",
+      "name": "Refresh-token rotation",
+      "detail": "Keep refresh-token rotation enabled."
+    },
+    {
+      "status": "PASS",
+      "name": "Email token expiry bounded",
+      "detail": "Email verification tokens should expire within an hour."
+    },
+    {
+      "status": "PASS",
+      "name": "Required Edge Functions active",
+      "detail": "12 expected functions active; source parity is a separate check."
+    },
+    {
+      "status": "PASS",
+      "name": "AI configuration present",
+      "detail": "Presence only: verify the deployed provider value and successful real-model requests separately."
+    },
+    {
+      "status": "WARN",
+      "name": "Push server configuration",
+      "detail": "Required if push is in release scope; mobile registration and APNs also need verification."
+    },
+    {
+      "status": "WARN",
+      "name": "Bangladesh search source configured",
+      "detail": "Local sourcing needs a configured provider and a relevance/freshness review."
+    }
+  ]
+}

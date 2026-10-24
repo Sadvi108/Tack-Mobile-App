@@ -45,12 +45,23 @@ crash service, so nothing about a student leaves it.
 
 ## Checks
 
+The [current production readiness review](docs/PRODUCTION_READINESS_2026-10-24.md)
+lists release gaps, required evidence and the fix order. A read-only live
+configuration preflight uses the existing secure server-side tooling environment:
+
+```bash
+node tool/verify_production_readiness.js
+```
+
+It creates no users, sends no email and changes no server settings. Treat it as
+one release gate alongside the local checks and device acceptance tests.
+
 ```bash
 cd app && flutter analyze && flutter test
 ```
 
 ```bash
-cd supabase/functions && deno check analyze-jd/index.ts worker/index.ts interview/index.ts && deno test --allow-env=JSEARCH_API_KEY _shared/
+cd supabase/functions && deno task --frozen check && deno task --frozen test
 ```
 
 ```bash

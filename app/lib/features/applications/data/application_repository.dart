@@ -77,7 +77,7 @@ class ApplicationRepository {
           .isFilter('deleted_at', null)
           .not('next_action_date', 'is', null)
           .lte('next_action_date', until.toIso8601String().substring(0, 10))
-          .order('next_action_date');
+          .order('next_action_date', ascending: true);
       return rows.map(JobApplication.fromRow).toList();
     } catch (e) {
       throw Failure.from(e);
@@ -91,7 +91,7 @@ class ApplicationRepository {
           .select('from_status, to_status, changed_at, note')
           .eq('application_id', applicationId)
           .eq('user_id', _uid)
-          .order('changed_at');
+          .order('changed_at', ascending: true);
       return rows.map(StatusChange.fromRow).toList();
     } catch (e) {
       throw Failure.from(e);

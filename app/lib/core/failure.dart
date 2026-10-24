@@ -81,6 +81,14 @@ class Failure implements Exception {
           cause: error,
           code: error.code,
         ),
+        // The one check a student can trip by typing: a result above its
+        // scale (0089). Said plainly, since they can fix it.
+        '23514' when error.message.contains('gpa_within_scale') => Failure(
+          'That result is higher than its scale allows. A CGPA is out of 4 '
+          'and a school result is out of 5.',
+          cause: error,
+          code: error.code,
+        ),
         '23514' => Failure(
           'That change is not allowed from here.',
           cause: error,

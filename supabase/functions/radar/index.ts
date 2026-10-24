@@ -2,6 +2,7 @@ import { radarRequest, readRequest } from "../_shared/util/requests.ts";
 import { requireUser, serviceClient } from "../_shared/util/auth.ts";
 import { fail, json, preflight } from "../_shared/util/http.ts";
 import { dedupe, searchAll } from "../_shared/radar/providers.ts";
+import { BDJOBS_MAX_AGE_MS } from "../_shared/radar/bdjobs.ts";
 
 /**
  * Radar: refresh the shared listing cache, then hand back the caller's own
@@ -32,6 +33,18 @@ Deno.serve(async (req) => {
 
   const problems: Record<string, string> = {};
   let fetched = 0;
+
+  // Bdjobs is collected on a schedule and imported by the worker. Browsing
+  // only reads Tack's cache; it never starts a paid Actor run.
+  const freshSince = new Date(Date.now() - BDJOBS_MAX_AGE_MS).toISOString();
+  const { data: bdjobs, error: bdjobsError } = await auth.client
+    .from("job_listings").select("id").eq("source", "bdjobs")
+    .gte("last_seen_at", freshSince)
+    .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
+    .limit(1);
+  if (bdjobsError || !bdjobs?.length) {
+    problems.bdjobs = "not refreshed";
+  }
 
   // Paging through what is already cached does not need the boards again.
   if (body.refresh !== false && offset === 0) {

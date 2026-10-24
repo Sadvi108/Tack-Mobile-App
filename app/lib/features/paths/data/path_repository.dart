@@ -41,7 +41,7 @@ class PathRepository {
           .from('career_paths')
           .select(_select)
           .eq('is_active', true)
-          .order('sort_order');
+          .order('sort_order', ascending: true);
       return rows.map(CareerPath.fromRow).toList();
     } catch (e) {
       throw Failure.from(e);

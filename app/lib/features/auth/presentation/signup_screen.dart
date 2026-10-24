@@ -101,126 +101,135 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
       padBody: false,
       scrollable: false,
       background: TackColors.sailWhite,
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: TackSpace.screenWide),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      // Fits 360x640 without scrolling while the keyboard is closed. With it
+      // open the form scrolls instead of overflowing, so Create account is
+      // never stuck under the keyboard.
+      body: CustomScrollView(
+        slivers: [
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: _form(context, auth, gap),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _form(BuildContext context, AuthUiState auth, double gap) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: TackSpace.screenWide),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(height: TackSpace.sm * gap),
+          const TackWordmark(),
+          SizedBox(height: TackSpace.lg * gap),
+          Text('Create your account', style: TackText.screenTitle),
+          SizedBox(height: TackSpace.xs * gap),
+          Text('Free for every student.', style: TackText.bodyMuted),
+          SizedBox(height: TackSpace.lg * gap),
+
+          GoogleSignInButton(
+            busy: auth.busy,
+            onPressed: () => ref
+                .read(authControllerProvider.notifier)
+                .signInWith(TackOAuthProvider.google),
+          ),
+          SizedBox(height: TackSpace.row * gap),
+          SecondaryProviderRow(
+            busy: auth.busy,
+            onPressed: (provider) =>
+                ref.read(authControllerProvider.notifier).signInWith(provider),
+          ),
+          SizedBox(height: TackSpace.md * gap),
+          const TackOrDivider(),
+          SizedBox(height: TackSpace.md * gap),
+
+          TackTextField(
+            hint: 'Email address',
+            controller: _email,
+            errorText: _emailError,
+            keyboardType: TextInputType.emailAddress,
+            textInputAction: TextInputAction.next,
+            autofillHints: const [AutofillHints.email],
+            onChanged: (_) => _revalidate(),
+          ),
+          SizedBox(height: TackSpace.row * gap),
+          TackTextField(
+            hint: 'Password, at least 8 characters',
+            controller: _password,
+            errorText: _passwordError,
+            obscureText: true,
+            textInputAction: TextInputAction.done,
+            autofillHints: const [AutofillHints.newPassword],
+            onChanged: (_) => _revalidate(),
+            onSubmitted: (_) => _submit(),
+          ),
+
+          if (auth.failure != null) ...[
             SizedBox(height: TackSpace.sm * gap),
-            const TackWordmark(),
-            SizedBox(height: TackSpace.lg * gap),
-            Text('Create your account', style: TackText.screenTitle),
-            SizedBox(height: TackSpace.xs * gap),
-            Text('Free for every student.', style: TackText.bodyMuted),
-            SizedBox(height: TackSpace.lg * gap),
+            Text(auth.failure!.message, style: TackText.fieldError),
+          ],
 
-            GoogleSignInButton(
-              busy: auth.busy,
-              onPressed: () => ref
-                  .read(authControllerProvider.notifier)
-                  .signInWith(TackOAuthProvider.google),
-            ),
-            SizedBox(height: TackSpace.row * gap),
-            SecondaryProviderRow(
-              busy: auth.busy,
-              onPressed: (provider) => ref
-                  .read(authControllerProvider.notifier)
-                  .signInWith(provider),
-            ),
-            SizedBox(height: TackSpace.md * gap),
-            const TackOrDivider(),
-            SizedBox(height: TackSpace.md * gap),
+          SizedBox(height: TackSpace.md * gap),
+          TackButton('Create account', loading: auth.busy, onPressed: _submit),
 
-            TackTextField(
-              hint: 'Email address',
-              controller: _email,
-              errorText: _emailError,
-              keyboardType: TextInputType.emailAddress,
-              textInputAction: TextInputAction.next,
-              autofillHints: const [AutofillHints.email],
-              onChanged: (_) => _revalidate(),
-            ),
-            SizedBox(height: TackSpace.row * gap),
-            TackTextField(
-              hint: 'Password, at least 8 characters',
-              controller: _password,
-              errorText: _passwordError,
-              obscureText: true,
-              textInputAction: TextInputAction.done,
-              autofillHints: const [AutofillHints.newPassword],
-              onChanged: (_) => _revalidate(),
-              onSubmitted: (_) => _submit(),
-            ),
+          const Spacer(),
 
-            if (auth.failure != null) ...[
-              SizedBox(height: TackSpace.sm * gap),
-              Text(auth.failure!.message, style: TackText.fieldError),
-            ],
-
-            SizedBox(height: TackSpace.md * gap),
-            TackButton(
-              'Create account',
-              loading: auth.busy,
-              onPressed: _submit,
-            ),
-
-            const Spacer(),
-
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: EdgeInsets.only(top: 1),
-                  child: TackIcon(
-                    TackIcons.shield,
-                    size: 17,
-                    color: TackColors.muted,
-                  ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: EdgeInsets.only(top: 1),
+                child: TackIcon(
+                  TackIcons.shield,
+                  size: 17,
+                  color: TackColors.muted,
                 ),
-                const SizedBox(width: TackSpace.sm),
-                // Consent belongs at the moment of consent, but this screen
-                // must fit 360x640 with no scrolling and has no spare height —
-                // a separate line overflowed it by 35px. So the links join the
-                // privacy promise that was already here, which is the same
-                // subject anyway.
-                const Expanded(child: PolicyNote()),
-              ],
-            ),
-            SizedBox(height: TackSpace.xs * gap),
-            Center(
-              child: Semantics(
-                button: true,
-                child: GestureDetector(
-                  onTap: () => context.go(Routes.login),
-                  behavior: HitTestBehavior.opaque,
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(
-                      minHeight: TackSpace.tapTarget,
-                    ),
-                    child: Center(
-                      child: Text.rich(
-                        TextSpan(
-                          text: 'Already have an account? ',
-                          style: TackText.meta.copyWith(fontSize: 15),
-                          children: [
-                            TextSpan(
-                              text: 'Log in',
-                              style: TackText.meta.copyWith(
-                                fontSize: 15,
-                                color: TackColors.maroonText,
-                                fontWeight: FontWeight.w600,
-                              ),
+              ),
+              const SizedBox(width: TackSpace.sm),
+              // Consent belongs at the moment of consent, but this screen
+              // must fit 360x640 with no scrolling and has no spare height —
+              // a separate line overflowed it by 35px. So the links join the
+              // privacy promise that was already here, which is the same
+              // subject anyway.
+              const Expanded(child: PolicyNote()),
+            ],
+          ),
+          SizedBox(height: TackSpace.xs * gap),
+          Center(
+            child: Semantics(
+              button: true,
+              child: GestureDetector(
+                onTap: () => context.go(Routes.login),
+                behavior: HitTestBehavior.opaque,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    minHeight: TackSpace.tapTarget,
+                  ),
+                  child: Center(
+                    child: Text.rich(
+                      TextSpan(
+                        text: 'Already have an account? ',
+                        style: TackText.meta.copyWith(fontSize: 15),
+                        children: [
+                          TextSpan(
+                            text: 'Log in',
+                            style: TackText.meta.copyWith(
+                              fontSize: 15,
+                              color: TackColors.maroonText,
+                              fontWeight: FontWeight.w600,
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

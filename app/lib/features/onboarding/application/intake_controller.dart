@@ -70,6 +70,7 @@ class IntakeState {
   /// field is one property rather than an edit in two places.
   bool get canContinue {
     for (final field in step.fields) {
+      if (errorFor(field) != null) return false;
       if (!field.required) continue;
       final value = answers[field.key];
       if (value == null) return false;
@@ -79,6 +80,22 @@ class IntakeState {
       }
     }
     return true;
+  }
+
+  /// What is wrong with an answer that is there, or null. A blank optional
+  /// field is not wrong; a missing required one is [canContinue]'s concern.
+  String? errorFor(FieldSpec field) {
+    if (field.type != FieldType.number) return null;
+    final text = '${answers[field.key] ?? ''}'.trim();
+    if (text.isEmpty) return null;
+
+    final value = num.tryParse(text);
+    if (value == null) return 'Enter a number, like ${field.hint ?? '3.45'}.';
+    final max = field.max;
+    if (max != null && value > max) {
+      return 'This is out of $max. Enter $max or less.';
+    }
+    return null;
   }
 
   IntakeState copyWith({
@@ -138,9 +155,12 @@ class IntakeController extends AsyncNotifier<IntakeState> {
   void answer(String key, Object? value) {
     final current = _state;
     final next = {...current.answers, key: value};
+    final changed = current.answers[key] != value;
 
     // A field that depends on another is cleared when that other changes, so
     // switching country never leaves a city from the previous one behind.
+    // Picking the same country again is not a change: it used to wipe the
+    // city and the university as well.
     for (final step in [
       OnboardingFlow.basics,
       ...OnboardingFlow.highSchoolSteps,
@@ -148,7 +168,7 @@ class IntakeController extends AsyncNotifier<IntakeState> {
       ...OnboardingFlow.graduatedSteps,
     ]) {
       for (final field in step.fields) {
-        if (field.dependsOn == key && next[field.key] != null) {
+        if (changed && field.dependsOn == key && next[field.key] != null) {
           next.remove(field.key);
         }
       }

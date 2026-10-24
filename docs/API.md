@@ -160,8 +160,10 @@ Called by `onboarding/data/draft_repository.dart`, `vault/data/document_reposito
 | `upsert_company(raw_name text)` | `uuid` | Finds or creates a company, normalising the name so "Grameenphone Ltd." and "grameenphone" are one row. |
 | `normalise_company_name(raw text)` | `text` | The normalisation on its own. |
 | `is_valid_status_transition(from_s, to_s)` | `boolean` | Whether an application may move between two statuses. |
+| `application_checklist(p_application uuid)` | `jsonb` | `{items, next_step}` for one of the caller's applications (0082, 0083). Rules in precedence order: `APP-DATE` (saved, posting closes within 3 days), `APP-PRACTICE` (interview, no practice answered in 7 days), `APP-PREP` (interview, no prep brief), `APP-CV` (no live CV attached), `APP-JD` (a description of 80+ characters the caller has not checked, matched by `tack_text_hash`), `APP-FOLLOW` (applied, no change in 21 days). Empty for an offer or a rejection. |
 
-Called by `applications/data/application_repository.dart`.
+Called by `applications/data/application_repository.dart` and
+`applications/data/checklist_repository.dart`.
 
 ### Pure helpers
 
@@ -193,6 +195,18 @@ AI actions only when the question genuinely needs language.
 
 `answeredBy: "data"` means it cost nothing. When the allowance is gone:
 `reply: null, remaining: 0, spent: false`.
+
+A question the free rules cannot answer is looked up in Tack's own career
+guides first (`search_career_catalog`, 0085, 0086). When the top chunk names
+its path, or covers every word of the question, it is answered from that
+evidence (`coach_cited`, one AI action): `202` with a job id, and the result
+carries `citations: [{chunk_id, path_slug, path_title, quote}]`, every quote
+checked word for word against the chunk it names, and every number in the
+answer present in a kept quote. Anything else is a refusal, saved with
+`citations: []` and refunded. A question about a named kind of job the guides
+do not cover ("the salary of a marine biologist") is refused at once, free,
+also with `citations: []`. Every other question goes to the ordinary coach,
+unchanged.
 
 ### `radar`
 
@@ -231,6 +245,51 @@ re-uploading your own CV should not spend one of three daily actions.
 
 Same shape as `score-cv`. An identical description already analysed is served
 from the content-addressed cache at `200`, free.
+
+The app follows a queued job over Realtime rather than polling:
+`postgres_changes` on `jobs_queue`, `UPDATE`, filtered to `id=eq.<jobId>`
+(published in 0079). RLS decides who hears a change, the same as a select. A
+change is only a hint: the app then reads the row through the normal
+RLS-scoped query. A safety read runs every 30 seconds, every 3 seconds once
+the socket drops, and the app gives up after 12 minutes.
+
+### `cv-first-read`
+
+```json
+{ "documentId": "uuid" }
+```
+
+A first read of one of the caller's CVs: three readers — a recruiter with
+eight seconds, the hiring manager, an HR officer — read it section by section
+and each reports an interest needle per chunk, where they stopped, a one-line
+retelling, up to three phrases they remember and one change they would ask
+for. A document read before comes back `200 {status: "ready", chunks, readers,
+cached: true}` and free; otherwise `202` with a job id (one AI action). The
+worker holds the reply to the read (`_shared/cv/first_read.ts`): only the cast
+readers, needles from -2 to +2, and a phrase counts as remembered only if it is
+two or more whole words the reader reached before stopping. A file Tack cannot
+read, or a reply with no usable reader, is refunded. Stored in
+`cv_first_reads`, readable only by the owner.
+
+The free CV check (`cv-check`) also reports `long-for-phone` (more than four
+phone screens, at 38 by 14 characters a screen) and `weak-phrases` ("familiar
+with", "responsible for", …), quoting at most two lines with contact details
+removed.
+
+### `interview-prep`
+
+```json
+{ "applicationId": "uuid" }
+```
+
+An interview prep brief for an application at the interview stage (`409
+not_at_interview` otherwise). A brief built from the same inputs — the role,
+the posting, the student's skills and projects — comes back `200 {status:
+"ready", brief, cached: true}` and free. Otherwise `202` with a job id. The
+worker keeps only talking points whose evidence names one of the student's
+skills or projects as a whole word (`_shared/prep/evidence.ts`); fewer than two
+and the job ends `{skipped: "ungrounded"}` with the action refunded. Stored in
+`interview_prep_briefs`, which a student can read and not write.
 
 ### `interview`
 
@@ -297,11 +356,33 @@ Never granted to `authenticated`, and deliberately so:
   `derive_career_field`, `tack_activity`, `tack_week_summary`.
 - **Radar indexing** — `extract_listing_skills`, `reindex_listing_skills`,
   `reindex_listings`, `prune_job_listings`.
-- **Notifications** — `notify`, `enqueue_daily_digest`. `notify()` is the only
+- **Notifications** — `notify`, `enqueue_daily_digest(today)`. `notify()` is the only
   way a notification is made: it writes the in-app row *and* enqueues the push
   in one transaction, deduplicated on a key, so the phone can never announce
   something the inbox cannot show. A student who could call it could put a
   message in somebody else's inbox, so they cannot.
+- **The Monday brief** (0080, 0081) — `weekly_brief_items(user, today)` ranks
+  at most three things for one student: closing 100 (a saved application whose
+  posting closes within three days — `jobs.closes_at`, never the student's own
+  reminder), interview stage 90 (a dated next step within a week, in the
+  student's words), steps late 80, new matches 70, practice due 60 (deleted
+  sessions excluded), quiet roadmap 50, plus 5 for each extra reason on the
+  same item. Deadlines and interviews only for prove, launch and graduate. The
+  push body is the fixed "why" line; item titles, which hold what the student
+  typed, stay in the in-app payload. `enqueue_weekly_brief(dry_run = true, today, only)`
+  is a dry run unless told otherwise; `nightly_maintenance` runs it for real
+  on Mondays, before the digest, and both use the key `digest:<user>:<date>`,
+  so a student gets one of them a day. `listing_fit(user, listing)` is the
+  radar's fit for one listing; `tool/verify_weekly_brief.js` holds it to
+  `radar_feed`. The digest delivers at 09:00 Dhaka the morning it runs; before
+  0080 it asked for the morning after.
+
+- **Career guide search** (0085, 0086, 0088) — `search_career_catalog(q, k)`
+  scores `career_catalog_chunks` by the share of the question's words each
+  chunk covers, with `title_hit` when the question says a path's whole title.
+  `rebuild_career_catalog_chunks()` runs from statement triggers on
+  `career_paths` and `career_path_milestones`, under an advisory lock. Only
+  the coach endpoint calls the search.
 
 `tack_week_summary` is the cautionary one: it was granted, then revoked in
 `0047`, because it took a user id as an argument.
@@ -318,6 +399,19 @@ Fourteen trigger functions maintain invariants and are never called directly:
 ## Outbound: what Tack calls
 
 ### Job boards, via `_shared/radar/providers.ts`
+
+Bdjobs is a separate scheduled import, not a per-search provider request:
+`api.apify.com/v2/actor-tasks/<task>/runs/last?status=SUCCEEDED` and paginated
+dataset reads use server-only `APIFY_API_TOKEN` and `APIFY_BDJOBS_TASK_ID`.
+The worker's `import_bdjobs` jobs call service-only `cache_bdjobs_page(jsonb)`;
+the hourly `tack-bdjobs-import` schedule calls service-only
+`enqueue_bdjobs_import()`. Neither RPC is callable by anonymous or authenticated
+students. No paid run or student-data transmission is triggered by browsing.
+See [activation and limitations](BDJOBS_APIFY.md).
+
+The Radar feed now returns `workplace_known`, `expires_at` and
+`source_updated_at`. It excludes expired postings and Bdjobs data older than
+48 hours, and strict workplace filters exclude unknown arrangements.
 
 | Board | Key needed | Notes |
 |---|---|---|

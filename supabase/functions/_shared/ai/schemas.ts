@@ -151,6 +151,127 @@ export const cvParseShape: Shape = {
   warnings: "string[]",
 };
 
+export const prepBriefSchema = {
+  type: "object",
+  properties: {
+    talking_points: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          point: { type: "string" },
+          evidence: { type: "string" },
+        },
+        required: ["point", "evidence"],
+      },
+    },
+    likely_questions: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          question: { type: "string" },
+          why: { type: "string" },
+        },
+        required: ["question", "why"],
+      },
+    },
+    questions_to_ask: { type: "array", items: { type: "string" } },
+    gaps: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          skill: { type: "string" },
+          how_to_prepare: { type: "string" },
+        },
+        required: ["skill", "how_to_prepare"],
+      },
+    },
+  },
+  required: ["talking_points", "likely_questions", "questions_to_ask", "gaps"],
+} as const;
+
+export const prepBriefShape: Shape = {
+  talking_points: "object[]",
+  likely_questions: "object[]",
+  questions_to_ask: "string[]",
+  gaps: "object[]",
+};
+
+// No nullable fields: the Gemini schema subset handles them poorly, so a
+// reader who finished says quit_chunk 0.
+export const firstReadSchema = {
+  type: "object",
+  properties: {
+    readers: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          persona: {
+            type: "string",
+            enum: ["recruiter", "hiring_manager", "hr_officer"],
+          },
+          needle: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                chunk: { type: "integer" },
+                value: { type: "integer" },
+              },
+              required: ["chunk", "value"],
+            },
+          },
+          quit_chunk: { type: "integer" },
+          sayback: { type: "string" },
+          remembered: { type: "array", items: { type: "string" } },
+          one_action: { type: "string" },
+        },
+        required: [
+          "persona",
+          "needle",
+          "quit_chunk",
+          "sayback",
+          "remembered",
+          "one_action",
+        ],
+      },
+    },
+  },
+  required: ["readers"],
+} as const;
+
+export const firstReadShape: Shape = { readers: "object[]" };
+
+export const citedAnswerSchema = {
+  type: "object",
+  properties: {
+    answered: { type: "boolean" },
+    text: { type: "string" },
+    citations: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          chunk_id: { type: "string" },
+          quote: { type: "string" },
+        },
+        required: ["chunk_id", "quote"],
+      },
+    },
+    confidence: { type: "number" },
+  },
+  required: ["answered", "text", "citations", "confidence"],
+} as const;
+
+export const citedAnswerShape: Shape = {
+  text: "string",
+  citations: "object[]",
+  confidence: "number",
+};
+
 export const answerFeedbackShape: Shape = {
   score: "number",
   went_well: "string[]",

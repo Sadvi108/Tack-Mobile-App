@@ -89,6 +89,10 @@ Future<T?> showTackSheet<T>({
   required Widget child,
   bool isScrollControlled = true,
 }) {
+  // A sheet opened from a focused text field hands focus back to that field
+  // when it closes, and the keyboard comes up over the form again. Letting go
+  // of focus first means closing a picker leaves the keyboard closed.
+  FocusManager.instance.primaryFocus?.unfocus();
   return showModalBottomSheet<T>(
     context: context,
     isScrollControlled: isScrollControlled,
@@ -108,12 +112,28 @@ class TackSheetBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // The sheet makes room for the keyboard here, once, and its contents are
+    // told the keyboard is not there so none of them add the gap a second
+    // time. Without this every search box and text box in a sheet sat under
+    // the keyboard.
+    final keyboard = MediaQuery.viewInsetsOf(context).bottom;
+    final height = MediaQuery.sizeOf(context).height;
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: keyboard),
+      child: MediaQuery.removeViewInsets(
+        context: context,
+        removeBottom: true,
+        child: _sheet(maxHeight: (height - keyboard) * 0.82),
+      ),
+    );
+  }
+
+  Widget _sheet({required double maxHeight}) {
     return SafeArea(
       top: false,
       child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.sizeOf(context).height * 0.82,
-        ),
+        constraints: BoxConstraints(maxHeight: maxHeight),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,

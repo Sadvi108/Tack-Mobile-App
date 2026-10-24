@@ -421,11 +421,12 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
       context: context,
       title: 'Rename',
       child: Padding(
-        padding: EdgeInsets.fromLTRB(
+        // The sheet makes room for the keyboard itself (TackSheetBody).
+        padding: const EdgeInsets.fromLTRB(
           TackSpace.screen,
           0,
           TackSpace.screen,
-          MediaQuery.viewInsetsOf(context).bottom + TackSpace.xl,
+          TackSpace.xl,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
