@@ -9,7 +9,6 @@ import '../application/completeness.dart';
 import '../application/profile.dart';
 import '../application/profile_sections.dart';
 import 'skills_card.dart';
-import '../../../routing/tab_bar.dart';
 
 /// The profile.
 ///
@@ -28,7 +27,6 @@ class ProfileScreen extends ConsumerWidget {
     final mode = ref.watch(modeProvider);
     final atSchool = mode.isAtSchool;
     return TackScaffold(
-      bottomNav: const TackTabBar(current: Routes.profile),
       header: TackHeader(
         title: 'Your profile',
         // Settings rather than a sheet of two items. Documents and logging

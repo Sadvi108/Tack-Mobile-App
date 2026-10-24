@@ -187,6 +187,47 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Some sources are unavailable'), findsOneWidget);
+    expect(bodyText(tester), contains('Careerjet is not set up yet'));
+  });
+
+  testWidgets(
+    'both Bangladesh boards down names them and what is still shown',
+    (tester) async {
+      await pumpAt(
+        tester,
+        const RadarScreen(),
+        size: const Size(360, 900),
+        overrides: overrides(
+          const RadarResult(
+            listings: [],
+            problems: {
+              'jsearch': 'not configured',
+              'careerjet': 'not configured',
+              'remotive': 'http 503',
+            },
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final text = bodyText(tester);
+      expect(text, contains('Bangladesh coverage is limited right now'));
+      expect(text, contains('JSearch and Careerjet are not set up yet'));
+      expect(text, contains('Remotive could not be reached'));
+    },
+  );
+
+  testWidgets('a cache that failed to write names no board', (tester) async {
+    await pumpAt(
+      tester,
+      const RadarScreen(),
+      size: const Size(360, 900),
+      overrides: overrides(
+        const RadarResult(listings: [], problems: {'cache': 'timeout'}),
+      ),
+    );
+    await tester.pumpAndSettle();
+
     expect(bodyText(tester), contains('Some sources could not be refreshed'));
   });
 
@@ -349,32 +390,5 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(tester.takeException(), isNull);
-  });
-
-  testWidgets('the Radar tab label fits at 360px', (tester) async {
-    await pumpAt(
-      tester,
-      const RadarScreen(),
-      size: const Size(360, 900),
-      overrides: overrides(const RadarResult(listings: [])),
-    );
-    await tester.pumpAndSettle();
-
-    // Scoped to the bar: "Radar" is also the screen's own title, so an
-    // unscoped finder matches twice.
-    for (final tab in TackTabs.all) {
-      expect(
-        tester
-            .getSize(
-              find.descendant(
-                of: find.byType(TackBottomNav),
-                matching: find.text(tab.label),
-              ),
-            )
-            .width,
-        lessThanOrEqualTo(360 / 5),
-        reason: '${tab.label} is too wide',
-      );
-    }
   });
 }
