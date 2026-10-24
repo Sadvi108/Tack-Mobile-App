@@ -346,7 +346,7 @@ export function measure(text: string, opts: MeasureOptions): CvMetrics {
   };
 }
 
-function sectionOf(line: string): string | null {
+export function sectionOf(line: string): string | null {
   if (line.split(/\s+/).filter(Boolean).length > 5) return null;
   const cleaned = line.replace(/^[^a-z]*/i, "").replace(/[:\-–—\s]+$/, "");
   for (const [name, pattern] of SECTIONS) {

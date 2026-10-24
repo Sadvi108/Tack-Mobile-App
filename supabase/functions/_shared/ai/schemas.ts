@@ -199,6 +199,52 @@ export const prepBriefShape: Shape = {
   gaps: "object[]",
 };
 
+// No nullable fields: the Gemini schema subset handles them poorly, so a
+// reader who finished says quit_chunk 0.
+export const firstReadSchema = {
+  type: "object",
+  properties: {
+    readers: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          persona: {
+            type: "string",
+            enum: ["recruiter", "hiring_manager", "hr_officer"],
+          },
+          needle: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                chunk: { type: "integer" },
+                value: { type: "integer" },
+              },
+              required: ["chunk", "value"],
+            },
+          },
+          quit_chunk: { type: "integer" },
+          sayback: { type: "string" },
+          remembered: { type: "array", items: { type: "string" } },
+          one_action: { type: "string" },
+        },
+        required: [
+          "persona",
+          "needle",
+          "quit_chunk",
+          "sayback",
+          "remembered",
+          "one_action",
+        ],
+      },
+    },
+  },
+  required: ["readers"],
+} as const;
+
+export const firstReadShape: Shape = { readers: "object[]" };
+
 export const answerFeedbackShape: Shape = {
   score: "number",
   went_well: "string[]",

@@ -241,6 +241,29 @@ change is only a hint: the app then reads the row through the normal
 RLS-scoped query. A safety read runs every 30 seconds, every 3 seconds once
 the socket drops, and the app gives up after 12 minutes.
 
+### `cv-first-read`
+
+```json
+{ "documentId": "uuid" }
+```
+
+A first read of one of the caller's CVs: three readers — a recruiter with
+eight seconds, the hiring manager, an HR officer — read it section by section
+and each reports an interest needle per chunk, where they stopped, a one-line
+retelling, up to three phrases they remember and one change they would ask
+for. A document read before comes back `200 {status: "ready", chunks, readers,
+cached: true}` and free; otherwise `202` with a job id (one AI action). The
+worker holds the reply to the read (`_shared/cv/first_read.ts`): only the cast
+readers, needles from -2 to +2, and a phrase counts as remembered only if it is
+two or more whole words the reader reached before stopping. A file Tack cannot
+read, or a reply with no usable reader, is refunded. Stored in
+`cv_first_reads`, readable only by the owner.
+
+The free CV check (`cv-check`) also reports `long-for-phone` (more than four
+phone screens, at 38 by 14 characters a screen) and `weak-phrases` ("familiar
+with", "responsible for", …), quoting at most two lines with contact details
+removed.
+
 ### `interview-prep`
 
 ```json

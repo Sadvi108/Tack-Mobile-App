@@ -48,6 +48,21 @@ const schemas: Record<string, z.ZodType> = {
     model_answer: text.optional(),
   }),
   coach_chat: z.strictObject({ reply: z.string().trim().min(1).max(2000) }),
+  // Lenient on purpose: one stray reader should be dropped by recallGate
+  // (_shared/cv/first_read.ts), not sink the other two.
+  cv_first_read: z.strictObject({
+    readers: z.array(z.strictObject({
+      persona: z.string().max(100),
+      needle: z.array(z.strictObject({
+        chunk: z.number().int(),
+        value: z.number(),
+      })).max(40),
+      quit_chunk: z.number().int(),
+      sayback: z.string().max(2000),
+      remembered: z.array(z.string().max(2000)).max(10),
+      one_action: z.string().max(2000),
+    })).min(1).max(8),
+  }),
   interview_prep: z.strictObject({
     talking_points: z.array(z.strictObject({ point: label, evidence: label }))
       .max(10),

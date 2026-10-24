@@ -23,6 +23,15 @@ import { isConfigured, sendTo } from "../push/fcm.ts";
 import { readRepo } from "../verify/github.ts";
 import { findings, sortFindings } from "../cv/findings.ts";
 import { measure } from "../cv/metrics.ts";
+import { readabilityFindings } from "../cv/readability.ts";
+import {
+  chunkCv,
+  firstReadPrompt,
+  type ReadResult,
+  recallGate,
+} from "../cv/first_read.ts";
+import { FIRST_READ_SYSTEM } from "../ai/first_read_prompt.ts";
+import { firstReadSchema, firstReadShape } from "../ai/schemas.ts";
 
 export type Handler = (
   service: SupabaseClient,
@@ -406,7 +415,10 @@ export const handlers: Record<string, Handler> = {
     });
     const recognised = (skills as string[] | null) ?? [];
 
-    const list = sortFindings(findings(metrics, recognised));
+    const list = sortFindings([
+      ...findings(metrics, recognised),
+      ...readabilityFindings(extraction.text),
+    ]);
 
     await service.from("cv_checks").upsert({
       job_id: job.id,
@@ -424,6 +436,109 @@ export const handlers: Record<string, Handler> = {
       problems: list.filter((f) => f.severity === "problem").length,
       skills: recognised.length,
     };
+  },
+
+  /**
+   * Three readers go through the CV in order (`_shared/cv/first_read.ts`).
+   *
+   * One AI action. A read of this exact file already made, a file that has
+   * gone, one Tack cannot read, or a reply with no usable reader is refunded
+   * by the queue's trigger (`cached`, `skipped`, `unreadable`).
+   */
+  cv_first_read: async (service, job) => {
+    const userId = job.user_id;
+    const documentId = job.payload.document_id as string;
+    if (!userId || !documentId) {
+      throw new Error("cv_first_read needs a user and a document");
+    }
+
+    const { data: doc, error: docError } = await service
+      .from("documents")
+      .select("id, user_id, storage_path, mime_type, deleted_at")
+      .eq("id", documentId)
+      .maybeSingle();
+    // A failed read is worth a retry; only a document that is really gone
+    // ends the job (and refunds it).
+    if (docError) throw docError;
+    if (!doc || doc.user_id !== userId || doc.deleted_at) {
+      return { skipped: "document_gone" };
+    }
+    // A document's file never changes after upload — a new file is a new
+    // document — so its id is its version. documents.checksum is filled in
+    // later by score-cv, and keying on it would charge twice for one file.
+    const checksum = doc.id as string;
+
+    const { data: existing } = await service.from("cv_first_reads")
+      .select("id").eq("document_id", documentId).eq("checksum", checksum)
+      .maybeSingle();
+    if (existing) return { readId: existing.id, cached: true };
+
+    const { data: blob, error: readError } = await service.storage
+      .from("documents")
+      .download(doc.storage_path);
+    if (readError || !blob) throw new Error("storage read failed");
+
+    let extraction;
+    try {
+      extraction = await extractDocument(
+        new Uint8Array(await blob.arrayBuffer()),
+        doc.mime_type,
+      );
+    } catch (error) {
+      if (error instanceof UnreadableDocument) return { unreadable: true };
+      throw error;
+    }
+
+    // The readers see the CV with contact details taken out, and are held to
+    // that same text when they say what they remember.
+    const { text } = redact(extraction.text);
+    assertClean(text);
+    const chunks = chunkCv(text);
+    if (chunks.length === 0) return { skipped: "empty" };
+
+    const outcome = await runCompletion(
+      service,
+      userId,
+      {
+        feature: "cv_first_read",
+        system: FIRST_READ_SYSTEM,
+        user: firstReadPrompt(chunks),
+        schema: firstReadSchema,
+        temperature: 0.5,
+        // Three readers' needles, retellings and quotes are long, and this
+        // model's thinking is counted against the same budget: at the default
+        // 2048 the JSON was cut off mid-string.
+        thinking: "low",
+        maxOutputTokens: 8192,
+      },
+      firstReadShape,
+      ["readers"],
+      { consumeQuota: false },
+    );
+    const { readers, dropped } = recallGate(
+      outcome.data as ReadResult,
+      chunks,
+    );
+    if (readers.length === 0) return { skipped: "no_readers" };
+
+    const outline = chunks.map((c) => ({
+      index: c.index,
+      section: c.section,
+      words: c.words,
+    }));
+    const { data: saved, error } = await service.from("cv_first_reads")
+      .upsert({
+        user_id: userId,
+        document_id: documentId,
+        checksum,
+        chunks: outline,
+        readers,
+        job_id: job.id,
+      }, { onConflict: "document_id,checksum" })
+      .select("id").single();
+    if (error) throw error;
+
+    return { readId: saved.id, chunks: outline, readers, dropped };
   },
 
   /**

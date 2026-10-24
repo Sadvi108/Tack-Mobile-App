@@ -247,6 +247,46 @@ function mockFixture(feature: string, input: string): unknown {
           "Name the situation in one sentence, spend most of the answer on what you " +
           "personally did, and finish with the outcome.",
       };
+    case "cv_first_read": {
+      // Quotes the first line of real chunks, so the recall gate keeps them
+      // and the mock runs the same path the real model does.
+      const chunks = [
+        ...input.matchAll(/^CHUNK (\d+)\/\d+ — [^\n]*\n([^\n]+)/gm),
+      ];
+      const n = Math.max(1, chunks.length);
+      const line = (i: number) =>
+        (chunks[Math.min(i, chunks.length - 1)]?.[2] ?? "").slice(0, 60);
+      const needle = (shape: (i: number) => number) =>
+        chunks.map((_, i) => ({ chunk: i + 1, value: shape(i) }));
+      return {
+        readers: [
+          {
+            persona: "recruiter",
+            needle: needle((i) => (i === 0 ? 1 : -1)),
+            quit_chunk: Math.min(2, n),
+            sayback: "A student with some skills and a project or two.",
+            remembered: [line(0)],
+            one_action: "Put your strongest result in the first two lines.",
+          },
+          {
+            persona: "hiring_manager",
+            needle: needle((i) => (i === n - 1 ? 2 : 0)),
+            quit_chunk: 0,
+            sayback: "Someone who has built a few things on their own.",
+            remembered: [line(n - 1)],
+            one_action: "Give every project one number that shows its size.",
+          },
+          {
+            persona: "hr_officer",
+            needle: needle(() => 0),
+            quit_chunk: 0,
+            sayback: "A tidy CV from a current student.",
+            remembered: [line(1)],
+            one_action: "Give every role a start and an end month.",
+          },
+        ],
+      };
+    }
     case "interview_prep": {
       // Backed by whatever skills the prompt lists, so the evidence gate keeps
       // these and the mock exercises the same path the real model does.
