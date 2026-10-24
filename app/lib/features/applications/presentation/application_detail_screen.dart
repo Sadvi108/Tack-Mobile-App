@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -6,10 +8,14 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/failure.dart';
 import '../../../design/tack.dart';
 import '../../../routing/router.dart';
+import '../../analyser/application/analyser_controller.dart';
 import '../../score/data/score_repository.dart';
+import '../application/checklist.dart';
 import '../data/application_models.dart';
 import '../data/application_repository.dart';
 import '../data/status_machine.dart';
+import 'checklist_card.dart';
+import 'prep_brief_card.dart';
 
 final _detailProvider = FutureProvider.family<JobApplication?, String>((
   ref,
@@ -38,7 +44,11 @@ class ApplicationDetailScreen extends ConsumerWidget {
     final history =
         ref.watch(_historyProvider(id)).value ?? const <StatusChange>[];
 
+    // Every edit here reloads the list this reads from. Showing the skeleton
+    // for that would also unwatch the checklist, which is thrown away and
+    // comes back empty, so the screen stays as it was until the read lands.
     return applicationAsync.when(
+      skipLoadingOnReload: true,
       loading: () => TackScaffold(
         header: TackHeader(
           title: 'Application',
@@ -163,6 +173,8 @@ class ApplicationDetailScreen extends ConsumerWidget {
               ),
               const SizedBox(height: TackSpace.stackLoose),
 
+              ..._checklistSection(context, ref, application),
+
               _NextActionCard(
                 application: application,
                 onEdit: () => _editNext(context, ref, application),
@@ -206,7 +218,166 @@ class ApplicationDetailScreen extends ConsumerWidget {
       ..invalidate(applicationCountsProvider)
       ..invalidate(upcomingApplicationsProvider)
       ..invalidate(_historyProvider(id))
+      ..invalidate(checklistProvider(id))
       ..invalidate(readinessProvider);
+  }
+
+  /// The checklist (0082) and, at the interview stage, the prep brief.
+  List<Widget> _checklistSection(
+    BuildContext context,
+    WidgetRef ref,
+    JobApplication application,
+  ) {
+    final checklist = ref.watch(checklistProvider(application.id)).value;
+    return [
+      if (checklist != null && !checklist.isEmpty) ...[
+        ChecklistCard(
+          checklist: checklist,
+          onAction: (item) => _onChecklist(context, ref, application, item),
+        ),
+        const SizedBox(height: TackSpace.stackLoose),
+      ],
+      if (application.status == TackStatus.interview) ...[
+        PrepBriefCard(
+          brief: ref.watch(prepBriefProvider(application.id)).value,
+          busy: ref.watch(prepRequestProvider(application.id)),
+          onRequest: () => _requestPrep(context, ref, application),
+        ),
+        const SizedBox(height: TackSpace.stackLoose),
+      ],
+    ];
+  }
+
+  Future<void> _onChecklist(
+    BuildContext context,
+    WidgetRef ref,
+    JobApplication application,
+    ChecklistItem item,
+  ) async {
+    switch (item.action) {
+      case ChecklistAction.openJob:
+        final url = application.sourceUrl;
+        if (url == null) {
+          TackToast.show(
+            context,
+            message:
+                'This application has no listing link. Send it from '
+                'wherever you found it.',
+          );
+          return;
+        }
+        await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+      case ChecklistAction.practise:
+        await context.push(Routes.interview);
+        ref.invalidate(checklistProvider(application.id));
+      case ChecklistAction.prep:
+        await _requestPrep(context, ref, application);
+      case ChecklistAction.attachCv:
+        await _attachCv(context, ref, application);
+      case ChecklistAction.analyse:
+        await _analyse(context, ref, application);
+      case ChecklistAction.followUp:
+        await _editNext(context, ref, application);
+    }
+  }
+
+  Future<void> _requestPrep(
+    BuildContext context,
+    WidgetRef ref,
+    JobApplication application,
+  ) async {
+    final problem = await ref
+        .read(prepRequestProvider(application.id).notifier)
+        .request();
+    if (problem != null && context.mounted) {
+      TackToast.show(context, message: problem, kind: TackToastKind.error);
+    }
+  }
+
+  Future<void> _attachCv(
+    BuildContext context,
+    WidgetRef ref,
+    JobApplication application,
+  ) async {
+    try {
+      final options = await ref.read(checklistRepositoryProvider).cvOptions();
+      if (!context.mounted) return;
+      if (options.isEmpty) {
+        TackToast.show(
+          context,
+          message: 'Add a CV to your vault first, then attach it here.',
+        );
+        return;
+      }
+      final picked = await showTackSheet<CvOption>(
+        context: context,
+        title: 'Which CV?',
+        child: Builder(
+          builder: (sheetContext) => Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (final cv in options)
+                TackTapRow(
+                  onTap: () => Navigator.of(sheetContext).pop(cv),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: TackSpace.screen,
+                    vertical: 14,
+                  ),
+                  child: Text(cv.title, style: TackText.rowTitle),
+                ),
+              const SizedBox(height: TackSpace.lg),
+            ],
+          ),
+        ),
+      );
+      if (picked == null) return;
+      await ref.read(applicationRepositoryProvider).update(application.id, {
+        'cv_document_id': picked.id,
+      });
+      _refresh(ref);
+    } catch (e) {
+      if (context.mounted) {
+        TackToast.show(
+          context,
+          message: Failure.from(e).message,
+          kind: TackToastKind.error,
+        );
+      }
+    }
+  }
+
+  /// Checks this posting's own description, linked to the job, so the
+  /// checklist can tell afterwards that it was done.
+  Future<void> _analyse(
+    BuildContext context,
+    WidgetRef ref,
+    JobApplication application,
+  ) async {
+    try {
+      final job = await ref
+          .read(checklistRepositoryProvider)
+          .jobOf(application.id);
+      final text = job.description?.trim() ?? '';
+      // The analyser needs a real description; the server refuses less.
+      if (text.length >= 80) {
+        unawaited(
+          ref
+              .read(analyserControllerProvider.notifier)
+              .analyse(text, jobId: job.jobId),
+        );
+      }
+      if (!context.mounted) return;
+      await context.push(Routes.analyser);
+      ref.invalidate(checklistProvider(application.id));
+    } catch (e) {
+      if (context.mounted) {
+        TackToast.show(
+          context,
+          message: Failure.from(e).message,
+          kind: TackToastKind.error,
+        );
+      }
+    }
   }
 
   Future<void> _move(

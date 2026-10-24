@@ -236,7 +236,7 @@ const ANY_DATE =
 const DATE_LIKE =
   /\b(?:19|20)\d{2}\b|\b\d{1,2}\s*[\/-]\s*\d{1,2}(\s*[\/-]\s*\d{2,4})?\b/g;
 
-const BULLET_GLYPH = /^[•‣▪●·⁃\-\*–—>\s]+/;
+export const BULLET_GLYPH = /^[•‣▪●·⁃\-\*–—>\s]+/;
 
 export interface MeasureOptions {
   pages: number;
@@ -346,7 +346,7 @@ export function measure(text: string, opts: MeasureOptions): CvMetrics {
   };
 }
 
-function sectionOf(line: string): string | null {
+export function sectionOf(line: string): string | null {
   if (line.split(/\s+/).filter(Boolean).length > 5) return null;
   const cleaned = line.replace(/^[^a-z]*/i, "").replace(/[:\-–—\s]+$/, "");
   for (const [name, pattern] of SECTIONS) {

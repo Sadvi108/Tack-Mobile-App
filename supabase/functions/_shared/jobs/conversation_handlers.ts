@@ -5,7 +5,20 @@ import {
   answerFeedbackSchema,
   answerFeedbackShape,
   interviewQuestionsSchema,
+  prepBriefSchema,
+  prepBriefShape,
 } from "../ai/schemas.ts";
+import { PREP_SYSTEM } from "../ai/prep_prompt.ts";
+import { citedAnswerSchema, citedAnswerShape } from "../ai/schemas.ts";
+import {
+  CITED_SYSTEM,
+  type CitedAnswer,
+  citedPrompt,
+  type Evidence,
+  validateCitations,
+} from "../coach/cited.ts";
+import { loadPrepInputs, prepHash, prepPrompt } from "../prep/inputs.ts";
+import { groundBrief, isGrounded, type PrepBrief } from "../prep/evidence.ts";
 
 export const conversationHandlers: Record<string, Handler> = {
   coach_reply: async (service, job) => {
@@ -139,5 +152,128 @@ export const conversationHandlers: Record<string, Handler> = {
     });
     if (error) throw error;
     return { feedback, quotaRemaining: outcome.remaining };
+  },
+  /**
+   * A career question answered from Tack's guides, with every quote checked
+   * against the chunk it cites. An answer the evidence cannot carry becomes a
+   * refusal, saved as the reply and refunded (`skipped`).
+   */
+  coach_cited: async (service, job) => {
+    if (!job.user_id) throw new Error("user_required");
+    const threadId = job.payload.thread_id as string;
+    const evidence = (job.payload.evidence ?? []) as Evidence[];
+
+    const { data: previous } = await service.from("chat_messages")
+      .select("body, citations").eq("job_id", job.id).eq("role", "coach")
+      .eq("user_id", job.user_id).maybeSingle();
+    if (previous) {
+      // A retry after the reply was saved. A saved refusal (no citations) is
+      // still a refusal, and still refunded.
+      const cited = (previous.citations ?? []) as unknown[];
+      return {
+        threadId,
+        reply: previous.body,
+        citations: cited,
+        answeredBy: "model",
+        spent: cited.length > 0,
+        remaining: await quotaRemaining(service, job.user_id),
+        ...(cited.length > 0 ? {} : { skipped: "ungrounded" }),
+      };
+    }
+
+    const outcome = await runCompletion(
+      service,
+      job.user_id,
+      {
+        feature: "coach_cited",
+        system: CITED_SYSTEM,
+        user: citedPrompt(job.payload.question as string, evidence),
+        schema: citedAnswerSchema,
+        temperature: 0.2,
+        thinking: "low",
+        maxOutputTokens: 2048,
+      },
+      citedAnswerShape,
+      ["answered", "text", "citations"],
+      { consumeQuota: false },
+    );
+    const checked = validateCitations(outcome.data as CitedAnswer, evidence);
+
+    const { error } = await service.from("chat_messages").upsert({
+      job_id: job.id,
+      thread_id: threadId,
+      user_id: job.user_id,
+      role: "coach",
+      body: checked.text,
+      answered_by: "model",
+      // [] for a refusal: the app shows it as the guides finding nothing,
+      // which cost nothing, rather than as a paid answer.
+      citations: checked.citations,
+    }, { onConflict: "job_id,role" });
+    if (error) throw error;
+
+    return {
+      threadId,
+      reply: checked.text,
+      citations: checked.citations,
+      answeredBy: "model",
+      spent: checked.answered,
+      remaining: await quotaRemaining(service, job.user_id),
+      ...(checked.answered ? {} : { skipped: "ungrounded" }),
+    };
+  },
+  /**
+   * The interview prep brief. A result with `cached` or `skipped` in it is
+   * refunded by the queue's trigger, so a brief the student already has, or
+   * one the evidence gate would not stand behind, costs them nothing.
+   */
+  interview_prep: async (service, job) => {
+    if (!job.user_id) throw new Error("user_required");
+    const applicationId = job.payload.application_id as string;
+    const inputs = await loadPrepInputs(service, job.user_id, applicationId);
+    if (!inputs) return { skipped: "not_at_interview" };
+    const hash = await prepHash(inputs);
+
+    const { data: existing } = await service.from("interview_prep_briefs")
+      .select("id, brief").eq("application_id", applicationId)
+      .eq("input_hash", hash).eq("user_id", job.user_id).maybeSingle();
+    if (existing) {
+      return { briefId: existing.id, brief: existing.brief, cached: true };
+    }
+
+    const outcome = await runCompletion(
+      service,
+      job.user_id,
+      {
+        feature: "interview_prep",
+        system: PREP_SYSTEM,
+        user: prepPrompt(inputs),
+        schema: prepBriefSchema,
+        temperature: 0.4,
+        // Room for the model's thinking and four lists, which the default
+        // 2048 shares between them.
+        maxOutputTokens: 4096,
+      },
+      prepBriefShape,
+      ["talking_points", "likely_questions", "questions_to_ask", "gaps"],
+      { consumeQuota: false },
+    );
+    const { brief, dropped } = groundBrief(outcome.data as PrepBrief, {
+      skills: inputs.skills,
+      projects: inputs.projects.map((p) => p.title),
+    });
+    if (!isGrounded(brief)) return { skipped: "ungrounded", dropped };
+
+    const { data: saved, error } = await service.from("interview_prep_briefs")
+      .upsert({
+        user_id: job.user_id,
+        application_id: applicationId,
+        input_hash: hash,
+        brief,
+        job_id: job.id,
+      }, { onConflict: "application_id,input_hash" })
+      .select("id").single();
+    if (error) throw error;
+    return { briefId: saved.id, brief, dropped };
   },
 };

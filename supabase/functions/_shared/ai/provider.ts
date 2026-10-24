@@ -247,6 +247,94 @@ function mockFixture(feature: string, input: string): unknown {
           "Name the situation in one sentence, spend most of the answer on what you " +
           "personally did, and finish with the outcome.",
       };
+    case "coach_cited": {
+      // Quotes the first piece of evidence word for word, so the citation
+      // check keeps it and the mock exercises the real path.
+      const first = input.match(/^\[([^\]]+)\] \([^)]*\) (.+)$/m);
+      if (!first) {
+        return { answered: false, text: "", citations: [], confidence: 0 };
+      }
+      const quote = first[2].slice(0, 40).trim();
+      return {
+        answered: true,
+        text: `From Tack's guide: ${quote}.`,
+        citations: [{ chunk_id: first[1], quote }],
+        confidence: 0.7,
+      };
+    }
+    case "cv_first_read": {
+      // Quotes the first line of real chunks, so the recall gate keeps them
+      // and the mock runs the same path the real model does.
+      const chunks = [
+        ...input.matchAll(/^CHUNK (\d+)\/\d+ — [^\n]*\n([^\n]+)/gm),
+      ];
+      const n = Math.max(1, chunks.length);
+      const line = (i: number) =>
+        (chunks[Math.min(i, chunks.length - 1)]?.[2] ?? "").slice(0, 60);
+      const needle = (shape: (i: number) => number) =>
+        chunks.map((_, i) => ({ chunk: i + 1, value: shape(i) }));
+      return {
+        readers: [
+          {
+            persona: "recruiter",
+            needle: needle((i) => (i === 0 ? 1 : -1)),
+            quit_chunk: Math.min(2, n),
+            sayback: "A student with some skills and a project or two.",
+            remembered: [line(0)],
+            one_action: "Put your strongest result in the first two lines.",
+          },
+          {
+            persona: "hiring_manager",
+            needle: needle((i) => (i === n - 1 ? 2 : 0)),
+            quit_chunk: 0,
+            sayback: "Someone who has built a few things on their own.",
+            remembered: [line(n - 1)],
+            one_action: "Give every project one number that shows its size.",
+          },
+          {
+            persona: "hr_officer",
+            needle: needle(() => 0),
+            quit_chunk: 0,
+            sayback: "A tidy CV from a current student.",
+            remembered: [line(1)],
+            one_action: "Give every role a start and an end month.",
+          },
+        ],
+      };
+    }
+    case "interview_prep": {
+      // Backed by whatever skills the prompt lists, so the evidence gate keeps
+      // these and the mock exercises the same path the real model does.
+      const listed = input.match(/^Your skills: (.+)$/m)?.[1] ?? "";
+      const skills = listed === "None listed"
+        ? []
+        : listed.split(", ").filter(Boolean);
+      return {
+        talking_points: skills.slice(0, 3).map((s) => ({
+          point: `You can bring ${s} to this role from day one`,
+          evidence: `You list ${s} on your profile`,
+        })),
+        likely_questions: [
+          {
+            question: "Tell me about a project you are proud of.",
+            why: "Almost every first interview opens with it.",
+          },
+          {
+            question: "Why do you want to work here?",
+            why: "They want to know you read about them.",
+          },
+        ],
+        questions_to_ask: [
+          "What would my first month look like?",
+          "How will you know I am doing well?",
+        ],
+        gaps: [{
+          skill: "Presenting",
+          how_to_prepare:
+            "Say a two-minute summary of your best project out loud.",
+        }],
+      };
+    }
     default:
       return { echo: input.slice(0, 120) };
   }

@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/failure.dart';
 import '../../../design/tack.dart';
 import '../../../routing/router.dart';
 import '../data/coach_models.dart';
 import '../data/coach_repository.dart';
+import 'guide_citations.dart';
 
 /// The coach.
 ///
@@ -82,6 +84,8 @@ class _CoachScreenState extends ConsumerState<CoachScreen> {
               body: reply.body!,
               createdAt: DateTime.now(),
               answeredBy: reply.answeredBy,
+              citations: reply.citations,
+              fromGuides: reply.fromGuides,
             ),
           );
         }
@@ -318,12 +322,22 @@ class _Bubble extends StatelessWidget {
                 ),
               ),
             ),
+            if (!student && message.isGrounded) ...[
+              const SizedBox(height: TackSpace.sm),
+              GuideCitations(
+                guides: message.guides,
+                onOpen: (slug) => context.push(Routes.path(slug)),
+              ),
+            ],
             // Said on every reply, so a student can learn which questions are
             // free without reading documentation.
             if (!student && message.answeredBy != null) ...[
               const SizedBox(height: 5),
               Text(
-                message.wasFree
+                message.guideRefusal
+                    // Refused before a model was asked, or refunded after.
+                    ? "Tack's career guides · nothing used"
+                    : message.wasFree
                     ? 'From your own numbers · free'
                     // Deliberately no number. It said "one of your three" when
                     // the allowance was ten, which is how a caption becomes a

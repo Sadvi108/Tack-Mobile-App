@@ -4,6 +4,7 @@ import '../../../core/failure.dart';
 import '../../../design/tack.dart';
 import '../../../routing/router.dart';
 import '../application/cv_check.dart';
+import 'first_read_card.dart';
 
 class CvCheckScreen extends ConsumerWidget {
   const CvCheckScreen({super.key, required this.documentId});
@@ -27,6 +28,15 @@ class CvCheckScreen extends ConsumerWidget {
           kind: TackToastKind.error,
         );
       }
+    }
+  }
+
+  Future<void> _firstRead(BuildContext context, WidgetRef ref) async {
+    final problem = await ref
+        .read(firstReadRequestProvider(documentId).notifier)
+        .request();
+    if (problem != null && context.mounted) {
+      TackToast.show(context, message: problem, kind: TackToastKind.error);
     }
   }
 
@@ -99,6 +109,12 @@ class CvCheckScreen extends ConsumerWidget {
                   ),
                 ),
               ],
+              const SizedBox(height: TackSpace.xl),
+              FirstReadCard(
+                read: ref.watch(firstReadProvider(documentId)).value,
+                busy: ref.watch(firstReadRequestProvider(documentId)),
+                onRequest: () => _firstRead(context, ref),
+              ),
               const SizedBox(height: TackSpace.xl),
               Text(
                 'Optional AI reading extracts skills from your CV. It uses one daily action when the file has not been read before. Your score is calculated by rules.',

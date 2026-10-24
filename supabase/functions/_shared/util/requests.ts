@@ -18,6 +18,7 @@ export const questionsRequest = z.strictObject({
   difficulty: z.enum(["easy", "medium", "hard"]).default("medium"),
   count: z.number().int().min(3).max(10).default(5),
 });
+export const prepRequest = z.strictObject({ applicationId: id });
 export const evaluateRequest = z.strictObject({
   questionId: id,
   answer: z.string().trim().min(20).max(10000),

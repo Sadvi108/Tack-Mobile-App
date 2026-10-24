@@ -24,11 +24,13 @@ class AnalysisRepository {
     return id;
   }
 
-  Future<AnalysisState> submit(String text) async {
+  /// [jobId] links the analysis to a saved job, so the application checklist
+  /// can tell this posting has been checked.
+  Future<AnalysisState> submit(String text, {String? jobId}) async {
     try {
       final response = await _db.functions.invoke(
         'analyze-jd',
-        body: {'text': text},
+        body: {'text': text, 'jobId': ?jobId},
       );
       final body = (response.data as Map?)?.cast<String, dynamic>() ?? const {};
 

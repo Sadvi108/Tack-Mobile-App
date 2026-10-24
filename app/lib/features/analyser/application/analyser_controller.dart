@@ -65,12 +65,14 @@ class AnalyserController extends Notifier<AnalysisState> {
     state = const AnalysisIdle();
   }
 
-  Future<void> analyse(String text) async {
+  Future<void> analyse(String text, {String? jobId}) async {
     _stopFollowing();
     state = const AnalysisQueued(null);
 
     try {
-      final result = await ref.read(analysisRepositoryProvider).submit(text);
+      final result = await ref
+          .read(analysisRepositoryProvider)
+          .submit(text, jobId: jobId);
       state = result;
       // Quota is spent on submission, so refresh the count either way.
       ref.invalidate(aiAllowanceProvider);

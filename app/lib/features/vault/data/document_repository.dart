@@ -10,6 +10,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/failure.dart';
 import '../../../core/supabase/client.dart';
 import 'document_models.dart';
+import 'first_read_models.dart';
 
 /// Uploads the bytes and reports how far along it is.
 ///
@@ -244,6 +245,72 @@ class DocumentRepository {
       throw const Failure('Your check is still saved. Come back shortly.');
     }
     return result;
+  }
+
+  /// The newest first read of this CV, or null if there is none yet.
+  Future<FirstRead?> latestFirstRead(String documentId) async {
+    try {
+      final row = await _db
+          .from('cv_first_reads')
+          .select('chunks, readers')
+          .eq('user_id', _uid)
+          .eq('document_id', documentId)
+          .order('created_at', ascending: false)
+          .limit(1)
+          .maybeSingle();
+      return FirstRead.fromJson(row);
+    } catch (e) {
+      throw Failure.from(e);
+    }
+  }
+
+  /// Asks three readers to read this CV and waits for them. The same file
+  /// read before comes straight back and costs nothing.
+  Future<FirstRead> requestFirstRead(String documentId) async {
+    try {
+      final response = await _db.functions.invoke(
+        'cv-first-read',
+        body: {'documentId': documentId},
+      );
+      final data = response.data;
+      if (data is! Map) {
+        throw const Failure('The read could not be started. Try again.');
+      }
+      final body = data.cast<String, dynamic>();
+      final result = body['status'] == 'ready' || jobs == null
+          ? body
+          : await jobs!.resolve(body);
+
+      if (result['unreadable'] == true) {
+        throw const Failure(
+          'Tack could not read this file. Try a PDF or a Word file. Your AI '
+          'action was returned.',
+        );
+      }
+      final read =
+          FirstRead.fromJson(result) ?? await latestFirstRead(documentId);
+      if (read == null) {
+        throw const Failure(
+          'The readers could not finish. Your AI action was returned. Try '
+          'again.',
+        );
+      }
+      return read;
+    } on FunctionException catch (e) {
+      final details = e.details;
+      final message = details is Map && details['error'] is Map
+          ? (details['error'] as Map)['message']
+          : null;
+      throw Failure(
+        message is String
+            ? message
+            : e.status == 429
+            ? 'You have used today\'s AI actions. They reset at midnight.'
+            : 'The read could not be started. Try again.',
+      );
+    } catch (e) {
+      throw Failure.from(e);
+    }
   }
 
   /// A short-lived link to read one file.
