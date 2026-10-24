@@ -93,7 +93,8 @@ Multi-board:
 2. Apply unapplied migrations in order. Earlier `0090`/`0091` add the Bdjobs
    infrastructure. New `0092_linkedin_source.sql` commits the LinkedIn enum
    before `0093_apify_job_sources.sql` adds the shared service-only cache RPC
-   and feed update. Applied migrations remain unchanged.
+   and feed update. `0094_radar_cache_freshness.sql` extends the 48-hour
+   last-observed rule to every provider. Applied migrations remain unchanged.
 3. Deploy `worker`, `radar` and updated `policies` using [DEPLOY.md](DEPLOY.md).
    Install an updated app build for the LinkedIn label and availability copy.
 4. Complete one successful collection, then let the hourly import schedule
@@ -127,15 +128,15 @@ onsite. The feed excludes expired postings and snapshots older than 48 hours.
 ## Validation and remaining gates
 
 `flutter analyze` and backend type/format/lint checks pass. **558 Flutter tests,
-172 backend tests and 13 temporary SQL checks** passed. The SQL verifier
+172 backend tests and 16 temporary SQL checks** passed. The SQL verifier
 (`node tool/verify_bdjobs_db.js`) rolls back all fixtures/temporary objects;
 it does not apply migrations, change cron or modify production records.
 
 ## Supabase deployment — 25 October 2026
 
 Applied migrations `0090`–`0093` to production project
-`uvwmjeqymychlsybekxz`; all 93 repository migrations are now recorded. The
-updated functions are active: `worker` v17, `radar` v8 and `policies` v2.
+`uvwmjeqymychlsybekxz`; all 94 repository migrations are now recorded after
+the freshness fix below. The updated functions are active: `worker` v17, `radar` v8 and `policies` v2.
 All retain `verify_jwt=false`; worker checks the cron secret internally and
 Radar validates the signed-in user. The hourly
 `tack-bdjobs-import` cron is active at minute 12; the existing worker cron runs
@@ -146,7 +147,7 @@ Verified against production:
 
 - All public tables retain enabled and forced RLS. Import/cache RPCs are
   service-only; no application RPC is executable by `anon`. The RPC surface
-  verifier and all 13 rolled-back SQL contract checks pass.
+  verifier and all 16 rolled-back SQL contract checks pass.
 - The actual deployed cache RPC, real skill indexing and feed RPC passed a
   rolled-back fixture test; no synthetic vacancy remains in production.
 - An isolated import job was processed by the normal cron worker and finished
@@ -169,3 +170,25 @@ requirements, not missing Supabase migrations. Set secrets through the
 then complete and verify a bounded real collection before claiming live coverage.
 An updated mobile build and physical-device acceptance also remain required.
 Missing setup is not evidence that no jobs exist.
+
+
+## iOS verification and cache fix
+
+The updated app built successfully and was launched from Xcode on an iPhone
+17e with iOS 26.5. Radar loaded existing provider postings and the limited
+Bangladesh coverage notice. Testing an external posting found a Remotive job
+whose source page was archived; its cache row had not been observed since
+20 September. The old freshness rule only covered Bdjobs/LinkedIn.
+
+Append-only migration `0094_radar_cache_freshness.sql` now applies the same
+48-hour last-observed rule to every provider. This changes discovery only;
+cached records and saved applications remain intact. An older publication date
+is allowed when a source has recently confirmed the posting. All **16**
+rolled-back SQL checks passed, including stale rows from every other provider,
+recently confirmed older postings, and explicit expiry. Migration `0094` was
+applied to production and the RPC surface checks passed again.
+
+Apify remains unconfigured. Device testing of the available providers does not
+establish live Bdjobs/LinkedIn coverage. See
+[Radar iOS verification](RADAR_IOS_VERIFICATION_2026-10-25.md) for the device
+checks and limitations.

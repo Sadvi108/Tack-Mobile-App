@@ -26,7 +26,7 @@ const assert = (condition, message) => {
     await pg.query('create temporary table job_listing_skills (like public.job_listing_skills including all)');
     await pg.query('create temporary table jobs_queue (like public.jobs_queue including all)');
     await pg.query('create function pg_temp.reindex_listings(uuid[]) returns int language sql as $$select 0$$');
-    for (const migration of ['0091_bdjobs_import.sql', '0093_apify_job_sources.sql']) {
+    for (const migration of ['0091_bdjobs_import.sql', '0093_apify_job_sources.sql', '0094_radar_cache_freshness.sql']) {
       let sql = fs.readFileSync(path.join(__dirname, '..', 'supabase', 'migrations', migration), 'utf8');
       sql = sql.replace(/select cron\.schedule\('tack-bdjobs-import'[\s\S]*?'select public\.enqueue_bdjobs_import\(\)'\);/, '');
       // Shadow tables may clone columns already deployed in production.
@@ -79,6 +79,29 @@ const assert = (condition, message) => {
     try { await put([{ ...rows[0], source: 'aijobs' }]); } catch { refused = true; }
     await pg.query('rollback to savepoint invalid_source');
     assert(refused, 'shared importer refuses sources outside its allow-list');
+    // Live iOS testing found an archived Remotive posting last seen a month
+    // earlier. The same stale-cache rule must cover every provider, while
+    // preserving older postings a source has actually confirmed recently.
+    const otherSources = existing.filter(source => !['bdjobs', 'linkedin'].includes(source));
+    const staleOtherRows = otherSources.map((source, i) => ({
+      ...rows[0], source, external_id: `stale-other-${i}`, last_seen_at: stale,
+      title: `Zqbdtest stale ${source}`,
+    }));
+    await pg.query(`insert into pg_temp.job_listings
+      (source,external_id,title,company_name,location,is_remote,workplace_known,url,apply_url,expires_at,last_seen_at)
+      select source,external_id,title,company_name,location,is_remote,workplace_known,url,apply_url,expires_at,last_seen_at
+      from jsonb_to_recordset($1::jsonb) as r(source pg_temp.radar_source,external_id text,title text,
+        company_name text,location text,is_remote boolean,workplace_known boolean,url text,apply_url text,
+        expires_at timestamptz,last_seen_at timestamptz)`, [JSON.stringify(staleOtherRows)]);
+    assert(!(await feed(null)).some(row => row.title.startsWith('Zqbdtest stale ')), 'stale cache rows are hidden for every other provider');
+    await pg.query(`insert into pg_temp.job_listings
+      (source,external_id,title,location,is_remote,workplace_known,url,posted_at,last_seen_at)
+      values ('remotive','older-still-open','Zqbdtest older still open','Fixturecity',true,true,
+        'https://remotive.com/remote-jobs/data/example-1',now()-interval '90 days',now())`);
+    assert((await feed(null)).some(row => row.title === 'Zqbdtest older still open'), 'recently confirmed postings remain visible regardless of publication age');
+    await pg.query(`update pg_temp.job_listings set expires_at=now()-interval '1 second'
+      where external_id='older-still-open' and source='remotive'`);
+    assert(!(await feed(null)).some(row => row.title === 'Zqbdtest older still open'), 'explicit expiry also hides other provider postings');
     console.log('SQL checks complete; rolling back all temporary objects and fixtures.');
   } finally {
     await pg.query('rollback');

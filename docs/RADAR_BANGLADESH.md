@@ -88,3 +88,13 @@ Provider tests use network fixtures, including an explicit false work-location
 flag, malformed rows, missing configuration, rate limiting, and concurrent
 request reuse. Flutter tests exercise combined filters, location selection,
 pagination, save feedback, and the minimum phone viewport.
+
+
+## iOS check — 25 October 2026
+
+The app was built and launched through Xcode on iPhone 17e/iOS 26.5. Existing
+providers returned postings and the missing Bangladesh coverage notice. An
+archived posting exposed a stale-cache bug; deployed migration `0094` now hides
+rows from every provider after 48 hours without a new source observation.
+Publication age alone does not hide a recently confirmed role, and saved
+applications are preserved. See [device verification](RADAR_IOS_VERIFICATION_2026-10-25.md).

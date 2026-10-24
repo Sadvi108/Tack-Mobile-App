@@ -101,6 +101,7 @@ label behavior. The steps below also describe setup for another environment.
    node tool/migrate.js 0091_bdjobs_import
    node tool/migrate.js 0092_linkedin_source
    node tool/migrate.js 0093_apify_job_sources
+   node tool/migrate.js 0094_radar_cache_freshness
    ```
 
    `0090` commits the enum value before `0091` uses it. `0091` adds cache
@@ -159,6 +160,10 @@ flutter test
 ```
 
 Current checks: **558 Flutter tests**, **172 backend tests**, clean
-Flutter analysis/backend type checks/format/lint, and **13 temporary SQL
+Flutter analysis/backend type checks/format/lint, and **16 temporary SQL
 contract checks** passed. Real paid collection and deployed end-to-end import
 remain activation gates requiring the configured token/task.
+
+The iOS verification also found stale rows from older providers. Migration
+`0094` now applies the same last-observed freshness rule to every provider. See
+[device verification](RADAR_IOS_VERIFICATION_2026-10-25.md).

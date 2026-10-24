@@ -419,8 +419,9 @@ never start a paid collection. Other boards and non-Bangladesh rows from the
 multi-board Actor are not accepted into this import.
 
 The Radar feed now returns `workplace_known`, `expires_at` and
-`source_updated_at`. It excludes expired postings and Bdjobs data older than
-48 hours, and strict workplace filters exclude unknown arrangements.
+`source_updated_at`. It excludes expired postings and listings from every source
+that have not been observed for 48 hours. Strict workplace filters exclude
+unknown arrangements.
 
 | Board | Key needed | Notes |
 |---|---|---|

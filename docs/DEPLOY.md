@@ -13,8 +13,8 @@ and integration configuration checks; a passing preflight does not replace the
 device and operations acceptance gates in that review.
 
 **Bangladesh job backend — 25 October 2026:** migrations `0090`–`0093`
-are applied to production (93 total). The worker and privacy functions are
-updated, the service-only cache RPC is installed, and the hourly import cron is
+are applied to production. The device check also found stale cached postings;
+`0094` now enforces 48-hour source freshness for all providers (94 total). The worker and privacy functions are updated, the service-only cache RPC is installed, and the hourly import cron is
 active. See the [Apify integration](APIFY_BANGLADESH_JOBS.md) for current
 function versions, deployment verification and remaining activation gates.
 Apify credentials and dedicated saved search tasks still need configuration;
