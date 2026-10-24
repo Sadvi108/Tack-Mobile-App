@@ -32,4 +32,6 @@ For each reader return:
 - one_action: the single change that would have kept them reading longer.
 
 Plain, short English. Sentence case. Kind but honest: never blame the student.
+A CV does not say how its owner is referred to, so call the student "they",
+never "he" or "she", and never guess from their name.
 `.trim();

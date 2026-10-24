@@ -6,6 +6,7 @@ import {
   type ReadResult,
   recallGate,
 } from "./first_read.ts";
+import { FIRST_READ_SYSTEM } from "../ai/first_read_prompt.ts";
 
 const CV = [
   "Rifat Hasan",
@@ -223,4 +224,11 @@ Deno.test("a stray reader is dropped and the rest kept", () => {
   );
   const { readers } = recallGate(r, chunkCv(CV));
   assertEquals(readers.map((x) => x.persona), ["recruiter", "hr_officer"]);
+});
+
+// A reader once retold a CV as "his degree". The CV never says how the
+// student is referred to, so every reader says "they".
+Deno.test("readers refer to the student as they", () => {
+  assertEquals(/call the student "they"/.test(FIRST_READ_SYSTEM), true);
+  assertEquals(/never "he" or "she"/.test(FIRST_READ_SYSTEM), true);
 });

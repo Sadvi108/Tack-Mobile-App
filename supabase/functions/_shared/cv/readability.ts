@@ -12,6 +12,7 @@
  */
 import type { Finding } from "./findings.ts";
 import { redact } from "../ai/redact.ts";
+import { BULLET_GLYPH } from "./metrics.ts";
 
 const CHARS_PER_LINE = 38;
 const LINES_PER_SCREEN = 14;
@@ -47,7 +48,9 @@ export function phoneScreens(text: string): number {
 export function weakPhrases(text: string): { phrase: string; line: string }[] {
   const found: { phrase: string; line: string }[] = [];
   for (const raw of text.split("\n")) {
-    const line = raw.trim();
+    // Quoted back to the student, so it starts with their words, not the
+    // bullet their CV put in front of them.
+    const line = raw.replace(BULLET_GLYPH, "").trim();
     if (!line) continue;
     const lower = line.toLowerCase();
     const phrase = WEAK.find((w) =>

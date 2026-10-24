@@ -44,7 +44,11 @@ class ApplicationDetailScreen extends ConsumerWidget {
     final history =
         ref.watch(_historyProvider(id)).value ?? const <StatusChange>[];
 
+    // Every edit here reloads the list this reads from. Showing the skeleton
+    // for that would also unwatch the checklist, which is thrown away and
+    // comes back empty, so the screen stays as it was until the read lands.
     return applicationAsync.when(
+      skipLoadingOnReload: true,
       loading: () => TackScaffold(
         header: TackHeader(
           title: 'Application',

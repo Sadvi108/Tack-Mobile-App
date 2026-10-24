@@ -36,6 +36,23 @@ Deno.test("weak phrases are found with the line they sit on", () => {
   assertEquals(found[0].line, "Responsible for the team website");
 });
 
+Deno.test("a quoted line starts with its words, not the bullet before them", () => {
+  const found = weakPhrases(
+    "• Assisted in the annual report\n- Helped with stock counts\n▪ Exposure to Python",
+  );
+  assertEquals(found.map((f) => f.line), [
+    "Assisted in the annual report",
+    "Helped with stock counts",
+    "Exposure to Python",
+  ]);
+  const finding = readabilityFindings("  •  Assisted in the annual report")
+    .find((f) => f.kind === "weak-phrases")!;
+  assertEquals(
+    finding.detail.includes("“Assisted in the annual report”"),
+    true,
+  );
+});
+
 Deno.test("a weak phrase inside another word is not one", () => {
   assertEquals(weakPhrases("Unfamiliar withdrawals were fixed").length, 0);
 });

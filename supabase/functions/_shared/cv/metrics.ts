@@ -236,7 +236,7 @@ const ANY_DATE =
 const DATE_LIKE =
   /\b(?:19|20)\d{2}\b|\b\d{1,2}\s*[\/-]\s*\d{1,2}(\s*[\/-]\s*\d{2,4})?\b/g;
 
-const BULLET_GLYPH = /^[•‣▪●·⁃\-\*–—>\s]+/;
+export const BULLET_GLYPH = /^[•‣▪●·⁃\-\*–—>\s]+/;
 
 export interface MeasureOptions {
   pages: number;
