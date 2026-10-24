@@ -247,6 +247,21 @@ function mockFixture(feature: string, input: string): unknown {
           "Name the situation in one sentence, spend most of the answer on what you " +
           "personally did, and finish with the outcome.",
       };
+    case "coach_cited": {
+      // Quotes the first piece of evidence word for word, so the citation
+      // check keeps it and the mock exercises the real path.
+      const first = input.match(/^\[([^\]]+)\] \([^)]*\) (.+)$/m);
+      if (!first) {
+        return { answered: false, text: "", citations: [], confidence: 0 };
+      }
+      const quote = first[2].slice(0, 40).trim();
+      return {
+        answered: true,
+        text: `From Tack's guide: ${quote}.`,
+        citations: [{ chunk_id: first[1], quote }],
+        confidence: 0.7,
+      };
+    }
     case "cv_first_read": {
       // Quotes the first line of real chunks, so the recall gate keeps them
       // and the mock runs the same path the real model does.

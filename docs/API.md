@@ -196,6 +196,18 @@ AI actions only when the question genuinely needs language.
 `answeredBy: "data"` means it cost nothing. When the allowance is gone:
 `reply: null, remaining: 0, spent: false`.
 
+A question the free rules cannot answer is looked up in Tack's own career
+guides first (`search_career_catalog`, 0085, 0086). When the top chunk names
+its path, or covers every word of the question, it is answered from that
+evidence (`coach_cited`, one AI action): `202` with a job id, and the result
+carries `citations: [{chunk_id, path_slug, path_title, quote}]`, every quote
+checked word for word against the chunk it names, and every number in the
+answer present in a kept quote. Anything else is a refusal, saved with
+`citations: []` and refunded. A question about a named kind of job the guides
+do not cover ("the salary of a marine biologist") is refused at once, free,
+also with `citations: []`. Every other question goes to the ordinary coach,
+unchanged.
+
 ### `radar`
 
 Refresh the shared listing cache, then return the caller's ranked feed.
@@ -364,6 +376,13 @@ Never granted to `authenticated`, and deliberately so:
   radar's fit for one listing; `tool/verify_weekly_brief.js` holds it to
   `radar_feed`. The digest delivers at 09:00 Dhaka the morning it runs; before
   0080 it asked for the morning after.
+
+- **Career guide search** (0085, 0086, 0088) — `search_career_catalog(q, k)`
+  scores `career_catalog_chunks` by the share of the question's words each
+  chunk covers, with `title_hit` when the question says a path's whole title.
+  `rebuild_career_catalog_chunks()` runs from statement triggers on
+  `career_paths` and `career_path_milestones`, under an advisory lock. Only
+  the coach endpoint calls the search.
 
 `tack_week_summary` is the cautionary one: it was granted, then revoked in
 `0047`, because it took a user id as an argument.

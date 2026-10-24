@@ -245,6 +245,33 @@ export const firstReadSchema = {
 
 export const firstReadShape: Shape = { readers: "object[]" };
 
+export const citedAnswerSchema = {
+  type: "object",
+  properties: {
+    answered: { type: "boolean" },
+    text: { type: "string" },
+    citations: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          chunk_id: { type: "string" },
+          quote: { type: "string" },
+        },
+        required: ["chunk_id", "quote"],
+      },
+    },
+    confidence: { type: "number" },
+  },
+  required: ["answered", "text", "citations", "confidence"],
+} as const;
+
+export const citedAnswerShape: Shape = {
+  text: "string",
+  citations: "object[]",
+  confidence: "number",
+};
+
 export const answerFeedbackShape: Shape = {
   score: "number",
   went_well: "string[]",

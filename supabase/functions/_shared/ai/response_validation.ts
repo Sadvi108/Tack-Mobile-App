@@ -48,6 +48,13 @@ const schemas: Record<string, z.ZodType> = {
     model_answer: text.optional(),
   }),
   coach_chat: z.strictObject({ reply: z.string().trim().min(1).max(2000) }),
+  coach_cited: z.strictObject({
+    answered: z.boolean(),
+    text: z.string().trim().max(2000),
+    citations: z.array(z.strictObject({ chunk_id: label, quote: label }))
+      .max(8),
+    confidence: z.number().min(0).max(1),
+  }),
   // Lenient on purpose: one stray reader should be dropped by recallGate
   // (_shared/cv/first_read.ts), not sink the other two.
   cv_first_read: z.strictObject({
