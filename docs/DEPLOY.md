@@ -6,6 +6,17 @@ backend (migrations, Edge Functions, secrets).
 Nothing in this file contains a secret value, and nothing here should ever be
 edited to contain one.
 
+**Current release gate:** see the [24 October production readiness review](PRODUCTION_READINESS_2026-10-24.md)
+for the verified gaps and ordered fix plan. The dated deployment snapshot below
+is historical. Run `node tool/verify_production_readiness.js` for read-only auth
+and integration configuration checks; a passing preflight does not replace the
+device and operations acceptance gates in that review.
+
+**Bdjobs source:** the new importer, migrations `0090`/`0091` and mobile source
+changes are prepared locally. Follow [Bdjobs activation](BDJOBS_APIFY.md) for
+the dedicated Apify search task, server secrets, ordered migration/deployment
+and live verification. The implementation does not itself activate paid scraping.
+
 ## What is already live
 
 Checked against the project on 8 September 2026. See

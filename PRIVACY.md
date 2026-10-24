@@ -2,7 +2,7 @@
 
 **Tack** — a careers app for students in Bangladesh.
 
-Last updated: 6 September 2026
+Last updated: 25 October 2026
 
 This describes what Tack actually does with your information. Every claim here
 matches something in the code, and where a limit is enforced by the software
@@ -101,6 +101,11 @@ When you search in Radar, the words you type and the location you choose are
 sent to the job boards Tack searches: artificialintelligencejobs.co,
 Remotive, Arbeitnow, The Muse and Careerjet. They receive the search terms.
 They do not receive your name, your account, or anything else about you.
+
+Tack can also import publicly advertised Bdjobs vacancies from an Apify
+collection task. This scheduled collection receives no student account, profile
+or search terms. Browsing these vacancies reads Tack's own cached copy. The
+original Bdjobs link is shown so you can check details before applying.
 
 ### Sign-in — Google
 

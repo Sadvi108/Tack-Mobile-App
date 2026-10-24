@@ -11,7 +11,9 @@ class RadarQuery {
   const RadarQuery({
     this.text = '',
     this.location = 'Dhaka',
-    this.workplace = RadarWorkplace.onsite,
+    // Many local postings omit workplace. Show them without claiming onsite;
+    // an explicitly selected workplace filter remains strict.
+    this.workplace = RadarWorkplace.all,
     this.filter = RadarFilter.all,
   });
 

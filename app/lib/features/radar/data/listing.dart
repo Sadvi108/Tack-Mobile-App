@@ -14,6 +14,7 @@ class Listing {
     this.company,
     this.location,
     this.isRemote = false,
+    this.workplaceKnown = true,
     this.salary,
     this.level,
     this.postedAt,
@@ -42,6 +43,7 @@ class Listing {
   final String? company;
   final String? location;
   final bool isRemote;
+  final bool workplaceKnown;
   final String? salary;
   final String? level;
   final DateTime? postedAt;
@@ -80,6 +82,7 @@ class Listing {
   };
 
   String get sourceLabel => switch (source) {
+    'bdjobs' => 'Bdjobs',
     'jsearch' => 'JSearch',
     'careerjet' => 'Careerjet',
     'aijobs' => 'AI jobs',
@@ -117,6 +120,7 @@ class Listing {
     company: _text(json['company']),
     location: _text(json['location']),
     isRemote: json['remote'] == true,
+    workplaceKnown: json['workplace_known'] != false,
     salary: _text(json['salary']),
     level: _text(json['level']),
     postedAt: DateTime.tryParse('${json['posted_at']}')?.toLocal(),

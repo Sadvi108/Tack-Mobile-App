@@ -718,7 +718,9 @@ class _BoardNotice extends StatelessWidget {
           ),
           const SizedBox(height: TackSpace.sm),
           Text(
-            problems.containsKey('careerjet') && problems.containsKey('jsearch')
+            problems.containsKey('careerjet') &&
+                    problems.containsKey('jsearch') &&
+                    problems.containsKey('bdjobs')
                 ? 'Bangladesh coverage is limited right now. You can still browse available postings and try again later.'
                 : 'Showing available postings. Some sources could not be refreshed; try again later.',
             style: TackText.bodyMuted,

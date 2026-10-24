@@ -1,12 +1,22 @@
 # Bangladesh job discovery
 
-Radar starts with in-person work in the student's profile city (Dhaka if no city
-is set). Location, workplace, and employment type are independent: for example,
+Radar starts with all workplaces in the student's profile city (Dhaka if no city
+is set). Unstated workplaces stay unknown; an explicit In person or Remote filter
+requires a known arrangement. Location, workplace, and employment type are independent: for example,
 in-person internships in Chattogram. A location sheet supports quick city choices
 and a typed district. Search controls scroll with results on short screens.
 Refresh, additional cached result pages, immediate save feedback, and clearer
 partial-source notices complete the browsing flow. Cache-wide counts no longer
 appear on filtered chips, because those counts did not describe the active city.
+
+## Bdjobs
+
+The [Apify Bdjobs integration](BDJOBS_APIFY.md) adds background imports from a
+dedicated job-search task. The supplied `getdataforme/bdjobs-details-spider`
+requires existing job URLs and cannot discover all vacancies. The selected
+`scrapingmonkey/bdjobs-scraper` supports discovery; collection limits still apply.
+The integration is prepared locally and needs credentials, task configuration
+and deployment before it can populate the feed. Browsing never starts paid runs.
 
 ## Additional API
 
@@ -63,7 +73,7 @@ flutter analyze
 flutter test
 cd ../supabase/functions
 deno check radar/index.ts
-deno test --allow-env=JSEARCH_API_KEY _shared/radar/
+deno test --allow-env=JSEARCH_API_KEY,APIFY_API_TOKEN,APIFY_BDJOBS_TASK_ID _shared/radar/
 ```
 
 Provider tests use network fixtures, including an explicit false work-location

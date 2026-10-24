@@ -60,7 +60,10 @@ void main() {
     final container = ProviderScope.containerOf(
       tester.element(find.byType(RadarScreen)),
     );
-    expect(container.read(radarQueryProvider).workplace, RadarWorkplace.onsite);
+    expect(container.read(radarQueryProvider).workplace, RadarWorkplace.all);
+    await tester.ensureVisible(find.text('In person'));
+    await tester.tap(find.text('In person'));
+    await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('Internships'));
     await tester.tap(find.text('Internships'));
     await tester.pumpAndSettle();

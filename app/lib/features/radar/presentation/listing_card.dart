@@ -102,6 +102,7 @@ class ListingCard extends StatelessWidget {
               if (listing.kindLabel case final kind?)
                 _Tag(kind, emphasis: true),
               _Tag(listing.sourceLabel),
+              if (!listing.workplaceKnown) _Tag('Workplace not stated'),
               if (posted != null) _Tag(posted),
               if (listing.salary != null) _Tag(listing.salary!),
             ],

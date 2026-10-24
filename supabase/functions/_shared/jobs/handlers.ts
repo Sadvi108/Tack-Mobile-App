@@ -1,4 +1,5 @@
 import { conversationHandlers } from "./conversation_handlers.ts";
+import { importBdjobs } from "../radar/bdjobs_import.ts";
 /**
  * Everything the queue knows how to do.
  *
@@ -40,6 +41,7 @@ export type Handler = (
 
 export const handlers: Record<string, Handler> = {
   ...conversationHandlers,
+  import_bdjobs: importBdjobs,
   recompute_readiness: async (service, job) => {
     const userId = (job.payload.user_id as string) ?? job.user_id;
     if (!userId) return { skipped: "no user" };
