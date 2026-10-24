@@ -48,7 +48,7 @@ class ReferenceRepository {
     try {
       var query = _db.from('cities').select('id, name, country_id');
       if (countryId != null) query = query.eq('country_id', countryId);
-      final rows = await query.order('sort_order');
+      final rows = await query.order('sort_order', ascending: true);
       return rows
           .map(
             (r) => City(
@@ -68,7 +68,7 @@ class ReferenceRepository {
       final rows = await _db
           .from('countries')
           .select('id, iso2, name, dial_code')
-          .order('sort_order');
+          .order('sort_order', ascending: true);
       return rows.map(Country.fromRow).toList();
     } catch (e) {
       throw Failure.from(e);
@@ -81,7 +81,7 @@ class ReferenceRepository {
           .from('universities')
           .select('id, name, short_name')
           .eq('is_active', true)
-          .order('name');
+          .order('name', ascending: true);
       return rows
           .map(
             (r) => University(
@@ -112,7 +112,7 @@ class ReferenceRepository {
             'marketing',
             'design',
           ])
-          .order('name')
+          .order('name', ascending: true)
           .limit(limit);
       return rows.map(_skill).toList();
     } catch (e) {
@@ -129,7 +129,7 @@ class ReferenceRepository {
           .select('id, slug, name, category')
           .eq('is_active', true)
           .ilike('name', '%$q%')
-          .order('name')
+          .order('name', ascending: true)
           .limit(limit);
       return rows.map(_skill).toList();
     } catch (e) {

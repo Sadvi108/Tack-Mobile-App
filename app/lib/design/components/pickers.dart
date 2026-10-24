@@ -132,18 +132,18 @@ class _SearchPickerBodyState<T> extends State<_SearchPickerBody<T>> {
               }
 
               final query = _query.trim().toLowerCase();
-              final all = snapshot.data!;
-              final visible = query.isEmpty
-                  ? all
-                  : all
-                        .where((o) => o.label.toLowerCase().contains(query))
-                        .toList();
+              final matches = snapshot.data!.where(
+                (o) => query.isEmpty || o.label.toLowerCase().contains(query),
+              );
 
-              // Highlighted options stay at the top whatever the search.
-              visible.sort((a, b) {
-                if (a.highlighted == b.highlighted) return 0;
-                return a.highlighted ? -1 : 1;
-              });
+              // Highlighted options stay at the top whatever the search, and
+              // everything else keeps the order it came in. This was a sort,
+              // and Dart's sort is not stable: on a long list it shuffled the
+              // rest, so the country list opened on Ethiopia.
+              final visible = [
+                ...matches.where((o) => o.highlighted),
+                ...matches.where((o) => !o.highlighted),
+              ];
 
               if (visible.isEmpty) {
                 return Padding(
@@ -688,40 +688,63 @@ class TackChipGrid extends StatelessWidget {
   }
 
   Future<void> _addOwn(BuildContext context) async {
-    final controller = TextEditingController();
     final entered = await showTackSheet<String>(
       context: context,
       title: 'Add your own',
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(
-          TackSpace.screen,
-          0,
-          TackSpace.screen,
-          MediaQuery.viewInsetsOf(context).bottom + TackSpace.xl,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TackTextField(
-              hint: 'Type it as you would say it',
-              controller: controller,
-              autofocus: true,
-            ),
-            const SizedBox(height: TackSpace.lg),
-            Builder(
-              builder: (sheetContext) => TackButton(
-                'Add it',
-                onPressed: () =>
-                    Navigator.of(sheetContext).pop(controller.text.trim()),
-              ),
-            ),
-          ],
-        ),
-      ),
+      child: const _AddOwnSheet(),
     );
     final text = entered?.trim();
-    controller.dispose();
     if (text != null && text.isNotEmpty) onAddOwn!(text);
+  }
+}
+
+/// The text box behind "Add your own".
+///
+/// It owns its controller. The sheet's future completes as soon as the sheet
+/// starts to close, while the box is still on screen for the closing
+/// animation; a controller disposed by the caller at that point crashed the
+/// app whenever the sheet was dismissed by tapping outside it.
+class _AddOwnSheet extends StatefulWidget {
+  const _AddOwnSheet();
+
+  @override
+  State<_AddOwnSheet> createState() => _AddOwnSheetState();
+}
+
+class _AddOwnSheetState extends State<_AddOwnSheet> {
+  final _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        TackSpace.screen,
+        0,
+        TackSpace.screen,
+        TackSpace.xl,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TackTextField(
+            hint: 'Type it as you would say it',
+            controller: _controller,
+            autofocus: true,
+          ),
+          const SizedBox(height: TackSpace.lg),
+          TackButton(
+            'Add it',
+            onPressed: () => Navigator.of(context).pop(_controller.text.trim()),
+          ),
+        ],
+      ),
+    );
   }
 }
 

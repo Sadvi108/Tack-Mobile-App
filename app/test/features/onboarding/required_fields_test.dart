@@ -19,6 +19,8 @@ IntakeState filled(StepSpec step, {required String stage}) {
       FieldType.repeatableRows => <Map<String, String>>[],
       // What the date widget writes: the key itself, plus its parts.
       FieldType.dateParts => '2027-6',
+      // The number field only lets digits and a point through.
+      FieldType.number => '3.5',
       _ => 'answered',
     };
     if (field.type == FieldType.dateParts) {

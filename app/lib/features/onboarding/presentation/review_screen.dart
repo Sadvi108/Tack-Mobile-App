@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../design/tack.dart';
 import '../application/intake_controller.dart';
+import '../../profile/data/education_stage.dart';
 import '../domain/flow_config.dart';
 
 /// Everything the student said, grouped, with a way back to each step.
@@ -131,14 +132,23 @@ class _Section extends StatelessWidget {
     if (raw == null) return null;
 
     if (raw is List) {
+      // Chips store ids or stored words; their names were kept beside them.
+      final names = (state.answers['${field.key}__labels'] as Map?) ?? const {};
       final custom =
           (state.answers['${field.key}__custom'] as List?) ?? const [];
-      final all = [...raw, ...custom].map((e) => '$e').toList();
+      final all = [
+        for (final value in raw) '${names[value] ?? value}',
+        for (final value in custom) '$value',
+      ];
       return all.isEmpty ? null : all.join(', ');
     }
 
     final text = '$raw'.trim();
     if (text.isEmpty) return null;
+
+    if (field.type == FieldType.radioCards) {
+      return EducationStage.fromWire(text)?.label ?? text;
+    }
 
     // Selects store an id; the label was kept alongside it for exactly this.
     return (state.answers['${field.key}__label'] as String?) ?? text;

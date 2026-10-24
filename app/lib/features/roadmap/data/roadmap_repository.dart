@@ -50,7 +50,9 @@ class RoadmapRepository {
           // `.value ?? const []`, which turned a hard failure into an empty
           // screen nobody could see was broken.
           .isFilter('roadmap_milestones.roadmap_tasks.deleted_at', null)
-          .order('created_at');
+          // Newest first: the screen opens on the first tab, and a path just
+          // followed should be the one in front of the student.
+          .order('created_at', ascending: false);
       if (_uid != uid) {
         throw const Failure('Your account changed. Open your roadmap again.');
       }

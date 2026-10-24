@@ -11,14 +11,18 @@ void main() {
     await pumpAt(tester, const SignUpScreen());
 
     // The acceptance criterion from the brief: the whole screen is reachable
-    // on the shortest common Android viewport without a scroll gesture.
-    // Text fields carry their own internal Scrollable, so this checks for a
-    // page-level scroll view specifically.
-    expect(
-      find.byType(SingleChildScrollView),
-      findsNothing,
-      reason: 'sign up must not introduce a page scroll view',
-    );
+    // on the shortest common Android viewport without a scroll gesture. The
+    // page may scroll once a keyboard takes half of it, so what is checked is
+    // that nothing has anywhere to scroll to while the keyboard is closed.
+    for (final scrollable in tester.stateList<ScrollableState>(
+      find.byType(Scrollable),
+    )) {
+      expect(
+        scrollable.position.maxScrollExtent,
+        0,
+        reason: 'sign up must fit 360x640 without scrolling',
+      );
+    }
     expect(
       tester.takeException(),
       isNull,
@@ -34,6 +38,26 @@ void main() {
     // and offering a button that cannot complete is worse than not offering it.
     expect(find.text('GitHub'), findsOneWidget);
     expect(find.text('Facebook'), findsNothing);
+  });
+
+  // With the keyboard up the screen overflowed by 146px and the Create account
+  // button sat under the keyboard, with no way to scroll to it.
+  testWidgets('with the keyboard open, Create account can still be reached', (
+    tester,
+  ) async {
+    await pumpAt(tester, const SignUpScreen());
+    addTearDown(tester.view.resetViewInsets);
+
+    tester.view.viewInsets = const FakeViewPadding(bottom: 300);
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull, reason: 'no overflow');
+
+    await tester.ensureVisible(find.text('Create account'));
+    await tester.pumpAndSettle();
+    expect(
+      tester.getBottomLeft(find.text('Create account')).dy,
+      lessThanOrEqualTo(shortAndroid.height - 300),
+    );
   });
 
   testWidgets('sign up still fits with the largest supported text scale', (

@@ -70,6 +70,7 @@ class FieldSpec {
     this.dependsOn,
     this.rowFields = const [],
     this.notSureOption,
+    this.max,
   });
 
   final String key;
@@ -99,6 +100,11 @@ class FieldSpec {
   /// Wherever direction is asked, not knowing is the honest state for most
   /// people and the app rewards it rather than treating it as a blank.
   final String? notSureOption;
+
+  /// The largest number a number field accepts: a university CGPA is out of
+  /// 4 and a school result out of 5. Above it, Continue stays off and the
+  /// field says why — a CGPA of 9.9 used to go straight into the database.
+  final num? max;
 
   bool get isDirectionQuestion => notSureOption != null;
 }
@@ -257,6 +263,7 @@ class OnboardingFlow {
         label: 'Your last result',
         hint: '4.83',
         help: 'Optional, and never shown to anyone.',
+        max: 5,
       ),
     ],
   );
@@ -387,6 +394,7 @@ class OnboardingFlow {
         label: 'CGPA',
         hint: '3.45',
         help: 'Optional, and never shown to anyone.',
+        max: 4,
       ),
     ],
   );
@@ -514,6 +522,7 @@ class OnboardingFlow {
         label: 'CGPA',
         hint: '3.45',
         help: 'Optional, and never shown to anyone.',
+        max: 4,
       ),
     ],
   );

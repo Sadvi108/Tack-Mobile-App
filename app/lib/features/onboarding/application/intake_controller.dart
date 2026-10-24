@@ -70,6 +70,7 @@ class IntakeState {
   /// field is one property rather than an edit in two places.
   bool get canContinue {
     for (final field in step.fields) {
+      if (errorFor(field) != null) return false;
       if (!field.required) continue;
       final value = answers[field.key];
       if (value == null) return false;
@@ -79,6 +80,22 @@ class IntakeState {
       }
     }
     return true;
+  }
+
+  /// What is wrong with an answer that is there, or null. A blank optional
+  /// field is not wrong; a missing required one is [canContinue]'s concern.
+  String? errorFor(FieldSpec field) {
+    if (field.type != FieldType.number) return null;
+    final text = '${answers[field.key] ?? ''}'.trim();
+    if (text.isEmpty) return null;
+
+    final value = num.tryParse(text);
+    if (value == null) return 'Enter a number, like ${field.hint ?? '3.45'}.';
+    final max = field.max;
+    if (max != null && value > max) {
+      return 'This is out of $max. Enter $max or less.';
+    }
+    return null;
   }
 
   IntakeState copyWith({

@@ -61,7 +61,7 @@ class ScoreRepository {
           .select()
           .eq('user_id', _uid)
           .gte('computed_at', since.toIso8601String())
-          .order('computed_at');
+          .order('computed_at', ascending: true);
       return rows.map(ReadinessScore.fromRow).toList();
     } catch (e) {
       throw Failure.from(e);

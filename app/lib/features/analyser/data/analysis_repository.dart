@@ -213,7 +213,8 @@ class AnalysisRepository {
           .select('id')
           .eq('user_id', _uid)
           .isFilter('deleted_at', null)
-          .order('created_at')
+          // The newest roadmap, the same one the roadmap screen opens on.
+          .order('created_at', ascending: false)
           .limit(1)
           .maybeSingle();
       if (roadmap == null) {
@@ -227,7 +228,7 @@ class AnalysisRepository {
           .select('id')
           .eq('roadmap_id', roadmap['id'] as String)
           .eq('state', 'active')
-          .order('order_index')
+          .order('order_index', ascending: true)
           .limit(1)
           .maybeSingle();
       if (milestone == null) {
