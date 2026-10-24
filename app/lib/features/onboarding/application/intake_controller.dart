@@ -155,9 +155,12 @@ class IntakeController extends AsyncNotifier<IntakeState> {
   void answer(String key, Object? value) {
     final current = _state;
     final next = {...current.answers, key: value};
+    final changed = current.answers[key] != value;
 
     // A field that depends on another is cleared when that other changes, so
     // switching country never leaves a city from the previous one behind.
+    // Picking the same country again is not a change: it used to wipe the
+    // city and the university as well.
     for (final step in [
       OnboardingFlow.basics,
       ...OnboardingFlow.highSchoolSteps,
@@ -165,7 +168,7 @@ class IntakeController extends AsyncNotifier<IntakeState> {
       ...OnboardingFlow.graduatedSteps,
     ]) {
       for (final field in step.fields) {
-        if (field.dependsOn == key && next[field.key] != null) {
+        if (changed && field.dependsOn == key && next[field.key] != null) {
           next.remove(field.key);
         }
       }
