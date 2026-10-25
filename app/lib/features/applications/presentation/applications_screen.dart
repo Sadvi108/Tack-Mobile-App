@@ -7,7 +7,6 @@ import '../../../routing/router.dart';
 import '../data/application_models.dart';
 import '../data/application_repository.dart';
 import 'add_application_sheet.dart';
-import '../../../routing/tab_bar.dart';
 
 /// The application tracker, as its own screen.
 ///
@@ -22,7 +21,6 @@ class ApplicationsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return TackScaffold(
-      bottomNav: const TackTabBar(current: Routes.radar),
       header: const TackHeader(title: 'Applications'),
       body: const ApplicationsBody(),
     );

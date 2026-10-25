@@ -7,7 +7,6 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/failure.dart';
 import 'package:tack/design/tack.dart';
 import '../../../routing/router.dart';
-import '../../../routing/tab_bar.dart';
 import '../../applications/application/application_data.dart';
 import '../../applications/presentation/add_application_sheet.dart';
 import '../../applications/presentation/applications_screen.dart';
@@ -79,7 +78,6 @@ class _RadarScreenState extends ConsumerState<RadarScreen> {
     _seedFromProfile(profile, feed?.primaryPathTitle);
 
     return TackScaffold(
-      bottomNav: const TackTabBar(current: Routes.radar),
       header: TackHeader(
         title: 'Radar',
         subtitle: _tracking
@@ -572,7 +570,7 @@ class _ResultsState extends ConsumerState<_Results> {
         ),
         const SizedBox(height: TackSpace.md),
         if (problems.isNotEmpty) ...[
-          _BoardNotice(problems: problems),
+          _BoardNotice(result: widget.result),
           const SizedBox(height: TackSpace.md),
         ],
         if (_listings.isEmpty) ...[
@@ -715,13 +713,53 @@ class _ResultsState extends ConsumerState<_Results> {
 }
 
 class _BoardNotice extends StatelessWidget {
-  const _BoardNotice({required this.problems});
+  const _BoardNotice({required this.result});
 
-  final Map<String, String> problems;
+  final RadarResult result;
+
+  /// "A", "A and B", "A, B and C".
+  static String _join(List<String> names) => names.length < 2
+      ? names.join()
+      : '${names.sublist(0, names.length - 1).join(', ')} and ${names.last}';
+
+  /// Names the boards, because "some sources" tells nobody — student or
+  /// whoever runs Tack — whether to wait or to go and set a key.
+  String get _message {
+    final notSetUp = result.notSetUp;
+    final notRefreshed = result.notRefreshed;
+    final unreachable = result.unreachable;
+    final reached = unreachable.isEmpty
+        ? null
+        : '${_join(unreachable)} could not be reached. Try again later.';
+    if (unconnected) {
+      // Naming four missing keys would bury the point: Radar is close to
+      // empty by design until Bangladesh boards are connected.
+      return [
+        'Radar lists jobs in Bangladesh and remote roles open to it, so there '
+            'is little here until Bdjobs and the other Bangladesh boards are '
+            'connected.',
+        ?reached,
+      ].join(' ');
+    }
+    if (notSetUp.isEmpty && notRefreshed.isEmpty && unreachable.isEmpty) {
+      return 'Showing available postings. Some sources could not be '
+          'refreshed; try again later.';
+    }
+    return [
+      'Showing postings from the other boards.',
+      if (notSetUp.isNotEmpty)
+        '${_join(notSetUp)} ${notSetUp.length == 1 ? 'is' : 'are'} not set '
+            'up yet.',
+      if (notRefreshed.isNotEmpty)
+        '${_join(notRefreshed)} ${notRefreshed.length == 1 ? 'has' : 'have'} '
+            'not refreshed recently.',
+      ?reached,
+    ].join(' ');
+  }
 
   /// Every Bangladesh source is missing its key. A source that is set up but
   /// had nothing new is a different problem, and is not called missing.
-  bool get unconnected => bangladeshSourcesUnconnected(problems);
+  bool get unconnected => bangladeshSourcesUnconnected(result.problems);
 
   @override
   Widget build(BuildContext context) {
@@ -747,14 +785,7 @@ class _BoardNotice extends StatelessWidget {
             ),
           ),
           const SizedBox(height: TackSpace.sm),
-          Text(
-            unconnected
-                ? 'Radar lists jobs in Bangladesh and remote roles open to it, '
-                      'so there is little here until Bdjobs and the other '
-                      'Bangladesh boards are connected.'
-                : 'Showing available postings. Some sources could not be refreshed; try again later.',
-            style: TackText.bodyMuted,
-          ),
+          Text(_message, style: TackText.bodyMuted),
         ],
       ),
     );

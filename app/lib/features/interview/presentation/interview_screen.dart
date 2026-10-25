@@ -208,15 +208,29 @@ class _SetupState extends ConsumerState<_Setup> {
         title: 'Interview practice',
         onBack: () => tackBack(context),
       ),
-      pinnedCta: TackButton(
-        'Start practising',
-        loading: widget.busy,
-        onPressed: () => widget.onStart(
-          role: role,
-          type: _type,
-          difficulty: _difficulty,
-          timer: _timer,
-        ),
+      pinnedCta: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Stated before the work starts, never after. Questions a role has
+          // already been given come from the bank and cost nothing; new ones
+          // and every piece of feedback are model calls.
+          Text(
+            'Feedback on each answer uses one AI action. New questions for a '
+            'role can use one too.',
+            style: TackText.bodyMuted,
+          ),
+          const SizedBox(height: TackSpace.sm),
+          TackButton(
+            'Start practising',
+            loading: widget.busy,
+            onPressed: () => widget.onStart(
+              role: role,
+              type: _type,
+              difficulty: _difficulty,
+              timer: _timer,
+            ),
+          ),
+        ],
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -547,6 +561,11 @@ class _QuestionState extends ConsumerState<_Question> {
                 ? 'Write a little more and the feedback will be useful.'
                 : '${_answer.text.trim().split(RegExp(r"\s+")).length} words',
             style: TackText.meta.copyWith(fontSize: 13.5),
+          ),
+          const SizedBox(height: TackSpace.md),
+          Text(
+            'Submitting uses one AI action for feedback. Skipping uses none.',
+            style: TackText.bodyMuted,
           ),
           const SizedBox(height: TackSpace.xl),
         ],
