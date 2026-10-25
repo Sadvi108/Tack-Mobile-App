@@ -13,7 +13,6 @@ import '../data/path_suggestion.dart';
 import 'journey_line.dart';
 import 'suggestion_card.dart';
 import 'task_tile.dart';
-import '../../../routing/tab_bar.dart';
 
 /// The roadmap.
 ///
@@ -304,7 +303,6 @@ class _RoadmapScreenState extends ConsumerState<RoadmapScreen> {
   Widget build(BuildContext context) {
     final roadmapsAsync = ref.watch(roadmapsProvider);
     return TackScaffold(
-      bottomNav: const TackTabBar(current: Routes.roadmap),
       header: const TackHeader(title: 'Your roadmap'),
       // The body brings its own ListView so the milestones build lazily; the
       // whole roadmap used to be an eager Column inside the shell's scroll

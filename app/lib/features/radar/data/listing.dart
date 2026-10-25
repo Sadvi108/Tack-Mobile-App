@@ -81,18 +81,7 @@ class Listing {
     _ => null,
   };
 
-  String get sourceLabel => switch (source) {
-    'bdjobs' => 'Bdjobs',
-    'linkedin' => 'LinkedIn',
-    'jsearch' => 'JSearch',
-    'careerjet' => 'Careerjet',
-    'aijobs' => 'AI jobs',
-    'remotive' => 'Remotive',
-    'arbeitnow' => 'Arbeitnow',
-    'themuse' => 'The Muse',
-    'jobicy' => 'Jobicy',
-    _ => source,
-  };
+  String get sourceLabel => radarSourceLabel(source);
 
   /// "2 days ago", never a bare date.
   String? postedRelativeTo(DateTime now) {
@@ -144,6 +133,20 @@ class Listing {
   ];
 }
 
+/// A board's name as a student reads it, from the source id the server uses.
+String radarSourceLabel(String source) => switch (source) {
+  'bdjobs' => 'Bdjobs',
+  'linkedin' => 'LinkedIn',
+  'jsearch' => 'JSearch',
+  'careerjet' => 'Careerjet',
+  'aijobs' => 'AI jobs',
+  'remotive' => 'Remotive',
+  'arbeitnow' => 'Arbeitnow',
+  'themuse' => 'The Muse',
+  'jobicy' => 'Jobicy',
+  _ => source,
+};
+
 /// What Radar answered with, including which boards could not be reached.
 class RadarResult {
   const RadarResult({required this.listings, this.problems = const {}});
@@ -157,6 +160,25 @@ class RadarResult {
   static const empty = RadarResult(listings: []);
 
   bool get isMissingCareerjet => problems.containsKey('careerjet');
+
+  /// Boards with no key on the server, by name.
+  List<String> get notSetUp => _named((p) => p == 'not configured');
+
+  /// Boards Tack imports on a schedule rather than asks live — Bdjobs and
+  /// LinkedIn — whose last import is too old to show. Nothing failed just now,
+  /// so "could not be reached" would be the wrong thing to say.
+  List<String> get notRefreshed => _named((p) => p == 'not refreshed');
+
+  /// Boards that have a key but did not answer, by name.
+  List<String> get unreachable =>
+      _named((p) => p != 'not configured' && p != 'not refreshed');
+
+  /// `cache` is Tack's own store failing to write, not a board, so it is never
+  /// named.
+  List<String> _named(bool Function(String problem) test) => [
+    for (final e in problems.entries)
+      if (e.key != 'cache' && test(e.value)) radarSourceLabel(e.key),
+  ];
 
   factory RadarResult.fromJson(Map<String, dynamic> json) => RadarResult(
     listings: [

@@ -187,6 +187,75 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Some sources are unavailable'), findsOneWidget);
+    expect(bodyText(tester), contains('Careerjet is not set up yet'));
+  });
+
+  testWidgets('every board that failed is named, each in its own terms', (
+    tester,
+  ) async {
+    await pumpAt(
+      tester,
+      const RadarScreen(),
+      size: const Size(360, 900),
+      overrides: overrides(
+        const RadarResult(
+          listings: [],
+          problems: {
+            'bdjobs': 'not refreshed',
+            'linkedin': 'not refreshed',
+            'jsearch': 'not configured',
+            'careerjet': 'not configured',
+            'remotive': 'http 503',
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final text = bodyText(tester);
+    expect(text, contains('Showing postings from the other boards'));
+    expect(text, contains('JSearch and Careerjet are not set up yet'));
+    // These are imported on a schedule; nothing failed to answer just now.
+    expect(text, contains('Bdjobs and LinkedIn have not refreshed recently'));
+    expect(text, contains('Remotive could not be reached'));
+  });
+
+  testWidgets('fresh imported listings mean Bangladesh is still connected', (
+    tester,
+  ) async {
+    await pumpAt(
+      tester,
+      const RadarScreen(),
+      size: const Size(360, 900),
+      overrides: overrides(
+        const RadarResult(
+          listings: [],
+          problems: {
+            'jsearch': 'not configured',
+            'careerjet': 'not configured',
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final text = bodyText(tester);
+    expect(find.text('Bangladesh sources are not connected yet'), findsNothing);
+    expect(text, contains('Showing postings from the other boards'));
+    expect(text, contains('JSearch and Careerjet are not set up yet'));
+  });
+
+  testWidgets('a cache that failed to write names no board', (tester) async {
+    await pumpAt(
+      tester,
+      const RadarScreen(),
+      size: const Size(360, 900),
+      overrides: overrides(
+        const RadarResult(listings: [], problems: {'cache': 'timeout'}),
+      ),
+    );
+    await tester.pumpAndSettle();
+
     expect(bodyText(tester), contains('Some sources could not be refreshed'));
   });
 
@@ -252,7 +321,43 @@ void main() {
 
     expect(find.text('Bangladesh sources are not connected yet'), findsNothing);
     expect(find.text('Some sources are unavailable'), findsOneWidget);
-    expect(bodyText(tester), contains('Some sources could not be refreshed'));
+    // Named rather than "some sources": these two are set up and only stale.
+    expect(
+      bodyText(tester),
+      contains('Bdjobs and LinkedIn have not refreshed recently'),
+    );
+  });
+
+  testWidgets('with nothing connected, a board that failed is still named', (
+    tester,
+  ) async {
+    await pumpAt(
+      tester,
+      const RadarScreen(),
+      size: const Size(360, 900),
+      overrides: overrides(
+        const RadarResult(
+          listings: [],
+          problems: {
+            'bdjobs': 'not configured',
+            'linkedin': 'not configured',
+            'careerjet': 'not configured',
+            'jsearch': 'not configured',
+            'remotive': 'http 503',
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final text = bodyText(tester);
+    expect(
+      text,
+      contains('lists jobs in Bangladesh and remote roles open to it'),
+    );
+    expect(text, contains('Remotive could not be reached'));
+    // The four missing keys are the point already made, not listed again.
+    expect(text, isNot(contains('not set up yet')));
   });
 
   testWidgets('the two views swap without leaving the destination', (
@@ -414,32 +519,5 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(tester.takeException(), isNull);
-  });
-
-  testWidgets('the Radar tab label fits at 360px', (tester) async {
-    await pumpAt(
-      tester,
-      const RadarScreen(),
-      size: const Size(360, 900),
-      overrides: overrides(const RadarResult(listings: [])),
-    );
-    await tester.pumpAndSettle();
-
-    // Scoped to the bar: "Radar" is also the screen's own title, so an
-    // unscoped finder matches twice.
-    for (final tab in TackTabs.all) {
-      expect(
-        tester
-            .getSize(
-              find.descendant(
-                of: find.byType(TackBottomNav),
-                matching: find.text(tab.label),
-              ),
-            )
-            .width,
-        lessThanOrEqualTo(360 / 5),
-        reason: '${tab.label} is too wide',
-      );
-    }
   });
 }

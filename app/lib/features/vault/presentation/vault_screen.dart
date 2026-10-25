@@ -13,7 +13,6 @@ import 'package:tack/design/tack.dart';
 import '../../../routing/router.dart';
 import '../application/upload_controller.dart';
 import '../application/cv_check.dart';
-import '../../../routing/tab_bar.dart';
 
 /// The document vault.
 ///
@@ -36,7 +35,6 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
     final upload = ref.watch(uploadControllerProvider);
 
     return TackScaffold(
-      bottomNav: const TackTabBar(current: Routes.vault),
       header: const TackHeader(title: 'Your documents'),
       pinnedCta: upload.busy
           ? null
