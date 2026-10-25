@@ -80,6 +80,9 @@ ThemeData buildTackTheme([Brightness brightness = Brightness.light]) {
     bottomSheetTheme: BottomSheetThemeData(
       backgroundColor: TackColors.white,
       surfaceTintColor: Colors.transparent,
+      // The scrim already sets a sheet apart; Tack draws no shadows.
+      elevation: 0,
+      modalElevation: 0,
       shape: RoundedRectangleBorder(borderRadius: TackRadius.sheetTop),
       showDragHandle: false,
     ),

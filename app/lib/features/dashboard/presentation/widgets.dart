@@ -613,24 +613,40 @@ class _StartHereRow extends StatelessWidget {
 }
 
 /// Says out loud what a student worries about the moment they see a score.
+///
+/// A footnote, not a card: boxed in the page colour it sat on the glows as a
+/// flat slab, the heaviest thing at the end of the screen for the lightest
+/// message on it.
 class PrivacyNote extends StatelessWidget {
   const PrivacyNote({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
+    return Padding(
       padding: const EdgeInsets.symmetric(
-        horizontal: TackSpace.cardCompactX,
-        vertical: TackSpace.cardCompactY,
+        horizontal: TackSpace.xs,
+        vertical: TackSpace.sm,
       ),
-      decoration: BoxDecoration(
-        color: TackColors.sailWhite,
-        borderRadius: BorderRadius.all(TackRadius.listCard),
-      ),
-      child: Text(
-        'Nothing here is public. Your score is only for you.',
-        style: TackText.bodyMuted,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            // Sits on the first line's cap height rather than its top.
+            padding: const EdgeInsets.only(top: 3),
+            child: TackIcon(
+              TackIcons.shield,
+              size: 18,
+              color: TackColors.muted,
+            ),
+          ),
+          const SizedBox(width: TackSpace.sm),
+          Expanded(
+            child: Text(
+              'Nothing here is public. Your score is only for you.',
+              style: TackText.bodyMuted,
+            ),
+          ),
+        ],
       ),
     );
   }

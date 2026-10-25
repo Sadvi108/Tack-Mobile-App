@@ -72,6 +72,21 @@ class _InsightDeckState extends State<InsightDeck> {
     if (widget.insights.isEmpty) return const SizedBox.shrink();
     final insights = widget.insights;
 
+    // One card has nothing to peek at. Sized for a deck, it stopped short of
+    // the right gutter and sat narrower than every card around it.
+    if (insights.length == 1) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: TackSpace.screen),
+        child: SizedBox(
+          height: _height,
+          child: _InsightCard(
+            insight: insights.first,
+            onOpen: () => widget.onOpen(insights.first),
+          ),
+        ),
+      );
+    }
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final screen = constraints.maxWidth;

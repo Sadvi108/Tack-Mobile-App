@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tack/core/offline/local_db.dart';
+import 'package:tack/design/tack.dart';
 import 'package:tack/core/offline/sync.dart';
 import 'package:tack/features/profile/application/completeness.dart';
 import 'package:tack/features/profile/data/education_stage.dart';
@@ -47,8 +50,10 @@ Profile undergraduate() => Profile(
 
 List<Override> overridesFor(
   Profile profile,
-  Map<ProfileSection, List<ProfileEntry>> sections,
-) => [
+  Map<ProfileSection, List<ProfileEntry>> sections, {
+  // Skills and sections that never arrive, to hold the screen mid-load.
+  bool pending = false,
+}) => [
   localDbProvider.overrideWith((ref) {
     final db = LocalDb(NativeDatabase.memory());
     ref.onDispose(db.close);
@@ -57,8 +62,13 @@ List<Override> overridesFor(
   connectivityProvider.overrideWith((ref) => Stream.value(true)),
   pendingChangesProvider.overrideWith((ref) => Stream.value(0)),
   profileProvider.overrideWith((ref) async => profile),
-  profileSectionsProvider.overrideWith((ref) async => sections),
-  userSkillsProvider.overrideWith((ref) async => const <UserSkill>[]),
+  profileSectionsProvider.overrideWith(
+    (ref) => pending ? Completer<Never>().future : Future.value(sections),
+  ),
+  userSkillsProvider.overrideWith(
+    (ref) =>
+        pending ? Completer<Never>().future : Future.value(const <UserSkill>[]),
+  ),
   completenessProvider.overrideWith(
     (ref) async => computeCompleteness(
       profile: profile,
@@ -105,10 +115,10 @@ void main() {
     await tester.pump();
 
     final text = allText(tester);
-    expect(text, contains('What you are aiming at'));
+    expect(text, contains('WHAT YOU ARE AIMING AT'));
     expect(text, contains('Frontend developer'));
     expect(text, contains('Software and IT'));
-    expect(text, isNot(contains('What you want to study')));
+    expect(text, isNot(contains('WHAT YOU WANT TO STUDY')));
   });
 
   testWidgets('a school student sees what they want to study and enjoy', (
@@ -123,11 +133,11 @@ void main() {
     await tester.pump();
 
     final text = allText(tester);
-    expect(text, contains('What you want to study'));
+    expect(text, contains('WHAT YOU WANT TO STUDY'));
     expect(text, contains('Computer science'));
     expect(text, contains('Building small games'));
     expect(text, contains('At school · explore'));
-    expect(text, isNot(contains('What you are aiming at')));
+    expect(text, isNot(contains('WHAT YOU ARE AIMING AT')));
   });
 
   testWidgets('a school student gets subjects and hobbies, not courses', (
@@ -276,5 +286,23 @@ void main() {
 
     expect(find.text('Uttara University'), findsOneWidget);
     expect(find.text('Add where you study'), findsNothing);
+  });
+
+  testWidgets('skills and sections still loading are not shown as empty', (
+    tester,
+  ) async {
+    // Read as empty, a student with twenty skills was told to "Add what you
+    // can do" for the second it took them to arrive.
+    await pumpAt(
+      tester,
+      const ProfileScreen(),
+      size: const Size(360, 900),
+      overrides: overridesFor(undergraduate(), const {}, pending: true),
+    );
+    await tester.pump();
+
+    expect(find.text('Add what you can do'), findsNothing);
+    expect(find.text('Add where you study'), findsNothing);
+    expect(find.byType(TackSkeleton), findsWidgets);
   });
 }
