@@ -135,14 +135,6 @@ class TackColors {
   /// darkening reads on it.
   static const pressOverlayOnFill = Color(0x1F000000);
 
-  /// The hairline that separates a card from the page.
-  ///
-  /// Transparent in light mode, where [TackShadow.resting] and the white-on-
-  /// sail-white step already do it. In dark mode a shadow is black on
-  /// near-black and draws nothing, so a card at #1E1A19 on #141110 was a
-  /// rectangle nobody could see the edge of. [line] is the stroke that does.
-  static Color get cardStroke => _p(const Color(0x00000000), line);
-
   /// The well behind an arrow sitting on a brand fill.
   static const onBrandWell = Color(0x24FFFFFF);
 
@@ -274,57 +266,6 @@ class TackRadius {
   static const buttonAll = BorderRadius.all(button);
   static const pillAll = BorderRadius.all(pill);
   static const sheetTop = BorderRadius.vertical(top: sheet);
-}
-
-/// Elevation is deliberately minimal. Emphasis is done with a 1.5px maroon
-/// border, not with shadow — see "Your next three actions" on the dashboard.
-class TackShadow {
-  const TackShadow._();
-
-  static const resting = <BoxShadow>[
-    BoxShadow(color: Color(0x0F23181C), blurRadius: 2, offset: Offset(0, 1)),
-  ];
-
-  /// Only for the one card that overlaps a header.
-  static const raised = <BoxShadow>[
-    BoxShadow(color: Color(0x1A23181C), blurRadius: 18, offset: Offset(0, 6)),
-  ];
-
-  static const fab = <BoxShadow>[
-    BoxShadow(color: Color(0x597A1B34), blurRadius: 16, offset: Offset(0, 6)),
-  ];
-
-  /// Under a glass pane. Outer-only: a pane is translucent, and a shadow drawn
-  /// inside it would show through and grey the card it is meant to lift.
-  static const glass = <BoxShadow>[
-    BoxShadow(
-      color: Color(0x165E1428),
-      blurRadius: 24,
-      offset: Offset(0, 8),
-      blurStyle: BlurStyle.outer,
-    ),
-  ];
-
-  /// [raised], for a pane: the same lift, drawn only outside it.
-  static const glassRaised = <BoxShadow>[
-    BoxShadow(
-      color: Color(0x225E1428),
-      blurRadius: 28,
-      offset: Offset(0, 10),
-      blurStyle: BlurStyle.outer,
-    ),
-  ];
-
-  /// The glow under a primary button: the brand colour, not grey, so the
-  /// button looks lit rather than lifted.
-  static const brandGlow = <BoxShadow>[
-    BoxShadow(
-      color: Color(0x407A1B34),
-      blurRadius: 18,
-      offset: Offset(0, 6),
-      spreadRadius: -4,
-    ),
-  ];
 }
 
 /// Short and cheap. Anything that costs a repaint on a mid-range Android is

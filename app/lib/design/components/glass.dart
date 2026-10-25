@@ -80,6 +80,11 @@ class _AmbientPainter extends CustomPainter {
 /// The decorations a glass pane is made of. Everything that draws a pane goes
 /// through these, so a card, the tab bar and a header button are the same
 /// glass and not three guesses at it.
+///
+/// Tack draws no shadows, in either palette. A pane is set apart from the page
+/// by its fill and its rim, and the one card that matters most on a screen by
+/// a maroon border. A drop shadow read as a grey ledge under every card on the
+/// pale page, and as a smudge on the dark one.
 class TackGlass {
   const TackGlass._();
 
@@ -87,7 +92,6 @@ class TackGlass {
   static BoxDecoration pane({
     BorderRadius borderRadius = TackRadius.cardAll,
     BoxShape shape = BoxShape.rectangle,
-    bool shadow = true,
   }) => BoxDecoration(
     gradient: LinearGradient(
       begin: Alignment.topLeft,
@@ -96,7 +100,6 @@ class TackGlass {
     ),
     borderRadius: shape == BoxShape.circle ? null : borderRadius,
     shape: shape,
-    boxShadow: shadow ? TackShadow.glass : null,
   );
 
   /// The rim, drawn in the foreground so it costs no layout.
@@ -127,7 +130,6 @@ class TackGlass {
       stops: const [0, 0.45, 1],
     ),
     borderRadius: borderRadius,
-    boxShadow: TackShadow.brandGlow,
   );
 }
 
@@ -270,7 +272,6 @@ class TackSegmented<T> extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: TackColors.white,
                         borderRadius: radius,
-                        boxShadow: TackShadow.resting,
                       ),
                     ),
                   ),

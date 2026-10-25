@@ -21,7 +21,6 @@ class TackCard extends StatelessWidget {
     required this.child,
     this.emphasised = false,
     this.compact = false,
-    this.raised = false,
     this.padding,
     this.background,
     this.onTap,
@@ -31,7 +30,6 @@ class TackCard extends StatelessWidget {
   final Widget child;
   final bool emphasised;
   final bool compact;
-  final bool raised;
   final EdgeInsets? padding;
 
   /// Defaults to the card surface for the current palette.
@@ -60,9 +58,7 @@ class TackCard extends StatelessWidget {
         border: Border.all(color: TackColors.maroonText, width: 1.5),
       );
     } else {
-      decoration = raised
-          ? glass.copyWith(boxShadow: TackShadow.glassRaised)
-          : glass;
+      decoration = glass;
     }
 
     final content = Container(

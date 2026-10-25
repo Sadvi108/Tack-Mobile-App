@@ -109,7 +109,6 @@ class _TackButtonState extends State<TackButton> {
     late final Color foreground;
     Border? border;
     Gradient? gradient;
-    List<BoxShadow>? glow;
 
     switch (v) {
       case TackButtonVariant.primary:
@@ -132,7 +131,6 @@ class _TackButtonState extends State<TackButton> {
                     TackColors.maroonDeep,
                   ],
           );
-          glow = _pressed ? null : TackShadow.brandGlow;
         }
       case TackButtonVariant.secondary:
         background = TackColors.glassHi;
@@ -230,7 +228,6 @@ class _TackButtonState extends State<TackButton> {
               gradient: gradient,
               borderRadius: radius,
               border: border,
-              boxShadow: glow,
             ),
             alignment: Alignment.center,
             child: child,
@@ -277,7 +274,6 @@ class TackFab extends StatelessWidget {
               ],
             ),
             shape: BoxShape.circle,
-            boxShadow: TackShadow.fab,
           ),
           foregroundDecoration: const BoxDecoration(
             shape: BoxShape.circle,

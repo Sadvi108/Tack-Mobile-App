@@ -353,7 +353,6 @@ class TackBottomNav extends StatelessWidget {
         decoration: BoxDecoration(
           color: TackColors.glassBar,
           borderRadius: _radius,
-          boxShadow: TackShadow.glassRaised,
         ),
         foregroundDecoration: TackGlass.rim(borderRadius: _radius),
         child: LayoutBuilder(

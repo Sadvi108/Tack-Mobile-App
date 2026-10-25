@@ -651,7 +651,7 @@ class _CoachButton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 18),
         decoration: TackGlass.brand(
           borderRadius: const BorderRadius.all(TackRadius.buttonRound),
-        ).copyWith(boxShadow: TackShadow.fab),
+        ),
         foregroundDecoration: TackGlass.rim(
           borderRadius: const BorderRadius.all(TackRadius.buttonRound),
           colour: TackColors.glassRimOnBrand,

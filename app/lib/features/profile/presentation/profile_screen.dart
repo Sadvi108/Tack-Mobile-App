@@ -252,7 +252,6 @@ class _ProfileHero extends StatelessWidget {
     ].join(', ');
 
     return TackCard(
-      raised: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

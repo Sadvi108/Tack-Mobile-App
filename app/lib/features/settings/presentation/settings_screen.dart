@@ -552,7 +552,6 @@ class _AccountCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TackCard(
-      raised: true,
       child: Row(
         children: [
           TackAvatar(initials: initials, size: 52),
