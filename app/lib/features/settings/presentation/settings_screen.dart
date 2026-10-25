@@ -186,12 +186,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           TackCard(
             child: Column(
               children: [
-                if (profile?.phone case final phone?) ...[
+                if (profile?.displayPhone case final phone?) ...[
                   _Row(
                     icon: TackIcons.phone,
                     tone: _Tone.blue,
                     label: 'Phone',
-                    value: '${profile?.dialCode ?? ''} $phone'.trim(),
+                    value: phone,
                   ),
                   const _Divider(),
                 ],

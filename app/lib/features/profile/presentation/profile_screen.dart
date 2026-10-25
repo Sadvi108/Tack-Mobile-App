@@ -286,9 +286,9 @@ class _ProfileHero extends StatelessWidget {
                       const SizedBox(height: 3),
                       Text(place, style: TackText.meta),
                     ],
-                    if (profile.phone != null) ...[
+                    if (profile.displayPhone case final phone?) ...[
                       const SizedBox(height: 2),
-                      Text(profile.phone!, style: TackText.meta),
+                      Text(phone, style: TackText.meta),
                     ],
                   ],
                 ),

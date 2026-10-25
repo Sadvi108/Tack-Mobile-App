@@ -134,6 +134,19 @@ class Profile {
     return parts.isEmpty ? 'there' : parts.first;
   }
 
+  /// The number as it is dialled, with its country prefix. Stored without
+  /// one, so on its own it read as ten loose digits on the profile while
+  /// Settings showed +880 in front of the same number.
+  String? get displayPhone {
+    final number = phone?.trim() ?? '';
+    if (number.isEmpty) return null;
+    // Some rows already carry the prefix; prefixing again showed it twice.
+    if (number.startsWith('+')) return number;
+    // A local number's trunk 0 is dropped once the country code is in front.
+    final local = number.startsWith('0') ? number.substring(1) : number;
+    return '$dialCode $local';
+  }
+
   factory Profile.fromRow(Map<String, dynamic> row) {
     final city = row['cities'];
     final country = row['countries'];
