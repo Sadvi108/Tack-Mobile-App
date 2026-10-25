@@ -22,8 +22,14 @@ class ProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final profileAsync = ref.watch(profileProvider);
-    final sections = ref.watch(profileSectionsProvider).value ?? const {};
-    final skills = ref.watch(userSkillsProvider).value ?? const <UserSkill>[];
+    final sectionsAsync = ref.watch(profileSectionsProvider);
+    final skillsAsync = ref.watch(userSkillsProvider);
+    final sections = sectionsAsync.value ?? const {};
+    final skills = skillsAsync.value ?? const <UserSkill>[];
+    // Not loaded is not empty. Read as empty, a student with twenty skills
+    // was told "Add what you can do" for the second it took them to arrive.
+    final sectionsPending = !sectionsAsync.hasValue && sectionsAsync.isLoading;
+    final skillsPending = !skillsAsync.hasValue && skillsAsync.isLoading;
     final completeness = ref.watch(completenessProvider).value;
     final mode = ref.watch(modeProvider);
     final atSchool = mode.isAtSchool;
@@ -63,7 +69,10 @@ class ProfileScreen extends ConsumerWidget {
               const SizedBox(height: TackSpace.stackLoose),
 
               if (!atSchool) ...[
-                SkillsCard(skills: skills),
+                if (skillsPending)
+                  const TackSkeleton(height: 180, radius: 20)
+                else
+                  SkillsCard(skills: skills),
                 const SizedBox(height: TackSpace.stackLoose),
               ],
               _DirectionCard(profile: profile),
@@ -73,12 +82,15 @@ class ProfileScreen extends ConsumerWidget {
                   in atSchool
                       ? ProfileSection.forSchool()
                       : ProfileSection.forUniversity()) ...[
-                _SectionCard(
-                  section: section,
-                  entries: sections[section] ?? const [],
-                  onAdd: () => _add(context, ref, section),
-                  onRemove: (id) => _remove(context, ref, section, id),
-                ),
+                if (sectionsPending)
+                  const TackSkeleton(height: 96, radius: 20)
+                else
+                  _SectionCard(
+                    section: section,
+                    entries: sections[section] ?? const [],
+                    onAdd: () => _add(context, ref, section),
+                    onRemove: (id) => _remove(context, ref, section, id),
+                  ),
                 const SizedBox(height: TackSpace.stack),
               ],
 

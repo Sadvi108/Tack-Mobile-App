@@ -21,8 +21,11 @@ class ScoreScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final scoreAsync = ref.watch(readinessProvider);
-    final trend =
-        ref.watch(scoreTrendProvider).value ?? const <ReadinessScore>[];
+    final trendAsync = ref.watch(scoreTrendProvider);
+    final trend = trendAsync.value ?? const <ReadinessScore>[];
+    // Not loaded is not empty: read as empty, a student with ninety days of
+    // history was told their trend would appear "once you have a few days".
+    final trendPending = !trendAsync.hasValue && trendAsync.isLoading;
     final cohort = ref.watch(cohortProvider).value;
     final mode = ref.watch(modeProvider);
     final weekChange = ref.watch(weekChangeProvider).value ?? 0;
@@ -110,7 +113,10 @@ class ScoreScreen extends ConsumerWidget {
                   children: [
                     Text('LAST 90 DAYS', style: TackText.monoLabel),
                     const SizedBox(height: TackSpace.md),
-                    ScoreTrendChart(history: trend),
+                    if (trendPending)
+                      const TackSkeleton(height: 96, radius: 12)
+                    else
+                      ScoreTrendChart(history: trend),
                   ],
                 ),
               ),
