@@ -78,6 +78,12 @@ class TackScaffold extends StatelessWidget {
   }
 
   Widget _body(BuildContext context, Widget content) {
+    final safeBottom = MediaQuery.paddingOf(context).bottom;
+    // With nothing fixed along the bottom, the page runs under the home
+    // indicator rather than stopping at a hard line above it. A body that
+    // scrolls itself is left to lay out its own end.
+    final open = pinnedCta == null && bottomNav == null;
+
     return SafeArea(
       bottom: false,
       top: !onMaroonHeader,
@@ -90,7 +96,9 @@ class TackScaffold extends StatelessWidget {
                 Positioned.fill(
                   child: scrollable
                       ? SingleChildScrollView(
-                          padding: const EdgeInsets.only(bottom: TackSpace.xl),
+                          padding: EdgeInsets.only(
+                            bottom: TackSpace.xl + (open ? safeBottom : 0),
+                          ),
                           physics: const AlwaysScrollableScrollPhysics(),
                           child: content,
                         )
@@ -99,7 +107,7 @@ class TackScaffold extends StatelessWidget {
                 if (floatingAction != null)
                   Positioned(
                     right: TackSpace.screen,
-                    bottom: TackSpace.lg,
+                    bottom: TackSpace.lg + (open ? safeBottom : 0),
                     child: floatingAction!,
                   ),
               ],
@@ -109,24 +117,25 @@ class TackScaffold extends StatelessWidget {
             Container(
               width: double.infinity,
               // A bar of glass over the page, with a hairline where the
-              // scrolling content passes under it.
+              // scrolling content passes under it. With no tab bar beneath, it
+              // carries on to the bottom edge: stopping above the home
+              // indicator left a strip of page under it that read as a ledge.
               decoration: BoxDecoration(
                 color: background ?? TackColors.glassBar,
                 border: background == null
                     ? Border(top: BorderSide(color: TackColors.line))
                     : null,
               ),
-              padding: const EdgeInsets.fromLTRB(
+              padding: EdgeInsets.fromLTRB(
                 TackSpace.screen,
                 TackSpace.md,
                 TackSpace.screen,
-                TackSpace.md,
+                TackSpace.md + (bottomNav == null ? safeBottom : 0),
               ),
               child: pinnedCta,
             ),
           ?bottomNav,
-          if (bottomNav == null)
-            SizedBox(height: MediaQuery.paddingOf(context).bottom),
+          if (open && !scrollable) SizedBox(height: safeBottom),
         ],
       ),
     );
