@@ -190,6 +190,71 @@ void main() {
     expect(bodyText(tester), contains('Some sources could not be refreshed'));
   });
 
+  // Radar now shows only roles open to Bangladesh (0095). With no Bangladesh
+  // source connected that is almost nothing, and the screen has to say why
+  // rather than suggest the student search better.
+  testWidgets('no Bangladesh source connected is said plainly', (tester) async {
+    await pumpAt(
+      tester,
+      const RadarScreen(),
+      size: const Size(360, 900),
+      overrides: overrides(
+        const RadarResult(
+          listings: [],
+          problems: {
+            'bdjobs': 'not configured',
+            'linkedin': 'not configured',
+            'careerjet': 'not configured',
+            'jsearch': 'not configured',
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Bangladesh sources are not connected yet'),
+      findsOneWidget,
+    );
+    // A location rule, not a promise about eligibility.
+    expect(
+      bodyText(tester),
+      contains('lists jobs in Bangladesh and remote roles open to it'),
+    );
+    expect(bodyText(tester), isNot(contains('can take')));
+    // Searching better will not help, so the screen offers what will.
+    expect(find.text('Try a wider search'), findsNothing);
+    expect(find.text('Add a job you found elsewhere'), findsOneWidget);
+    expect(find.text('Add a job'), findsOneWidget);
+    expect(find.text('Clear role and job type'), findsNothing);
+  });
+
+  testWidgets('a connected source with nothing new is not called missing', (
+    tester,
+  ) async {
+    await pumpAt(
+      tester,
+      const RadarScreen(),
+      size: const Size(360, 900),
+      overrides: overrides(
+        const RadarResult(
+          listings: [],
+          problems: {
+            'bdjobs': 'not refreshed',
+            'linkedin': 'not refreshed',
+            'careerjet': 'not configured',
+            'jsearch': 'not configured',
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Bangladesh sources are not connected yet'), findsNothing);
+    expect(find.text('Some sources are unavailable'), findsOneWidget);
+    expect(bodyText(tester), contains('Some sources could not be refreshed'));
+  });
+
   testWidgets('the two views swap without leaving the destination', (
     tester,
   ) async {

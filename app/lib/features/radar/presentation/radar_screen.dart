@@ -9,6 +9,7 @@ import 'package:tack/design/tack.dart';
 import '../../../routing/router.dart';
 import '../../../routing/tab_bar.dart';
 import '../../applications/application/application_data.dart';
+import '../../applications/presentation/add_application_sheet.dart';
 import '../../applications/presentation/applications_screen.dart';
 import '../../dashboard/application/dashboard_data.dart';
 import '../../profile/application/profile.dart';
@@ -575,18 +576,29 @@ class _ResultsState extends ConsumerState<_Results> {
           const SizedBox(height: TackSpace.md),
         ],
         if (_listings.isEmpty) ...[
-          TackEmptyState(
-            title: query.filter == RadarFilter.all
-                ? 'Try a wider search'
-                : 'No ${query.filter.label.toLowerCase()} right now',
-            body: query.filter == RadarFilter.all
-                ? 'Try a shorter role name or choose another city. You can also explore remote work.'
-                : query.filter.emptyReason,
-          ),
-          TackButton.secondary(
-            'Clear role and job type',
-            onPressed: widget.onClear,
-          ),
+          if (bangladeshSourcesUnconnected(problems)) ...[
+            const TackEmptyState(
+              title: 'Add a job you found elsewhere',
+              body:
+                  'Track it here and Tack will help you prepare. Jobs from '
+                  'Bangladesh boards will appear on Radar once they are '
+                  'connected.',
+            ),
+            TackButton.secondary('Add a job', onPressed: _addJob),
+          ] else ...[
+            TackEmptyState(
+              title: query.filter == RadarFilter.all
+                  ? 'Try a wider search'
+                  : 'No ${query.filter.label.toLowerCase()} right now',
+              body: query.filter == RadarFilter.all
+                  ? 'Try a shorter role name or choose another city. You can also explore remote work.'
+                  : query.filter.emptyReason,
+            ),
+            TackButton.secondary(
+              'Clear role and job type',
+              onPressed: widget.onClear,
+            ),
+          ],
         ] else
           for (final listing in _listings) ...[
             ListingCard(
@@ -663,6 +675,18 @@ class _ResultsState extends ConsumerState<_Results> {
     }
   }
 
+  /// A job found somewhere else, while Radar has little of its own to show.
+  Future<void> _addJob() async {
+    final created = await showAddApplicationSheet(context, ref);
+    if (created && mounted) {
+      ref
+        ..invalidate(applicationCountsProvider)
+        ..invalidate(applicationsProvider)
+        ..invalidate(dashboardFeedProvider);
+      TackToast.show(context, message: 'Added. It is in Tracking now.');
+    }
+  }
+
   Future<void> _save(Listing listing) async {
     if (!_saving.add(listing.id)) return;
     setState(() {});
@@ -695,6 +719,10 @@ class _BoardNotice extends StatelessWidget {
 
   final Map<String, String> problems;
 
+  /// Every Bangladesh source is missing its key. A source that is set up but
+  /// had nothing new is a different problem, and is not called missing.
+  bool get unconnected => bangladeshSourcesUnconnected(problems);
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -711,18 +739,19 @@ class _BoardNotice extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Some sources are unavailable',
+            unconnected
+                ? 'Bangladesh sources are not connected yet'
+                : 'Some sources are unavailable',
             style: TackText.monoLabelSmall.copyWith(
               color: TackColors.amberText,
             ),
           ),
           const SizedBox(height: TackSpace.sm),
           Text(
-            problems.containsKey('careerjet') &&
-                    problems.containsKey('jsearch') &&
-                    problems.containsKey('bdjobs') &&
-                    problems.containsKey('linkedin')
-                ? 'Bangladesh coverage is limited right now. You can still browse available postings and try again later.'
+            unconnected
+                ? 'Radar lists jobs in Bangladesh and remote roles open to it, '
+                      'so there is little here until Bdjobs and the other '
+                      'Bangladesh boards are connected.'
                 : 'Showing available postings. Some sources could not be refreshed; try again later.',
             style: TackText.bodyMuted,
           ),

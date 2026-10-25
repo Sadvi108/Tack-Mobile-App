@@ -172,3 +172,11 @@ class RadarResult {
     },
   );
 }
+
+/// The sources that can carry jobs in Bangladesh, as the radar function names
+/// them in `problems`.
+const bangladeshSources = ['bdjobs', 'linkedin', 'careerjet', 'jsearch'];
+
+/// True when every one of them is reported as not configured.
+bool bangladeshSourcesUnconnected(Map<String, String> problems) =>
+    bangladeshSources.every((s) => problems[s] == 'not configured');

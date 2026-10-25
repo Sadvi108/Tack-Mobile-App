@@ -168,3 +168,65 @@ Deno.test("Bdjobs imports a page once, schedules continuation, and stops on cach
     }
   }
 });
+
+// Re-reading a dataset is not seeing its jobs again. If an import stamped the
+// time it ran, an hourly re-read of yesterday's collection would keep closed
+// vacancies inside Radar's 48-hour window forever.
+Deno.test("an import stamps the run's finish time, not the time it read the page", async () => {
+  const originalFetch = globalThis.fetch;
+  const oldToken = Deno.env.get("APIFY_API_TOKEN");
+  const oldTask = Deno.env.get("APIFY_BDJOBS_TASK_ID");
+  const stamped: unknown[] = [];
+  const service = {
+    from: () => ({ upsert: () => Promise.resolve({ error: null }) }),
+    rpc: (_name: string, params: { p_rows: { last_seen_at: unknown }[] }) => {
+      stamped.push(...params.p_rows.map((r) => r.last_seen_at));
+      return Promise.resolve({ data: params.p_rows.length, error: null });
+    },
+  } as unknown as SupabaseClient;
+  const finishedAt = new Date(Date.now() - 20 * 60 * 60 * 1000).toISOString();
+  const page = { runId: "Run9", datasetId: "Data9", offset: 0, finishedAt };
+  try {
+    Deno.env.set("APIFY_API_TOKEN", "fixture-only");
+    Deno.env.set("APIFY_BDJOBS_TASK_ID", "Task9");
+    globalThis.fetch = () =>
+      Promise.resolve(Response.json([{
+        result_type: "bdjobs-job-search",
+        status: "success",
+        id: "1",
+        url: "https://bdjobs.com/h/details/1",
+        title: "Accountant",
+        location: "Dhaka",
+      }]));
+    // The same page, read twice an hour apart, keeps the run's time both times.
+    await importBdjobs(service, { id: "job", user_id: null, payload: page });
+    await importBdjobs(service, { id: "job", user_id: null, payload: page });
+    assertEquals(stamped.length, 2);
+    for (const seen of stamped) {
+      assertEquals(new Date(seen as string).toISOString(), finishedAt);
+    }
+
+    // A run older than the cache window is not read at all.
+    const stale = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString();
+    assertEquals(
+      await importBdjobs(service, {
+        id: "job",
+        user_id: null,
+        payload: { ...page, finishedAt: stale },
+      }),
+      { skipped: "bdjobs run is stale" },
+    );
+    assertEquals(stamped.length, 2);
+  } finally {
+    globalThis.fetch = originalFetch;
+    for (
+      const [key, value] of [["APIFY_API_TOKEN", oldToken], [
+        "APIFY_BDJOBS_TASK_ID",
+        oldTask,
+      ]]
+    ) {
+      if (value == null) Deno.env.delete(key!);
+      else Deno.env.set(key!, value);
+    }
+  }
+});

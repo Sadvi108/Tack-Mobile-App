@@ -3,6 +3,10 @@ import { requireUser, serviceClient } from "../_shared/util/auth.ts";
 import { fail, json, preflight } from "../_shared/util/http.ts";
 import { dedupe, searchAll } from "../_shared/radar/providers.ts";
 import { BDJOBS_MAX_AGE_MS } from "../_shared/radar/bdjobs.ts";
+import {
+  apifyTaskSetting,
+  bangladeshSourceStatus,
+} from "../_shared/radar/reach.ts";
 
 /**
  * Radar: refresh the shared listing cache, then hand back the caller's own
@@ -35,7 +39,9 @@ Deno.serve(async (req) => {
   let fetched = 0;
 
   // Bdjobs is collected on a schedule and imported by the worker. Browsing
-  // only reads Tack's cache; it never starts a paid Actor run.
+  // only reads Tack's cache; it never starts a paid Actor run. Every request
+  // says whether each Bangladesh source is set up at all, refresh or not, so
+  // the screen can tell "not connected yet" from "nothing new today".
   const freshSince = new Date(Date.now() - BDJOBS_MAX_AGE_MS).toISOString();
   await Promise.all(["bdjobs", "linkedin"].map(async (source) => {
     const { data, error } = await auth.client
@@ -43,8 +49,15 @@ Deno.serve(async (req) => {
       .gte("last_seen_at", freshSince)
       .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
       .limit(1);
-    if (error || !data?.length) problems[source] = "not refreshed";
+    const status = bangladeshSourceStatus({
+      token: Deno.env.get("APIFY_API_TOKEN"),
+      tasks: apifyTaskSetting(),
+      fresh: !error && (data?.length ?? 0) > 0,
+    });
+    if (status) problems[source] = status;
   }));
+  if (!Deno.env.get("CAREERJET_API_KEY")) problems.careerjet = "not configured";
+  if (!Deno.env.get("JSEARCH_API_KEY")) problems.jsearch = "not configured";
 
   // Paging through what is already cached does not need the boards again.
   if (body.refresh !== false && offset === 0) {
