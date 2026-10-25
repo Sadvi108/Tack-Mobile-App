@@ -260,10 +260,9 @@ export async function careerjet(query: Query): Promise<ProviderResult> {
         externalId: str(r.id) ?? await hashUrl(url),
         title,
         company: str(r.company),
-        location:
-          (Deno.env.get("CAREERJET_LOCALE") ?? "en_BD") === "en_BD" && locations
-            ? `${locations}, Bangladesh`
-            : locations,
+        // As the board gave it. Appending "Bangladesh" for the en_BD locale
+        // made the word useless as evidence of where a job is (0095).
+        location: locations,
         isRemote: /\bremote\b/i.test(`${title} ${locations ?? ""}`),
         employmentType: null,
         description: str(r.description),
@@ -336,157 +335,13 @@ export async function remotive(query: Query): Promise<ProviderResult> {
   }
 }
 
-// -------------------------------------------------------------- arbeitnow
-//
-// The only free board that reliably carries both an employment type and a
-// full description, and the only one where internships appear in any number.
-// Mostly European and mostly on-site, which is exactly the half of the filter
-// the other boards cannot fill.
-export async function arbeitnow(query: Query): Promise<ProviderResult> {
-  try {
-    const body = await getJson(
-      "https://www.arbeitnow.com/api/job-board-api",
-    ) as { data?: unknown[] };
-
-    // No query filtering here on purpose. This board has no search parameter,
-    // and filtering its one page in memory meant a search for "developer"
-    // kept 5 of 175 rows and a search The Muse could not match kept none.
-    // Providers fill the cache; radar_feed filters and ranks across all of
-    // it, per word, which is where that job belongs.
-    const listings: Listing[] = [];
-
-    for (const row of Array.isArray(body?.data) ? body.data : []) {
-      if (typeof row !== "object" || row === null) continue;
-      const r = row as Record<string, unknown>;
-      const url = str(r.url);
-      const title = str(r.title);
-      if (!url || !title) continue;
-
-      const types = Array.isArray(r.job_types)
-        ? (r.job_types as unknown[]).filter((t) => typeof t === "string")
-        : [];
-
-      listings.push({
-        source: "arbeitnow",
-        externalId: str(r.slug) ?? await hashUrl(url),
-        title,
-        company: str(r.company_name),
-        location: str(r.location),
-        isRemote: r.remote === true,
-        employmentType: types.length > 0 ? types.join(" ") : null,
-        description: description(r.description),
-        url,
-        applyUrl: null,
-        salaryText: null,
-        category: Array.isArray(r.tags) ? str(r.tags[0]) : null,
-        level: null,
-        postedAt: typeof r.created_at === "number"
-          ? new Date(r.created_at * 1000).toISOString()
-          : null,
-      });
-      if (listings.length >= (query.limit ?? 60)) break;
-    }
-    return { source: "arbeitnow", listings };
-  } catch (e) {
-    return {
-      source: "arbeitnow",
-      listings: [],
-      problem: e instanceof Error ? e.message : "unreachable",
-    };
-  }
-}
-
-// ---------------------------------------------------------------- themuse
-//
-// Publishes an explicit experience level, and "Internship" is one of them —
-// the only board here that says so outright rather than leaving it to be read
-// out of a job title.
-export async function themuse(query: Query): Promise<ProviderResult> {
-  // Two ordinary pages plus one that asks for internships outright. Without
-  // the third, internships appear only by luck — page one of this board is
-  // whatever it happens to be, and a student filtering for an internship
-  // would get an empty screen most days.
-  const pages = [
-    "page=1",
-    "page=2",
-    "page=1&level=Internship",
-  ].map((p) =>
-    query.location ? `${p}&location=${encodeURIComponent(query.location)}` : p
-  );
-
-  try {
-    const bodies = await Promise.all(
-      pages.map((p) =>
-        getJson(`https://www.themuse.com/api/public/jobs?${p}`).catch(
-          () => ({}),
-        )
-      ),
-    ) as { results?: unknown[] }[];
-
-    const listings: Listing[] = [];
-    const seen = new Set<string>();
-
-    for (
-      const row of bodies.flatMap((b) =>
-        Array.isArray(b?.results) ? b.results : []
-      )
-    ) {
-      if (typeof row !== "object" || row === null) continue;
-      const r = row as Record<string, unknown>;
-      const title = str(r.name);
-      const refs = r.refs as Record<string, unknown> | undefined;
-      const url = str(refs?.landing_page);
-      if (!url || !title || seen.has(url)) continue;
-      seen.add(url);
-
-      const levels = Array.isArray(r.levels)
-        ? (r.levels as Record<string, unknown>[]).map((l) => str(l?.name))
-          .filter(Boolean)
-        : [];
-      const places = Array.isArray(r.locations)
-        ? (r.locations as Record<string, unknown>[]).map((l) => str(l?.name))
-          .filter(Boolean)
-        : [];
-      const company = (r.company as Record<string, unknown> | undefined)?.name;
-
-      listings.push({
-        source: "themuse",
-        externalId: str(r.id) ?? await hashUrl(url),
-        title,
-        company: str(company),
-        location: places[0] ?? null,
-        isRemote: places.some((p) => /flexible|remote/i.test(p ?? "")),
-        // The level is what carries "Internship" on this board, so it is what
-        // gets classified.
-        employmentType: levels.join(" ") || null,
-        description: description(r.contents),
-        url,
-        applyUrl: null,
-        salaryText: null,
-        category: Array.isArray(r.categories)
-          ? str((r.categories as Record<string, unknown>[])[0]?.name)
-          : null,
-        level: levels[0] ?? null,
-        postedAt: str(r.publication_date),
-      });
-      if (listings.length >= (query.limit ?? 60)) break;
-    }
-    return { source: "themuse", listings };
-  } catch (e) {
-    return {
-      source: "themuse",
-      listings: [],
-      problem: e instanceof Error ? e.message : "unreachable",
-    };
-  }
-}
-
+// Arbeitnow (Germany) and The Muse (US) were asked on every search and
+// contributed nothing a student in Bangladesh could take: no row of theirs
+// passes the reach rule in 0095. Their old rows age out of the cache.
 export const providers = [
   jsearch,
   aiJobs,
   remotive,
-  arbeitnow,
-  themuse,
   careerjet,
 ];
 

@@ -161,21 +161,12 @@ class RadarResult {
 
   bool get isMissingCareerjet => problems.containsKey('careerjet');
 
-  /// Bdjobs, LinkedIn, JSearch and Careerjet are the boards that search
-  /// Bangladesh. With all four gone, what is left is remote and overseas work.
-  bool get isMissingBangladesh =>
-      problems.containsKey('bdjobs') &&
-      problems.containsKey('linkedin') &&
-      problems.containsKey('jsearch') &&
-      problems.containsKey('careerjet');
-
   /// Boards with no key on the server, by name.
   List<String> get notSetUp => _named((p) => p == 'not configured');
 
   /// Boards Tack imports on a schedule rather than asks live — Bdjobs and
-  /// LinkedIn — whose
-  /// last import is too old to show. Nothing failed just now, so "could not be
-  /// reached" would be the wrong thing to say.
+  /// LinkedIn — whose last import is too old to show. Nothing failed just now,
+  /// so "could not be reached" would be the wrong thing to say.
   List<String> get notRefreshed => _named((p) => p == 'not refreshed');
 
   /// Boards that have a key but did not answer, by name.
@@ -203,3 +194,11 @@ class RadarResult {
     },
   );
 }
+
+/// The sources that can carry jobs in Bangladesh, as the radar function names
+/// them in `problems`.
+const bangladeshSources = ['bdjobs', 'linkedin', 'careerjet', 'jsearch'];
+
+/// True when every one of them is reported as not configured.
+bool bangladeshSourcesUnconnected(Map<String, String> problems) =>
+    bangladeshSources.every((s) => problems[s] == 'not configured');

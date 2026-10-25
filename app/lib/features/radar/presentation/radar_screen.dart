@@ -8,6 +8,7 @@ import '../../../core/failure.dart';
 import 'package:tack/design/tack.dart';
 import '../../../routing/router.dart';
 import '../../applications/application/application_data.dart';
+import '../../applications/presentation/add_application_sheet.dart';
 import '../../applications/presentation/applications_screen.dart';
 import '../../dashboard/application/dashboard_data.dart';
 import '../../profile/application/profile.dart';
@@ -573,18 +574,29 @@ class _ResultsState extends ConsumerState<_Results> {
           const SizedBox(height: TackSpace.md),
         ],
         if (_listings.isEmpty) ...[
-          TackEmptyState(
-            title: query.filter == RadarFilter.all
-                ? 'Try a wider search'
-                : 'No ${query.filter.label.toLowerCase()} right now',
-            body: query.filter == RadarFilter.all
-                ? 'Try a shorter role name or choose another city. You can also explore remote work.'
-                : query.filter.emptyReason,
-          ),
-          TackButton.secondary(
-            'Clear role and job type',
-            onPressed: widget.onClear,
-          ),
+          if (bangladeshSourcesUnconnected(problems)) ...[
+            const TackEmptyState(
+              title: 'Add a job you found elsewhere',
+              body:
+                  'Track it here and Tack will help you prepare. Jobs from '
+                  'Bangladesh boards will appear on Radar once they are '
+                  'connected.',
+            ),
+            TackButton.secondary('Add a job', onPressed: _addJob),
+          ] else ...[
+            TackEmptyState(
+              title: query.filter == RadarFilter.all
+                  ? 'Try a wider search'
+                  : 'No ${query.filter.label.toLowerCase()} right now',
+              body: query.filter == RadarFilter.all
+                  ? 'Try a shorter role name or choose another city. You can also explore remote work.'
+                  : query.filter.emptyReason,
+            ),
+            TackButton.secondary(
+              'Clear role and job type',
+              onPressed: widget.onClear,
+            ),
+          ],
         ] else
           for (final listing in _listings) ...[
             ListingCard(
@@ -661,6 +673,18 @@ class _ResultsState extends ConsumerState<_Results> {
     }
   }
 
+  /// A job found somewhere else, while Radar has little of its own to show.
+  Future<void> _addJob() async {
+    final created = await showAddApplicationSheet(context, ref);
+    if (created && mounted) {
+      ref
+        ..invalidate(applicationCountsProvider)
+        ..invalidate(applicationsProvider)
+        ..invalidate(dashboardFeedProvider);
+      TackToast.show(context, message: 'Added. It is in Tracking now.');
+    }
+  }
+
   Future<void> _save(Listing listing) async {
     if (!_saving.add(listing.id)) return;
     setState(() {});
@@ -704,24 +728,38 @@ class _BoardNotice extends StatelessWidget {
     final notSetUp = result.notSetUp;
     final notRefreshed = result.notRefreshed;
     final unreachable = result.unreachable;
+    final reached = unreachable.isEmpty
+        ? null
+        : '${_join(unreachable)} could not be reached. Try again later.';
+    if (unconnected) {
+      // Naming four missing keys would bury the point: Radar is close to
+      // empty by design until Bangladesh boards are connected.
+      return [
+        'Radar lists jobs in Bangladesh and remote roles open to it, so there '
+            'is little here until Bdjobs and the other Bangladesh boards are '
+            'connected.',
+        ?reached,
+      ].join(' ');
+    }
     if (notSetUp.isEmpty && notRefreshed.isEmpty && unreachable.isEmpty) {
       return 'Showing available postings. Some sources could not be '
           'refreshed; try again later.';
     }
     return [
-      result.isMissingBangladesh
-          ? 'Bangladesh coverage is limited right now.'
-          : 'Showing postings from the other boards.',
+      'Showing postings from the other boards.',
       if (notSetUp.isNotEmpty)
         '${_join(notSetUp)} ${notSetUp.length == 1 ? 'is' : 'are'} not set '
             'up yet.',
       if (notRefreshed.isNotEmpty)
         '${_join(notRefreshed)} ${notRefreshed.length == 1 ? 'has' : 'have'} '
             'not refreshed recently.',
-      if (unreachable.isNotEmpty)
-        '${_join(unreachable)} could not be reached. Try again later.',
+      ?reached,
     ].join(' ');
   }
+
+  /// Every Bangladesh source is missing its key. A source that is set up but
+  /// had nothing new is a different problem, and is not called missing.
+  bool get unconnected => bangladeshSourcesUnconnected(result.problems);
 
   @override
   Widget build(BuildContext context) {
@@ -739,7 +777,9 @@ class _BoardNotice extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Some sources are unavailable',
+            unconnected
+                ? 'Bangladesh sources are not connected yet'
+                : 'Some sources are unavailable',
             style: TackText.monoLabelSmall.copyWith(
               color: TackColors.amberText,
             ),

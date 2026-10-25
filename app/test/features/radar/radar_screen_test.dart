@@ -190,38 +190,37 @@ void main() {
     expect(bodyText(tester), contains('Careerjet is not set up yet'));
   });
 
-  testWidgets(
-    'all four Bangladesh boards down names them and what is still shown',
-    (tester) async {
-      await pumpAt(
-        tester,
-        const RadarScreen(),
-        size: const Size(360, 900),
-        overrides: overrides(
-          const RadarResult(
-            listings: [],
-            problems: {
-              'bdjobs': 'not refreshed',
-              'linkedin': 'not refreshed',
-              'jsearch': 'not configured',
-              'careerjet': 'not configured',
-              'remotive': 'http 503',
-            },
-          ),
+  testWidgets('every board that failed is named, each in its own terms', (
+    tester,
+  ) async {
+    await pumpAt(
+      tester,
+      const RadarScreen(),
+      size: const Size(360, 900),
+      overrides: overrides(
+        const RadarResult(
+          listings: [],
+          problems: {
+            'bdjobs': 'not refreshed',
+            'linkedin': 'not refreshed',
+            'jsearch': 'not configured',
+            'careerjet': 'not configured',
+            'remotive': 'http 503',
+          },
         ),
-      );
-      await tester.pumpAndSettle();
+      ),
+    );
+    await tester.pumpAndSettle();
 
-      final text = bodyText(tester);
-      expect(text, contains('Bangladesh coverage is limited right now'));
-      expect(text, contains('JSearch and Careerjet are not set up yet'));
-      // These are imported on a schedule; nothing failed to answer just now.
-      expect(text, contains('Bdjobs and LinkedIn have not refreshed recently'));
-      expect(text, contains('Remotive could not be reached'));
-    },
-  );
+    final text = bodyText(tester);
+    expect(text, contains('Showing postings from the other boards'));
+    expect(text, contains('JSearch and Careerjet are not set up yet'));
+    // These are imported on a schedule; nothing failed to answer just now.
+    expect(text, contains('Bdjobs and LinkedIn have not refreshed recently'));
+    expect(text, contains('Remotive could not be reached'));
+  });
 
-  testWidgets('fresh imported listings mean Bangladesh is still covered', (
+  testWidgets('fresh imported listings mean Bangladesh is still connected', (
     tester,
   ) async {
     await pumpAt(
@@ -241,7 +240,7 @@ void main() {
     await tester.pumpAndSettle();
 
     final text = bodyText(tester);
-    expect(text, isNot(contains('Bangladesh coverage is limited')));
+    expect(find.text('Bangladesh sources are not connected yet'), findsNothing);
     expect(text, contains('Showing postings from the other boards'));
     expect(text, contains('JSearch and Careerjet are not set up yet'));
   });
@@ -258,6 +257,107 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(bodyText(tester), contains('Some sources could not be refreshed'));
+  });
+
+  // Radar now shows only roles open to Bangladesh (0095). With no Bangladesh
+  // source connected that is almost nothing, and the screen has to say why
+  // rather than suggest the student search better.
+  testWidgets('no Bangladesh source connected is said plainly', (tester) async {
+    await pumpAt(
+      tester,
+      const RadarScreen(),
+      size: const Size(360, 900),
+      overrides: overrides(
+        const RadarResult(
+          listings: [],
+          problems: {
+            'bdjobs': 'not configured',
+            'linkedin': 'not configured',
+            'careerjet': 'not configured',
+            'jsearch': 'not configured',
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Bangladesh sources are not connected yet'),
+      findsOneWidget,
+    );
+    // A location rule, not a promise about eligibility.
+    expect(
+      bodyText(tester),
+      contains('lists jobs in Bangladesh and remote roles open to it'),
+    );
+    expect(bodyText(tester), isNot(contains('can take')));
+    // Searching better will not help, so the screen offers what will.
+    expect(find.text('Try a wider search'), findsNothing);
+    expect(find.text('Add a job you found elsewhere'), findsOneWidget);
+    expect(find.text('Add a job'), findsOneWidget);
+    expect(find.text('Clear role and job type'), findsNothing);
+  });
+
+  testWidgets('a connected source with nothing new is not called missing', (
+    tester,
+  ) async {
+    await pumpAt(
+      tester,
+      const RadarScreen(),
+      size: const Size(360, 900),
+      overrides: overrides(
+        const RadarResult(
+          listings: [],
+          problems: {
+            'bdjobs': 'not refreshed',
+            'linkedin': 'not refreshed',
+            'careerjet': 'not configured',
+            'jsearch': 'not configured',
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Bangladesh sources are not connected yet'), findsNothing);
+    expect(find.text('Some sources are unavailable'), findsOneWidget);
+    // Named rather than "some sources": these two are set up and only stale.
+    expect(
+      bodyText(tester),
+      contains('Bdjobs and LinkedIn have not refreshed recently'),
+    );
+  });
+
+  testWidgets('with nothing connected, a board that failed is still named', (
+    tester,
+  ) async {
+    await pumpAt(
+      tester,
+      const RadarScreen(),
+      size: const Size(360, 900),
+      overrides: overrides(
+        const RadarResult(
+          listings: [],
+          problems: {
+            'bdjobs': 'not configured',
+            'linkedin': 'not configured',
+            'careerjet': 'not configured',
+            'jsearch': 'not configured',
+            'remotive': 'http 503',
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final text = bodyText(tester);
+    expect(
+      text,
+      contains('lists jobs in Bangladesh and remote roles open to it'),
+    );
+    expect(text, contains('Remotive could not be reached'));
+    // The four missing keys are the point already made, not listed again.
+    expect(text, isNot(contains('not set up yet')));
   });
 
   testWidgets('the two views swap without leaving the destination', (
