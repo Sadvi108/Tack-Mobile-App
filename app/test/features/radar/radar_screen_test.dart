@@ -191,7 +191,7 @@ void main() {
   });
 
   testWidgets(
-    'all three Bangladesh boards down names them and what is still shown',
+    'all four Bangladesh boards down names them and what is still shown',
     (tester) async {
       await pumpAt(
         tester,
@@ -202,6 +202,7 @@ void main() {
             listings: [],
             problems: {
               'bdjobs': 'not refreshed',
+              'linkedin': 'not refreshed',
               'jsearch': 'not configured',
               'careerjet': 'not configured',
               'remotive': 'http 503',
@@ -214,13 +215,13 @@ void main() {
       final text = bodyText(tester);
       expect(text, contains('Bangladesh coverage is limited right now'));
       expect(text, contains('JSearch and Careerjet are not set up yet'));
-      // Bdjobs is imported on a schedule; nothing failed to answer just now.
-      expect(text, contains('Bdjobs has not refreshed recently'));
+      // These are imported on a schedule; nothing failed to answer just now.
+      expect(text, contains('Bdjobs and LinkedIn have not refreshed recently'));
       expect(text, contains('Remotive could not be reached'));
     },
   );
 
-  testWidgets('fresh Bdjobs listings mean Bangladesh is still covered', (
+  testWidgets('fresh imported listings mean Bangladesh is still covered', (
     tester,
   ) async {
     await pumpAt(

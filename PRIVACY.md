@@ -102,10 +102,10 @@ sent to the job boards Tack searches: artificialintelligencejobs.co,
 Remotive, Arbeitnow, The Muse and Careerjet. They receive the search terms.
 They do not receive your name, your account, or anything else about you.
 
-Tack can also import publicly advertised Bdjobs vacancies from an Apify
-collection task. This scheduled collection receives no student account, profile
-or search terms. Browsing these vacancies reads Tack's own cached copy. The
-original Bdjobs link is shown so you can check details before applying.
+Tack can also import publicly advertised Bdjobs and LinkedIn vacancies from
+Apify collection tasks. These scheduled collections receive no student account,
+profile or search terms. Browsing these vacancies reads Tack's own cached copy.
+The original posting link is shown so you can check details before applying.
 
 ### Sign-in — Google
 

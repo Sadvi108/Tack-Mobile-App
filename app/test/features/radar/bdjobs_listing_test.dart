@@ -16,6 +16,18 @@ void main() {
     expect(RadarWorkplace.remote.remoteValue, true);
   });
 
+  test('LinkedIn imports are labelled by the original board', () {
+    expect(
+      Listing.fromJson({
+        'id': 'fixture',
+        'source': 'linkedin',
+        'title': 'Graduate analyst',
+        'url': 'https://www.linkedin.com/jobs/view/1234567',
+      }).sourceLabel,
+      'LinkedIn',
+    );
+  });
+
   testWidgets('Bdjobs card names the source and preserves unknown workplace', (
     tester,
   ) async {

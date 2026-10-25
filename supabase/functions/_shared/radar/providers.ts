@@ -17,6 +17,7 @@ import { jsearch } from "./jsearch.ts";
 
 export type Source =
   | "bdjobs"
+  | "linkedin"
   | "jsearch"
   | "careerjet"
   | "aijobs"

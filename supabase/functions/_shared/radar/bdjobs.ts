@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { Listing } from "./providers.ts";
+import { APIFY_JOB_ACTOR_IDS, APIFY_JOB_ACTORS } from "./apify_actors.ts";
 
 // Search, not the details-only actor originally supplied. Collection runs on
 // an Apify schedule; Tack only reads completed runs and never starts paid work
@@ -10,6 +11,8 @@ export const BDJOBS_MAX_AGE_MS = 48 * 60 * 60 * 1000;
 const identifier = z.string().regex(/^[A-Za-z0-9]{1,100}$/);
 const date = z.string().datetime({ offset: true });
 export const bdjobsPageSchema = z.object({
+  // Older queued pages predate multiple adapters.
+  actorId: z.enum(APIFY_JOB_ACTOR_IDS).default(APIFY_JOB_ACTORS.scrapingmonkey),
   runId: identifier,
   datasetId: identifier,
   finishedAt: date,
@@ -180,7 +183,7 @@ export async function latestBdjobsRun(
   const schema = z.object({
     data: z.object({
       id: identifier,
-      actId: z.literal("fHgKbgS18BmU9mLGL"),
+      actId: z.enum(APIFY_JOB_ACTOR_IDS),
       status: z.literal("SUCCEEDED"),
       defaultDatasetId: identifier,
       finishedAt: date,
@@ -196,6 +199,7 @@ export async function latestBdjobsRun(
     throw new Error("bdjobs_stale_run");
   }
   return {
+    actorId: run.actId,
     runId: run.id,
     datasetId: run.defaultDatasetId,
     finishedAt: run.finishedAt,

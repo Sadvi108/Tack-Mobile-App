@@ -402,16 +402,26 @@ Fourteen trigger functions maintain invariants and are never called directly:
 
 Bdjobs is a separate scheduled import, not a per-search provider request:
 `api.apify.com/v2/actor-tasks/<task>/runs/last?status=SUCCEEDED` and paginated
-dataset reads use server-only `APIFY_API_TOKEN` and `APIFY_BDJOBS_TASK_ID`.
-The worker's `import_bdjobs` jobs call service-only `cache_bdjobs_page(jsonb)`;
+dataset reads use server-only `APIFY_API_TOKEN` and `APIFY_JOB_TASK_IDS`
+(or the original `APIFY_BDJOBS_TASK_ID`). The worker's `import_bdjobs` jobs
+call service-only `cache_apify_job_page(jsonb)`;
 the hourly `tack-bdjobs-import` schedule calls service-only
 `enqueue_bdjobs_import()`. Neither RPC is callable by anonymous or authenticated
 students. No paid run or student-data transmission is triggered by browsing.
 See [activation and limitations](BDJOBS_APIFY.md).
 
+The [expanded Apify job import](APIFY_BANGLADESH_JOBS.md) supports four reviewed
+Actor IDs and multiple dedicated tasks via server-only `APIFY_JOB_TASK_IDS`.
+The previous single-task setting is retained. Service-only
+`cache_apify_job_page(jsonb)` accepts normalized `bdjobs` and `linkedin` rows;
+the feed applies expiry/freshness to both. Task jobs fail independently and
+never start a paid collection. Other boards and non-Bangladesh rows from the
+multi-board Actor are not accepted into this import.
+
 The Radar feed now returns `workplace_known`, `expires_at` and
-`source_updated_at`. It excludes expired postings and Bdjobs data older than
-48 hours, and strict workplace filters exclude unknown arrangements.
+`source_updated_at`. It excludes expired postings and listings from every source
+that have not been observed for 48 hours. Strict workplace filters exclude
+unknown arrangements.
 
 | Board | Key needed | Notes |
 |---|---|---|
