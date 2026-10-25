@@ -115,10 +115,10 @@ void main() {
     await tester.pump();
 
     final text = allText(tester);
-    expect(text, contains('What you are aiming at'));
+    expect(text, contains('WHAT YOU ARE AIMING AT'));
     expect(text, contains('Frontend developer'));
     expect(text, contains('Software and IT'));
-    expect(text, isNot(contains('What you want to study')));
+    expect(text, isNot(contains('WHAT YOU WANT TO STUDY')));
   });
 
   testWidgets('a school student sees what they want to study and enjoy', (
@@ -133,11 +133,11 @@ void main() {
     await tester.pump();
 
     final text = allText(tester);
-    expect(text, contains('What you want to study'));
+    expect(text, contains('WHAT YOU WANT TO STUDY'));
     expect(text, contains('Computer science'));
     expect(text, contains('Building small games'));
     expect(text, contains('At school · explore'));
-    expect(text, isNot(contains('What you are aiming at')));
+    expect(text, isNot(contains('WHAT YOU ARE AIMING AT')));
   });
 
   testWidgets('a school student gets subjects and hobbies, not courses', (

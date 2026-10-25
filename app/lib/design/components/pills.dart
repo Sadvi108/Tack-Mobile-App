@@ -97,23 +97,26 @@ class TackPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Left unset, a pill was a transparent box: "Default" beside a file name
+    // read as a stray bold word. Neutral is the fill that claims nothing, and
+    // muted on line is already held to AA in both palettes.
+    final fill = background ?? TackColors.line;
+    final ink = foreground ?? (background == null ? TackColors.muted : null);
+
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: icon == null ? 11 : 9,
         vertical: 5,
       ),
-      decoration: BoxDecoration(
-        color: background,
-        borderRadius: TackRadius.pillAll,
-      ),
+      decoration: BoxDecoration(color: fill, borderRadius: TackRadius.pillAll),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (icon != null) ...[
-            TackIcon(icon!, size: 13, color: foreground, strokeWidth: 2.4),
+            TackIcon(icon!, size: 13, color: ink, strokeWidth: 2.4),
             const SizedBox(width: 5),
           ],
-          Text(label, style: TackText.pill.copyWith(color: foreground)),
+          Text(label, style: TackText.pill.copyWith(color: ink)),
         ],
       ),
     );

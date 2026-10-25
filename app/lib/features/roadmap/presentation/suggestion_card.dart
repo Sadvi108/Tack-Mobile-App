@@ -93,7 +93,9 @@ class SuggestionCard extends StatelessWidget {
               if (suggestion.salaryRange case final pay?) _Fact(pay),
               if (suggestion.months case final m?)
                 _Fact('$m months to hireable'),
-              if (suggestion.demand case final d?) _Fact('$d demand'),
+              // The catalogue stores "very high"; a chip starts a sentence.
+              if (suggestion.demand case final d? when d.isNotEmpty)
+                _Fact('${d[0].toUpperCase()}${d.substring(1)} demand'),
             ],
           ),
         ],

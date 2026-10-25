@@ -141,7 +141,8 @@ class _PathsScreenState extends ConsumerState<PathsScreen> {
                 _toCompare.length == 1
                     ? 'Pick one more to compare.'
                     : 'Two picked. Compare them below.',
-                style: TackText.monoLabel,
+                // An instruction, so body text: the mono face is for labels.
+                style: TackText.bodyMuted,
               ),
               const SizedBox(height: TackSpace.md),
             ],

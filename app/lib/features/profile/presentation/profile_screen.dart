@@ -608,7 +608,7 @@ class _DirectionCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            atSchool ? 'What you want to study' : 'What you are aiming at',
+            atSchool ? 'WHAT YOU WANT TO STUDY' : 'WHAT YOU ARE AIMING AT',
             style: TackText.monoLabel,
           ),
           const SizedBox(height: TackSpace.sm),
