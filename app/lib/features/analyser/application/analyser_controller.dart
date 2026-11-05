@@ -3,9 +3,9 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/ai/allowance.dart';
 import '../../../core/failure.dart';
 import '../data/analysis_models.dart';
-import '../../coach/data/coach_repository.dart';
 import '../data/analysis_repository.dart';
 
 /// Runs an analysis and follows it to completion.
@@ -81,7 +81,10 @@ class AnalyserController extends Notifier<AnalysisState> {
         _follow(result.jobId!);
       }
     } catch (e) {
-      state = AnalysisFailed(Failure.from(e).message);
+      final failure = Failure.from(e);
+      final spent = failure.code == 'quota_exhausted';
+      state = AnalysisFailed(failure.message, quotaExhausted: spent);
+      if (spent) ref.invalidate(aiAllowanceProvider);
     }
   }
 

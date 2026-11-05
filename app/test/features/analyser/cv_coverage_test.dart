@@ -1,13 +1,18 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:tack/core/ai/allowance.dart';
 import 'package:tack/features/analyser/application/analyser_controller.dart';
 import 'package:tack/features/analyser/application/cv_coverage.dart';
 import 'package:tack/features/analyser/data/analysis_models.dart';
 import 'package:tack/features/analyser/presentation/analyser_screen.dart';
-import 'package:tack/features/coach/data/coach_repository.dart';
 
 import '../../helpers.dart';
+
+class _Idle extends AnalyserController {
+  @override
+  AnalysisState build() => const AnalysisIdle();
+}
 
 class _Ready extends AnalyserController {
   @override
@@ -55,7 +60,7 @@ void main() {
     List<Override> overrides(List<String>? cvSkills) => [
       analyserControllerProvider.overrideWith(_Ready.new),
       aiAllowanceProvider.overrideWith(
-        (ref) async => const AiAllowance(used: 1, limit: 10),
+        (ref) async => const AiAllowance(used: 1, limit: 4),
       ),
       latestCvSkillsProvider.overrideWith((ref) async => cvSkills),
     ];
@@ -99,6 +104,38 @@ void main() {
 
       expect(find.text('Can hiring software see these?'), findsOneWidget);
       expect(find.text('Check my CV'), findsOneWidget);
+    });
+  });
+
+  // The note before the work starts says what is left, never the whole
+  // allowance: the limit is the server's, and it is not a student's number.
+  group('before the work starts', () {
+    setUpAll(loadTackFonts);
+
+    testWidgets('the allowance note says what is left, not the limit', (
+      tester,
+    ) async {
+      await pumpAt(
+        tester,
+        const AnalyserScreen(),
+        size: const Size(360, 1200),
+        overrides: [
+          analyserControllerProvider.overrideWith(_Idle.new),
+          aiAllowanceProvider.overrideWith(
+            (ref) async => const AiAllowance(used: 1, limit: 4),
+          ),
+        ],
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text(
+          '3 AI actions left today, shared across Tack. They reset at midnight.',
+        ),
+        findsOneWidget,
+      );
+      expect(find.textContaining('of 4'), findsNothing);
+      expect(hasOverflow(tester), isFalse);
     });
   });
 }
