@@ -1,11 +1,85 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tack/core/analytics.dart';
+import 'package:tack/features/onboarding/domain/flow_config.dart';
 
 /// The property filter is the last thing standing between a careless call site
 /// and a student's name sitting in a table forever, so it is tested directly.
 Map<String, Object?> clean(Map<String, Object?> input) =>
     // ignore: invalid_use_of_visible_for_testing_member
     AnalyticsTestAccess.clean(input);
+
+// ignore: invalid_use_of_visible_for_testing_member
+bool knows(String event) => AnalyticsTestAccess.knows(event);
+
+/// Every value under [key] passes the filter on its own.
+void allows(String key, Iterable<String> values) {
+  for (final value in values) {
+    expect(clean({key: value}), {key: value}, reason: '$key: $value');
+  }
+}
+
+/// The 40 interview roles (contract C1.2), mirrored from `MANIFEST` in
+/// `supabase/seed/interview_bank/validate.py`.
+const _roles = [
+  'management-trainee',
+  'banking-officer',
+  'credit-analyst',
+  'accountant',
+  'audit-associate',
+  'business-analyst',
+  'supply-chain-analyst',
+  'operations-executive',
+  'hr-executive',
+  'sales-executive',
+  'digital-marketer',
+  'brand-executive',
+  'market-research-analyst',
+  'pharmaceutical-quality-analyst',
+  'medical-promotion-officer',
+  'development-programme-associate',
+  'monitoring-and-evaluation-assistant',
+  'civil-site-engineer',
+  'electrical-engineer',
+  'mechanical-engineer',
+  'apparel-merchandiser',
+  'industrial-engineer',
+  'textile-production-associate',
+  'textile-quality-inspector',
+  'graphic-designer',
+  'ui-and-ux-designer',
+  'content-writer',
+  'school-teacher',
+  'civil-service-officer',
+  'legal-associate',
+  'software-engineer',
+  'frontend-developer',
+  'backend-developer',
+  'full-stack-developer',
+  'mobile-app-developer',
+  'qa-engineer',
+  'data-analyst',
+  'it-support-specialist',
+  'network-engineer',
+  'telecommunications-engineer',
+];
+
+/// The coach's route ids (contract C7.2).
+const _coachRoutes = [
+  'interview',
+  'practice',
+  'analyser',
+  'cv_check',
+  'cv_builder',
+  'roadmap',
+  'radar',
+  'score',
+  'paths',
+  'path',
+  'applications',
+  'profile',
+];
 
 void main() {
   group('what is allowed through', () {
@@ -82,5 +156,152 @@ void main() {
       'actions_shown': 3,
     });
     expect(out, {'screen': 'dashboard', 'mode': 'explore', 'actions_shown': 3});
+  });
+
+  // The Toolkit round adds four events. Each carries fixed ids and counts,
+  // never a title, a question, an answer or a name.
+  group('tabs, tools, interviews and coach actions', () {
+    test('the four new events are known', () {
+      for (final event in [
+        'tab_selected',
+        'tool_opened',
+        'interview_started',
+        'coach_action_tapped',
+      ]) {
+        expect(knows(event), isTrue, reason: event);
+      }
+      expect(knows('anything_else'), isFalse);
+    });
+
+    test('every new key and value passes', () {
+      allows('tab', ['home', 'roadmap', 'radar', 'toolkit', 'profile']);
+      allows('tool', [
+        'interview',
+        'practise_again',
+        'analyser',
+        'cv_check',
+        'cv_builder',
+        'documents',
+        'coach',
+      ]);
+      allows('source', ['toolkit', 'home', 'coach', 'application', 'score']);
+      allows('tone', ['urgent', 'opportunity', 'neutral', 'positive']);
+      allows('screen', ['toolkit', 'dashboard', 'vault']);
+      allows('session_type', ['mixed', 'technical', 'behavioural']);
+      allows('difficulty', ['easy', 'medium', 'hard']);
+      allows('kind', ['pool', 'pack']);
+      allows('role', _roles);
+      allows('route', _coachRoutes);
+    });
+
+    test('the payloads survive whole', () {
+      expect(clean({'tab': 'toolkit', 'mode': 'build'}), {
+        'tab': 'toolkit',
+        'mode': 'build',
+      });
+      expect(
+        clean({
+          'tool': 'practise_again',
+          'source': 'toolkit',
+          'mode': 'launch',
+          'count': 3,
+        }),
+        {
+          'tool': 'practise_again',
+          'source': 'toolkit',
+          'mode': 'launch',
+          'count': 3,
+        },
+      );
+      expect(
+        clean({
+          'role': 'data-analyst',
+          'session_type': 'mixed',
+          'difficulty': 'hard',
+          'kind': 'pool',
+        }),
+        {
+          'role': 'data-analyst',
+          'session_type': 'mixed',
+          'difficulty': 'hard',
+          'kind': 'pool',
+        },
+      );
+      expect(clean({'route': 'cv_check', 'mode': 'prove'}), {
+        'route': 'cv_check',
+        'mode': 'prove',
+      });
+    });
+
+    test('free text under a new key is dropped', () {
+      for (final key in [
+        'tab',
+        'tool',
+        'source',
+        'role',
+        'route',
+        'session_type',
+        'difficulty',
+        'kind',
+        'insight',
+      ]) {
+        expect(clean({key: 'Rafiq'}), isEmpty, reason: key);
+      }
+      // A company or a job title is not a role id.
+      expect(clean({'role': 'bKash'}), isEmpty);
+      expect(clean({'role': 'Data analyst'}), isEmpty);
+    });
+
+    test('count stays a whole number', () {
+      expect(clean({'count': 3}), {'count': 3});
+      expect(clean({'count': '3'}), isEmpty);
+      expect(clean({'count': 3.5}), isEmpty);
+      expect(clean({'count': -1}), isEmpty);
+    });
+
+    test('the role list is the 40 roles of the interview manifest', () {
+      expect(_roles.toSet(), hasLength(40));
+      final manifest = File('../supabase/seed/interview_bank/validate.py');
+      if (!manifest.existsSync()) return;
+      // Only the MANIFEST dict: the file has other dicts of the same shape.
+      final text = manifest.readAsStringSync();
+      final start = text.indexOf('MANIFEST = {');
+      expect(start, isNot(-1));
+      final block = text.substring(start, text.indexOf('\n}', start));
+      final slugs = RegExp(
+        r'^    "([a-z0-9-]+)": \(',
+        multiLine: true,
+      ).allMatches(block).map((m) => m[1]!).toSet();
+      expect(slugs, _roles.toSet());
+    });
+  });
+
+  // Report 05 P2-2: the step ids the intake records were not on the list, so
+  // every step event reached the table without saying which step it was.
+  test('every onboarding step id survives', () {
+    final steps = [
+      ...OnboardingFlow.shared,
+      ...OnboardingFlow.highSchoolSteps,
+      ...OnboardingFlow.bachelorsSteps,
+      ...OnboardingFlow.graduatedSteps,
+      OnboardingFlow.review,
+    ];
+    expect(steps, isNotEmpty);
+    allows('step', steps.map((step) => step.id));
+  });
+
+  // Opening a suggestion records its fixed id. None of them was on the list,
+  // so insight_opened arrived empty.
+  test('every insight id survives', () {
+    final source = File(
+      'lib/features/dashboard/application/insights.dart',
+    ).readAsStringSync();
+    final ids = RegExp(
+      r"\bid: '([a-z-]+)'",
+    ).allMatches(source).map((m) => m[1]!).toSet();
+    expect(ids, isNotEmpty);
+    allows('insight', ids);
+    // Added to Home with the Toolkit round.
+    allows('insight', ['interview-stage']);
   });
 }
