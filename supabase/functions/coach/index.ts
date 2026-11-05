@@ -3,7 +3,11 @@ import { fail, json, preflight } from "../_shared/util/http.ts";
 import { coachRequest, readRequest } from "../_shared/util/requests.ts";
 import { hashText, quotaRemaining } from "../_shared/ai/gateway.ts";
 import { redact } from "../_shared/ai/redact.ts";
-import { answerFromData, type Context } from "../_shared/coach/router.ts";
+import {
+  type Answer,
+  answerFromData,
+  type Context,
+} from "../_shared/coach/router.ts";
 import {
   careerQuestion,
   type Evidence,
@@ -25,7 +29,10 @@ Deno.serve(async (req) => {
     return fail("Your details could not be loaded. Try again.", 503);
   }
 
-  let fromData = answerFromData(body.question, context as Context);
+  let fromData: Answer | null = answerFromData(
+    body.question,
+    context as Context,
+  );
   const hash = await hashText(`${body.threadId ?? "new"}:${body.question}`);
   const key = `coach_reply:${auth.userId}:${body.operationId ?? hash}`;
 
