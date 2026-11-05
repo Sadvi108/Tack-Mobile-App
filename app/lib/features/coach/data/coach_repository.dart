@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import '../../../core/jobs/job_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -22,11 +24,24 @@ class CoachRepository {
     return id;
   }
 
-  Future<CoachReply> ask(String question, {String? threadId}) async {
+  /// Asks the coach. Every request carries an `operationId`, which the
+  /// server turns into the job's idempotency key: a caller that retries with
+  /// the same id gets the same answer and is never charged twice. Without
+  /// one, the server fell back to a hash of the text, so asking the same
+  /// question again later was treated as a duplicate.
+  Future<CoachReply> ask(
+    String question, {
+    String? threadId,
+    String? operationId,
+  }) async {
     try {
       final res = await _db.functions.invoke(
         'coach',
-        body: {'question': question, 'threadId': ?threadId},
+        body: {
+          'question': question,
+          'threadId': ?threadId,
+          'operationId': operationId ?? _operationId(),
+        },
       );
       final data = res.data;
       if (data is! Map) {
@@ -85,6 +100,19 @@ class CoachRepository {
   }
 }
 
+/// A random (version 4) UUID, which is what the server's request schema
+/// accepts as an `operationId`. Small enough not to need a package for.
+String _operationId() {
+  final random = Random.secure();
+  final bytes = List<int>.generate(16, (_) => random.nextInt(256));
+  bytes[6] = (bytes[6] & 0x0f) | 0x40; // version 4
+  bytes[8] = (bytes[8] & 0x3f) | 0x80; // RFC 4122 variant
+  final hex = [for (final b in bytes) b.toRadixString(16).padLeft(2, '0')];
+  return '${hex.sublist(0, 4).join()}-${hex.sublist(4, 6).join()}-'
+      '${hex.sublist(6, 8).join()}-${hex.sublist(8, 10).join()}-'
+      '${hex.sublist(10).join()}';
+}
+
 /// What is left of today's shared AI allowance.
 ///
 /// Shared is the important word: the same pool is spent by the coach, by
@@ -109,14 +137,16 @@ final coachRepositoryProvider = Provider<CoachRepository>(
   ),
 );
 
-final coachHistoryProvider = FutureProvider<(String?, List<ChatMessage>)>((
-  ref,
-) async {
-  if (ref.watch(currentUserProvider)?.id == null) {
-    return (null, <ChatMessage>[]);
-  }
-  return ref.watch(coachRepositoryProvider).latestThread();
-});
+/// The latest conversation. Disposed when nobody is watching, so reopening
+/// the coach reads it again instead of showing the copy from the last visit,
+/// which left out every reply that arrived since.
+final coachHistoryProvider =
+    FutureProvider.autoDispose<(String?, List<ChatMessage>)>((ref) async {
+      if (ref.watch(currentUserProvider)?.id == null) {
+        return (null, <ChatMessage>[]);
+      }
+      return ref.watch(coachRepositoryProvider).latestThread();
+    });
 
 /// Today's shared AI allowance. Watched anywhere an action might be spent,
 /// not only by the coach.

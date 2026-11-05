@@ -11,8 +11,9 @@ import 'guide_citations.dart';
 
 /// The coach.
 ///
-/// Three questions a day is a hard limit, so the screen's main job — before it
-/// is a chat at all — is to make sure a student never spends one by accident.
+/// The daily AI allowance is small and shared with the rest of Tack, so the
+/// screen's main job — before it is a chat at all — is to make sure a student
+/// never spends an action by accident.
 /// The questions Tack answers for free are offered up front, every reply says
 /// which kind it was, and the counter is visible before you type rather than
 /// after you have run out.
@@ -31,7 +32,7 @@ class _CoachScreenState extends ConsumerState<CoachScreen> {
   String? _threadId;
   bool _sending = false;
   bool _loaded = false;
-  String? _limitNotice;
+  String? _notice;
 
   @override
   void dispose() {
@@ -53,7 +54,7 @@ class _CoachScreenState extends ConsumerState<CoachScreen> {
 
     setState(() {
       _sending = true;
-      _limitNotice = null;
+      _notice = null;
       _messages.add(
         ChatMessage(
           id: 'local-${DateTime.now().microsecondsSinceEpoch}',
@@ -74,9 +75,7 @@ class _CoachScreenState extends ConsumerState<CoachScreen> {
 
       setState(() {
         _threadId = reply.threadId;
-        if (reply.hitLimit) {
-          _limitNotice = reply.limitMessage;
-        } else if (reply.body != null) {
+        if (reply.body != null) {
           _messages.add(
             ChatMessage(
               id: 'local-reply-${DateTime.now().microsecondsSinceEpoch}',
@@ -91,10 +90,12 @@ class _CoachScreenState extends ConsumerState<CoachScreen> {
         }
       });
       ref.invalidate(aiAllowanceProvider);
+      // The saved conversation now has this reply in it.
+      ref.invalidate(coachHistoryProvider);
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _limitNotice = e is Failure
+        _notice = e is Failure
             ? e.message
             : 'The coach could not answer just now. Try again.';
       });
@@ -153,7 +154,7 @@ class _CoachScreenState extends ConsumerState<CoachScreen> {
                           const SizedBox(height: TackSpace.stack),
                         ],
                       if (_sending) const _Thinking(),
-                      if (_limitNotice case final notice?) ...[
+                      if (_notice case final notice?) ...[
                         const SizedBox(height: TackSpace.sm),
                         _Notice(notice),
                       ],
@@ -208,9 +209,8 @@ class _Allowance extends StatelessWidget {
 
 /// What a student sees before they have asked anything.
 ///
-/// Leads with the free questions on purpose. With an allowance of three, a
-/// student who does not know which questions cost nothing will spend all three
-/// finding out.
+/// Leads with the free questions on purpose. A student who does not know
+/// which questions cost nothing will spend the day's AI actions finding out.
 class _Opening extends StatelessWidget {
   const _Opening({required this.onPick});
 
@@ -232,8 +232,8 @@ class _Opening extends StatelessWidget {
         Text('THESE ARE ALWAYS FREE', style: TackText.monoLabelSmall),
         const SizedBox(height: TackSpace.sm),
         Text(
-          'Tack answers these from your own numbers, so they never use up your '
-          'three questions a day.',
+          'Tack answers these from your own numbers, so they never use an AI '
+          'action.',
           style: TackText.meta,
         ),
         const SizedBox(height: TackSpace.md),
@@ -318,7 +318,6 @@ class _Bubble extends StatelessWidget {
                 message.body,
                 style: TackText.body.copyWith(
                   color: student ? TackColors.onBrand : TackColors.ink,
-                  fontSize: 15.5,
                 ),
               ),
             ),
@@ -339,11 +338,11 @@ class _Bubble extends StatelessWidget {
                     ? "Tack's career guides · nothing used"
                     : message.wasFree
                     ? 'From your own numbers · free'
-                    // Deliberately no number. It said "one of your three" when
-                    // the allowance was ten, which is how a caption becomes a
-                    // lie nobody notices.
+                    // Deliberately no number. A caption that names the
+                    // allowance goes stale the day the allowance changes,
+                    // and nobody notices it is wrong.
                     : 'Used one AI action',
-                style: TackText.meta.copyWith(fontSize: 12.5),
+                style: TackText.meta,
               ),
             ],
           ],
@@ -380,7 +379,8 @@ class _Thinking extends StatelessWidget {
               height: 14,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
-                color: TackColors.maroon,
+                // A stroke counts as text, so it takes the text shade.
+                color: TackColors.maroonText,
               ),
             ),
             const SizedBox(width: TackSpace.md),

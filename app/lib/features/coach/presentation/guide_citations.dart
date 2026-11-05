@@ -17,10 +17,7 @@ class GuideCitations extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          "From Tack's career guides",
-          style: TackText.meta.copyWith(fontSize: 12.5),
-        ),
+        Text("From Tack's career guides", style: TackText.meta),
         const SizedBox(height: TackSpace.xs),
         Wrap(
           spacing: TackSpace.sm,

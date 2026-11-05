@@ -69,7 +69,7 @@ class ChatMessage {
   final DateTime createdAt;
 
   /// `data` when Tack answered from its own numbers and spent nothing,
-  /// `model` when it cost one of the day's three. Null on a student's line.
+  /// `model` when it used one AI action. Null on a student's line.
   final String? answeredBy;
 
   /// Set when the reply was answered from Tack's career guides.
@@ -104,7 +104,6 @@ class CoachReply {
     required this.remaining,
     this.body,
     this.answeredBy,
-    this.limitMessage,
     this.citations = const [],
     this.fromGuides = false,
   });
@@ -117,12 +116,6 @@ class CoachReply {
   final bool fromGuides;
 
   bool get guideRefusal => fromGuides && citations.isEmpty;
-
-  /// Set instead of [body] when the day's three are gone. Phrased as a trade
-  /// that keeps Tack free, never as a telling-off.
-  final String? limitMessage;
-
-  bool get hitLimit => limitMessage != null;
   bool get wasFree => answeredBy == 'data';
 
   factory CoachReply.fromJson(Map<String, dynamic> json) => CoachReply(
@@ -130,7 +123,6 @@ class CoachReply {
     remaining: (json['remaining'] as num?)?.toInt() ?? 0,
     body: json['reply'] as String?,
     answeredBy: json['answeredBy'] as String?,
-    limitMessage: json['limit'] as String?,
     citations: GuideCitation.listFrom(json['citations']),
     fromGuides: json['citations'] is List,
   );

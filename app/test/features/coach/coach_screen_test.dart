@@ -1,9 +1,14 @@
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show User;
 import 'package:tack/core/offline/local_db.dart';
 import 'package:tack/core/offline/sync.dart';
+import 'package:tack/core/supabase/client.dart';
+import 'package:tack/design/tack.dart';
 import 'package:tack/features/coach/data/coach_models.dart';
 import 'package:tack/features/coach/data/coach_repository.dart';
 import 'package:tack/features/coach/presentation/coach_screen.dart';
@@ -18,10 +23,7 @@ ChatMessage msg(String role, String body, {String? answeredBy}) => ChatMessage(
   answeredBy: answeredBy,
 );
 
-List<Override> overrides({
-  List<ChatMessage> history = const [],
-  int remaining = 10,
-}) => [
+List<Override> shell() => [
   localDbProvider.overrideWith((ref) {
     final db = LocalDb(NativeDatabase.memory());
     ref.onDispose(db.close);
@@ -29,6 +31,13 @@ List<Override> overrides({
   }),
   connectivityProvider.overrideWith((ref) => Stream.value(true)),
   pendingChangesProvider.overrideWith((ref) => Stream.value(0)),
+];
+
+List<Override> overrides({
+  List<ChatMessage> history = const [],
+  int remaining = 10,
+}) => [
+  ...shell(),
   coachHistoryProvider.overrideWith(
     (ref) async => (history.isEmpty ? null : 't1', history),
   ),
@@ -42,14 +51,36 @@ String bodyText(WidgetTester tester) => tester
     .map((t) => t.data ?? '')
     .join(' | ');
 
+/// Serves whatever conversation the test has put in it, read fresh each time.
+class _SavedThread extends Fake implements CoachRepository {
+  _SavedThread(this.messages);
+
+  List<ChatMessage> messages;
+  int reads = 0;
+
+  @override
+  Future<(String?, List<ChatMessage>)> latestThread() async {
+    reads++;
+    return ('t1', List.of(messages));
+  }
+}
+
+User _student() => User(
+  id: 'u1',
+  appMetadata: const {},
+  userMetadata: const {},
+  aud: 'authenticated',
+  createdAt: DateTime(2026, 1, 1).toIso8601String(),
+);
+
 void main() {
   setUpAll(loadTackFonts);
 
   testWidgets('an empty coach leads with the questions that cost nothing', (
     tester,
   ) async {
-    // With three a day, a student who does not know which questions are free
-    // will spend all three finding out.
+    // A student who does not know which questions are free will spend the
+    // day's AI actions finding out.
     await pumpAt(
       tester,
       const CoachScreen(),
@@ -62,6 +93,101 @@ void main() {
     for (final q in freeQuestions) {
       expect(find.text(q), findsOneWidget, reason: '$q should be offered');
     }
+  });
+
+  testWidgets('the free line names no daily number', (tester) async {
+    // It said "three questions a day" long after the allowance changed.
+    await pumpAt(
+      tester,
+      const CoachScreen(),
+      size: const Size(360, 900),
+      overrides: overrides(),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text(
+        'Tack answers these from your own numbers, so they never use an AI '
+        'action.',
+      ),
+      findsOneWidget,
+    );
+    expect(bodyText(tester).toLowerCase(), isNot(contains('three questions')));
+  });
+
+  testWidgets('a reply is body text, never smaller than 16px', (tester) async {
+    await pumpAt(
+      tester,
+      const CoachScreen(),
+      size: const Size(360, 900),
+      overrides: overrides(
+        history: [
+          msg('student', 'How do I explain a gap year?'),
+          msg('coach', 'Be honest and brief.', answeredBy: 'model'),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    for (final line in [
+      'How do I explain a gap year?',
+      'Be honest and brief.',
+    ]) {
+      final size = tester.widget<Text>(find.text(line)).style?.fontSize;
+      expect(size, isNotNull, reason: line);
+      expect(size, greaterThanOrEqualTo(16), reason: line);
+    }
+  });
+
+  testWidgets('reopening the coach shows a reply that arrived since', (
+    tester,
+  ) async {
+    // The history used to be cached for the life of the app, so a reply that
+    // landed after the first visit stayed missing until a restart.
+    final saved = _SavedThread([
+      msg('student', 'How do I explain a gap year?'),
+    ]);
+    tester.view.physicalSize = const Size(360, 900);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    final router = GoRouter(
+      initialLocation: '/coach',
+      routes: [
+        GoRoute(path: '/coach', builder: (_, _) => const CoachScreen()),
+        GoRoute(path: '/home', builder: (_, _) => const SizedBox.shrink()),
+      ],
+    );
+    addTearDown(router.dispose);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...shell(),
+          currentUserProvider.overrideWithValue(_student()),
+          coachRepositoryProvider.overrideWithValue(saved),
+          aiAllowanceProvider.overrideWith(
+            (ref) async => const AiAllowance(used: 0, limit: 10),
+          ),
+        ],
+        child: MaterialApp.router(
+          theme: buildTackTheme(),
+          routerConfig: router,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Be honest and brief.'), findsNothing);
+
+    router.go('/home');
+    await tester.pumpAndSettle();
+    saved.messages = [
+      ...saved.messages,
+      msg('coach', 'Be honest and brief.', answeredBy: 'model'),
+    ];
+    router.go('/coach');
+    await tester.pumpAndSettle();
+
+    expect(find.text('Be honest and brief.'), findsOneWidget);
+    expect(saved.reads, 2);
   });
 
   testWidgets('the allowance is shown before you type, not after', (
