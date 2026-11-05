@@ -65,6 +65,12 @@ function biggestGaps(
     .slice(0, n);
 }
 
+/** Discover, explore and build: not job hunting yet, whatever the mode string
+ *  says. Anything unrecognised counts as early, which is the safe side. */
+function isEarly(mode: string | undefined): boolean {
+  return !["prove", "launch", "graduate"].includes(mode ?? "");
+}
+
 function list(items: string[]): string {
   if (items.length === 0) return "";
   if (items.length === 1) return items[0];
@@ -82,10 +88,16 @@ const RULES: {
     id: "next",
     test:
       /\b(what (should|do) i (do|work on|focus)|next step|what next|where (do i|should i) start)\b/i,
+    // Total: "what should I do next" always gets an answer. A student with
+    // nothing measured yet is the one who most needs one.
     answer: (ctx) => {
       const gaps = biggestGaps(ctx);
-      if (gaps.length === 0) return null;
       const next = ctx.roadmap?.next;
+      if (gaps.length === 0) {
+        return next
+          ? `On your roadmap, the next step is "${next}".`
+          : "Pick a target path first. It turns your score into a plan.";
+      }
       const lead = `The biggest win right now is ${gaps[0].label} — worth ${
         gaps[0].available
       } points.`;
@@ -146,7 +158,8 @@ const RULES: {
   },
   {
     id: "roadmap",
-    test: /\b(my roadmap|how far|progress|how much left)\b/i,
+    // Not a bare "progress": "my interview progress" is about interviews.
+    test: /\b(my roadmap|how far|(roadmap|my) progress|how much left)\b/i,
     answer: (ctx) => {
       const done = ctx.roadmap?.done ?? 0;
       const total = ctx.roadmap?.total ?? 0;
@@ -164,6 +177,13 @@ const RULES: {
     test:
       /\b(my applications|how many.*(applied|applications)|application (status|count))\b/i,
     answer: (ctx) => {
+      // Early years are not job hunting, so their count is not the point.
+      if (isEarly(ctx.mode)) {
+        const focus = ctx.mode === "build"
+          ? "building skills"
+          : "exploring paths";
+        return `Right now your focus is on ${focus}. Tracking jobs comes later, in your final year.`;
+      }
       const counts = ctx.applications ?? {};
       const total = Object.values(counts).reduce((a, b) => a + b, 0);
       if (total === 0) return "You have not tracked any applications yet.";

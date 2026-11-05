@@ -98,3 +98,54 @@ Deno.test("a question that matches but has no data falls through to the model", 
   const empty: Context = { score: { total: 0, components: {} } };
   assertEquals(answerFromData("what is my weakest area?", empty), null);
 });
+
+Deno.test("what next is always answered, even with nothing measured", () => {
+  // It used to fall through to the model and spend an action on a student
+  // who had nothing to measure yet.
+  const empty = answerFromData("What should I do next?", {});
+  assert(empty, "next must be total");
+  assertEquals(
+    empty.body,
+    "Pick a target path first. It turns your score into a plan.",
+  );
+
+  const roadmapOnly = answerFromData("What should I do next?", {
+    roadmap: { done: 0, total: 5, next: "Read the role guide" },
+  });
+  assert(roadmapOnly);
+  assert(roadmapOnly.body.includes("Read the role guide"), roadmapOnly.body);
+});
+
+Deno.test("early years hear about their focus, not an application count", () => {
+  for (
+    const [mode, focus] of [
+      ["discover", "exploring paths"],
+      ["explore", "exploring paths"],
+      ["build", "building skills"],
+    ]
+  ) {
+    const a = answerFromData("how are my applications going", {
+      ...ctx,
+      mode,
+    });
+    assert(a, mode);
+    assertEquals(
+      a.body,
+      `Right now your focus is on ${focus}. Tracking jobs comes later, in your final year.`,
+    );
+  }
+  const launch = answerFromData("how are my applications going", ctx);
+  assert(launch);
+  assert(launch.body.startsWith("You are tracking 2"), launch.body);
+});
+
+Deno.test("progress means roadmap progress only when it says so", () => {
+  const mine = answerFromData("my progress", ctx);
+  assert(mine);
+  assert(mine.body.includes("4 of 23"), mine.body);
+  const roadmap = answerFromData("show my roadmap progress", ctx);
+  assert(roadmap);
+  assert(roadmap.body.includes("4 of 23"), roadmap.body);
+  // Not the roadmap: this is about interviews.
+  assertEquals(answerFromData("my interview progress", ctx), null);
+});
