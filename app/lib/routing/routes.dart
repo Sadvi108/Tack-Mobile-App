@@ -28,6 +28,26 @@ class Routes {
   static const settings = '/settings';
   static const cvBuilder = '/cv-builder';
 
+  static const toolkit = '/toolkit';
+  static const interviewReview = '/interview/review';
+  static const cvCheck = '/vault/check';
+  static String cvCheckFor(String id) => '/vault/check/$id';
+  static const settingsSync = '/settings/sync';
+
   static String application(String id) => '/applications/$id';
   static String path(String slug) => '/paths/$slug';
+
+  /// Locations inside a tab's branch: reached with go, so the tab switches and
+  /// keeps its own history. Anything else covers the bar and is pushed.
+  static const tabLocations = {
+    home,
+    roadmap,
+    radar,
+    applications,
+    toolkit,
+    vault,
+    profile,
+  };
+  static bool isTabLocation(String location) =>
+      tabLocations.contains(Uri.parse(location).path);
 }

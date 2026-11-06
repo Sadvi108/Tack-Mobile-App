@@ -210,6 +210,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: Routes.interview,
         builder: (context, state) => const InterviewScreen(),
+        routes: [
+          // Practise again. The same screen reads its own path and opens
+          // straight into the answers that are due.
+          GoRoute(
+            path: 'review',
+            builder: (context, state) => const InterviewScreen(),
+          ),
+        ],
       ),
       GoRoute(
         path: '/settings/sync',
@@ -259,3 +267,13 @@ void tackBack(BuildContext context, {String fallback = Routes.home}) {
     context.go(fallback);
   }
 }
+
+/// Opens a location from anywhere, the one way every cross-screen link does.
+///
+/// A tab location is gone to, so the bar switches and that tab keeps its own
+/// history; pushing it would stack a second copy of the tab on top. Anything
+/// else covers the bar and is pushed, so back returns to whoever opened it.
+void tackOpen(BuildContext context, String location) =>
+    Routes.isTabLocation(location)
+    ? context.go(location)
+    : context.push(location);

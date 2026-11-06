@@ -184,7 +184,15 @@ class DocumentRepository {
       if (documentId != null) {
         await _db
             .from('documents')
-            .update({'status': 'failed', 'failure_reason': failure.message})
+            .update({
+              'status': 'failed',
+              // Kept on the row and read later, when the phone may be online
+              // again: it says what happened, never that anything was saved.
+              'failure_reason': failure.isOffline
+                  ? 'The upload stopped because the phone went offline. '
+                        'Upload it again.'
+                  : failure.message,
+            })
             .eq('id', documentId)
             .eq('user_id', _uid);
       }

@@ -140,11 +140,28 @@ class Analytics {
     'onboarding_resumed',
     'onboarding_branch_selected',
     'insight_opened',
+    // {tab, mode}
+    'tab_selected',
+    // {tool, source, mode, count?}; count only for practise_again.
+    'tool_opened',
+    // {role?, session_type, difficulty, kind}; no role for a company pack.
+    'interview_started',
+    // {route, mode}
+    'coach_action_tapped',
   };
   static const _values = <String, Set<String>>{
     'mode': {'discover', 'explore', 'build', 'prove', 'launch', 'graduate'},
     'branch': {'school', 'university', 'graduate'},
-    'tone': {'neutral', 'positive', 'warning', 'maroon', 'teal', 'amber'},
+    'tone': {
+      'neutral',
+      'positive',
+      'warning',
+      'maroon',
+      'teal',
+      'amber',
+      'urgent',
+      'opportunity',
+    },
     'phase': {'startup', 'render', 'runtime'},
     'screen': {
       'dashboard',
@@ -158,6 +175,7 @@ class Analytics {
       'settings',
       'radar',
       'analyser',
+      'toolkit',
     },
     'step': {
       'name',
@@ -171,6 +189,106 @@ class Analytics {
       'projects',
       'goals',
       'review',
+      // The step ids in onboarding/domain/flow_config.dart, which are what
+      // the intake actually records.
+      'basics',
+      'stage',
+      'hs_school',
+      'hs_enjoy',
+      'hs_direction',
+      'uni_university',
+      'uni_courses',
+      'uni_direction',
+      'grad_degree',
+      'grad_direction',
+    },
+    'tab': {'home', 'roadmap', 'radar', 'toolkit', 'profile'},
+    'tool': {
+      'interview',
+      'practise_again',
+      'analyser',
+      'cv_check',
+      'cv_builder',
+      'documents',
+      'coach',
+    },
+    'source': {'toolkit', 'home', 'coach', 'application', 'score'},
+    // The fixed ids in dashboard/application/insights.dart. Never a title.
+    'insight': {
+      'overdue',
+      'due-today',
+      'interview-stage',
+      'streak',
+      'streak-restart',
+      'momentum-up',
+      'momentum-quiet',
+      'no-cv',
+      'no-path',
+      'skill-gap',
+      'next-task',
+      'no-callbacks',
+    },
+    // The 40 interview roles of the manifest in
+    // supabase/seed/interview_bank/validate.py.
+    'role': {
+      'management-trainee',
+      'banking-officer',
+      'credit-analyst',
+      'accountant',
+      'audit-associate',
+      'business-analyst',
+      'supply-chain-analyst',
+      'operations-executive',
+      'hr-executive',
+      'sales-executive',
+      'digital-marketer',
+      'brand-executive',
+      'market-research-analyst',
+      'pharmaceutical-quality-analyst',
+      'medical-promotion-officer',
+      'development-programme-associate',
+      'monitoring-and-evaluation-assistant',
+      'civil-site-engineer',
+      'electrical-engineer',
+      'mechanical-engineer',
+      'apparel-merchandiser',
+      'industrial-engineer',
+      'textile-production-associate',
+      'textile-quality-inspector',
+      'graphic-designer',
+      'ui-and-ux-designer',
+      'content-writer',
+      'school-teacher',
+      'civil-service-officer',
+      'legal-associate',
+      'software-engineer',
+      'frontend-developer',
+      'backend-developer',
+      'full-stack-developer',
+      'mobile-app-developer',
+      'qa-engineer',
+      'data-analyst',
+      'it-support-specialist',
+      'network-engineer',
+      'telecommunications-engineer',
+    },
+    'session_type': {'mixed', 'technical', 'behavioural'},
+    'difficulty': {'easy', 'medium', 'hard'},
+    'kind': {'pool', 'pack'},
+    // The coach's route ids, one list in TypeScript, SQL and Dart.
+    'route': {
+      'interview',
+      'practice',
+      'analyser',
+      'cv_check',
+      'cv_builder',
+      'roadmap',
+      'radar',
+      'score',
+      'paths',
+      'path',
+      'applications',
+      'profile',
     },
   };
 
@@ -201,6 +319,9 @@ class AnalyticsTestAccess {
 
   static Map<String, Object?> clean(Map<String, Object?> properties) =>
       Analytics._clean(properties);
+
+  /// Whether [track] records an event of this name at all.
+  static bool knows(String event) => Analytics._events.contains(event);
 }
 
 final analyticsProvider = Provider<Analytics>((ref) {
