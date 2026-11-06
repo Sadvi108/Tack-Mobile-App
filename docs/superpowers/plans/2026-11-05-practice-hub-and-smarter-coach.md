@@ -3243,3 +3243,22 @@ there**; otherwise the widget tests are the evidence and the owner does the devi
 | Every touched screen: 16px, 44px, labelled tappables | C8.5 |
 | Copy and brand rules (tabs, modes, sentence case, empty states, cost, errors, fallback roles, analytics) | §0.5, C5.4, C8 |
 | Owner-only list | §7 |
+
+## Appendix B. Amendments after the foundation review (2026-11-06)
+
+The CTO reviewed `ph/w5-foundation` against C5 and approved it. These rulings change the plan.
+
+1. **C5.1 (`Failure.queuedOffline`).** Nothing throws it. A change the outbox queued is saved and
+   returns normally; throwing would turn a saved change into an error. `roadmap_repository` and
+   `application_repository` are unchanged. A test proves a queued tick completes and sits in the outbox.
+2. **C5.2.** `AiAllowance.fromRow` stays. `app/test/core/ai/allowance_test.dart` is added to W5's files.
+3. **W5-7.** `TackQuotaState` does have a caller: W5-7 must also drop `limit:` at
+   `app/lib/features/analyser/presentation/analyser_screen.dart:84–86`. W3 and W4 never pass `limit:`.
+4. **C6.2 (W3).** Detect review mode with
+   `GoRouterState.of(context).matchedLocation == Routes.interviewReview`, never `uri.path`. In
+   go_router 16.3 `uri` is the full location for every page in the stack, so on `/interview/review`
+   the parent setup page would also open in review mode and back would land on a second review page.
+5. **W4.** Until W4-13 deletes the copy in `coach_repository.dart`, never import it and
+   `core/ai/allowance.dart` in the same file: both declare `AiAllowance` and `aiAllowanceProvider`.
+6. **§0, every worktree.** Run `cd app && dart run build_runner build --delete-conflicting-outputs`
+   before `flutter analyze` or `flutter test`: `local_db.g.dart` is gitignored.
