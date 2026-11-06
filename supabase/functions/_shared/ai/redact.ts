@@ -60,6 +60,26 @@ export function redact(input: string): Redaction {
   return { text, found };
 }
 
+/**
+ * Redacts every string inside a JSON value, leaf by leaf, and keeps the
+ * structure.
+ *
+ * Redacting `JSON.stringify(value)` as one string is not safe: URL runs to
+ * the next whitespace or bracket, so a link inside one field swallowed the
+ * quotes and commas after it and left the rest of the object unparseable.
+ * Keys are left alone; they are Tack's own names, never something typed.
+ */
+export function redactJson<T>(value: T): T {
+  if (typeof value === "string") return redact(value).text as T;
+  if (Array.isArray(value)) return value.map((v) => redactJson(v)) as T;
+  if (value !== null && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value).map(([k, v]) => [k, redactJson(v)]),
+    ) as T;
+  }
+  return value;
+}
+
 /** Throws if anything that looks personal survived redaction. */
 /**
  * An address with OCR's spacing in it.
