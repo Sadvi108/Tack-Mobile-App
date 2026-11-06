@@ -112,3 +112,21 @@ export function assertClean(text: string): void {
     }
   }
 }
+
+/**
+ * Whether text holds anything that redaction would pull out as personal
+ * (an email address, a phone number, a national ID) or that assertClean would
+ * refuse. Links do not count: they are replaced, not refused.
+ */
+export function containsContactDetails(text: string): boolean {
+  const { found } = redact(text);
+  if (found.emails.length || found.phones.length || found.nationalIds.length) {
+    return true;
+  }
+  try {
+    assertClean(text);
+    return false;
+  } catch {
+    return true;
+  }
+}

@@ -1,5 +1,10 @@
 import { assert, assertEquals, assertThrows } from "@std/assert";
-import { assertClean, redact, redactJson } from "./redact.ts";
+import {
+  assertClean,
+  containsContactDetails,
+  redact,
+  redactJson,
+} from "./redact.ts";
 
 Deno.test("email addresses never reach the model", () => {
   const { text, found } = redact(
@@ -109,4 +114,26 @@ Deno.test("a link inside a field no longer breaks the JSON around it", () => {
   assertEquals(back.upcoming[0], { title: "Read [link]", on: "2026-11-08" });
   assertEquals(back.roadmap.next, "Email me at [email]");
   assertClean(text);
+});
+
+Deno.test("a question with contact details in it is caught before anything", () => {
+  for (
+    const q of [
+      "Is rafiq@example.com a good email for my CV?",
+      "Can you call me on 01712345678?",
+      "My NID is 1990123456789, is that on my CV?",
+      "write to rifat. hasan @example.com",
+    ]
+  ) {
+    assert(containsContactDetails(q), q);
+  }
+  for (
+    const q of [
+      "How do I explain a gap year in an interview?",
+      "Is https://rafiq.dev a good portfolio link?",
+      "What should I do in 2027?",
+    ]
+  ) {
+    assert(!containsContactDetails(q), q);
+  }
 });
