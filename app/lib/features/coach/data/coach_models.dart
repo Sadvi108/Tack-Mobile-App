@@ -51,6 +51,61 @@ List<GuideRef> _guidesOf(List<GuideCitation> citations) {
   ];
 }
 
+/// A chip under a coach reply: a screen to open, labelled by Tack.
+///
+/// The label always comes from the server (the model only ever picks a route
+/// id). The route ids are one list in TypeScript (`_shared/coach/actions.ts`),
+/// in SQL (0097's CHECK) and here; tests hold them together.
+class CoachAction {
+  const CoachAction({required this.route, required this.label, this.slug});
+
+  final String route;
+  final String label;
+
+  /// Only on `path`: which career path to open.
+  final String? slug;
+
+  static const routes = {
+    'interview',
+    'practice',
+    'analyser',
+    'cv_check',
+    'cv_builder',
+    'roadmap',
+    'radar',
+    'score',
+    'paths',
+    'path',
+    'applications',
+    'profile',
+  };
+
+  static final slugPattern = RegExp(r'^[a-z0-9-]{1,80}$');
+
+  /// Null for anything malformed, an unknown route or a bad slug, so a newer
+  /// server can add a route without breaking an older app.
+  static CoachAction? fromJson(Object? raw) {
+    if (raw is! Map) return null;
+    final route = raw['route'];
+    final label = raw['label'];
+    final slug = raw['slug'];
+    if (route is! String || !routes.contains(route)) return null;
+    if (label is! String) return null;
+    final text = label.trim();
+    if (text.length < 2 || text.length > 48) return null;
+    if (slug != null && (slug is! String || !slugPattern.hasMatch(slug))) {
+      return null;
+    }
+    return CoachAction(route: route, label: text, slug: slug as String?);
+  }
+
+  /// At most three, as the database allows.
+  static List<CoachAction> listFrom(Object? raw) => [
+    if (raw is List)
+      for (final a in raw) ?CoachAction.fromJson(a),
+  ].take(3).toList();
+}
+
 /// One line of the conversation.
 class ChatMessage {
   const ChatMessage({
@@ -61,6 +116,8 @@ class ChatMessage {
     this.answeredBy,
     this.citations = const [],
     this.fromGuides = false,
+    this.actions = const [],
+    this.intent,
   });
 
   final String id;
@@ -79,6 +136,14 @@ class ChatMessage {
   /// the reply cost nothing whichever way it was answered.
   final bool fromGuides;
 
+  /// Screens the reply points at. Empty on a student's line and on replies
+  /// saved before 0097.
+  final List<CoachAction> actions;
+
+  /// What answered it: a router id, or model, cited, guide_refusal or
+  /// fallback. Null on a student's line and on older replies.
+  final String? intent;
+
   bool get isStudent => role == 'student';
   bool get wasFree => answeredBy == 'data';
   bool get isGrounded => citations.isNotEmpty;
@@ -94,6 +159,8 @@ class ChatMessage {
     answeredBy: row['answered_by'] as String?,
     citations: GuideCitation.listFrom(row['citations']),
     fromGuides: row['citations'] is List,
+    actions: CoachAction.listFrom(row['actions']),
+    intent: row['intent'] is String ? row['intent'] as String : null,
   );
 }
 
@@ -106,6 +173,8 @@ class CoachReply {
     this.answeredBy,
     this.citations = const [],
     this.fromGuides = false,
+    this.actions = const [],
+    this.intent,
   });
 
   final String threadId;
@@ -114,6 +183,8 @@ class CoachReply {
   final String? answeredBy;
   final List<GuideCitation> citations;
   final bool fromGuides;
+  final List<CoachAction> actions;
+  final String? intent;
 
   bool get guideRefusal => fromGuides && citations.isEmpty;
   bool get wasFree => answeredBy == 'data';
@@ -125,6 +196,8 @@ class CoachReply {
     answeredBy: json['answeredBy'] as String?,
     citations: GuideCitation.listFrom(json['citations']),
     fromGuides: json['citations'] is List,
+    actions: CoachAction.listFrom(json['actions']),
+    intent: json['intent'] is String ? json['intent'] as String : null,
   );
 }
 
