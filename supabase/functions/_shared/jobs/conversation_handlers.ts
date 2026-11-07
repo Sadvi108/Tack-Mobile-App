@@ -1,13 +1,31 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Handler } from "./handlers.ts";
-import { quotaRemaining, runCompletion } from "../ai/gateway.ts";
-import { COACH_SYSTEM } from "../ai/coach_prompt.ts";
+import {
+  InvalidModelReply,
+  quotaRemaining,
+  runCompletion,
+} from "../ai/gateway.ts";
+import {
+  coachSystem,
+  coachUserPrompt,
+  modelRoutesFor,
+} from "../ai/coach_prompt.ts";
+import type { LLMProvider } from "../ai/provider.ts";
+import { redactJson } from "../ai/redact.ts";
 import {
   answerFeedbackSchema,
   answerFeedbackShape,
+  coachReplySchema,
+  coachReplyShape,
   interviewQuestionsSchema,
   prepBriefSchema,
   prepBriefShape,
 } from "../ai/schemas.ts";
+import { finaliseActions, normaliseMode } from "../coach/actions.ts";
+import { compactContext } from "../coach/context.ts";
+import { loadHistoryRows, prepareHistory } from "../coach/history.ts";
+import { checkCoachReply, type CoachModelReply } from "../coach/reply.ts";
+import { answerIntent, type Context } from "../coach/router.ts";
 import { PREP_SYSTEM } from "../ai/prep_prompt.ts";
 import { citedAnswerSchema, citedAnswerShape } from "../ai/schemas.ts";
 import {
@@ -20,57 +38,154 @@ import {
 import { loadPrepInputs, prepHash, prepPrompt } from "../prep/inputs.ts";
 import { groundBrief, isGrounded, type PrepBrief } from "../prep/evidence.ts";
 
-export const conversationHandlers: Record<string, Handler> = {
-  coach_reply: async (service, job) => {
-    if (!job.user_id) throw new Error("user_required");
-    const threadId = job.payload.thread_id as string;
-    const { data: previous } = await service.from("chat_messages").select(
-      "body",
-    )
-      .eq("job_id", job.id).eq("role", "coach").eq("user_id", job.user_id)
-      .maybeSingle();
-    let reply = previous?.body;
-    if (!reply) {
-      const outcome = await runCompletion(
-        service,
-        job.user_id,
-        {
-          feature: "coach_chat",
-          system: `${COACH_SYSTEM}\nReply with JSON containing a reply string.`,
-          user:
-            `Student: ${job.payload.context}\n\nQuestion: ${job.payload.question}`,
-          schema: {
-            type: "object",
-            properties: { reply: { type: "string" } },
-            required: ["reply"],
-          },
-          temperature: 0.6,
-          thinking: "low",
-          maxOutputTokens: 1500,
-        },
-        { reply: "string" },
-        ["reply"],
-        { consumeQuota: false },
-      );
-      reply = (outcome.data as { reply: string }).reply;
-      const { error } = await service.from("chat_messages").upsert({
-        job_id: job.id,
-        thread_id: threadId,
-        user_id: job.user_id,
-        role: "coach",
-        body: reply,
-        answered_by: "model",
-      }, { onConflict: "job_id,role" });
-      if (error) throw error;
+type Job = Parameters<Handler>[1];
+
+/** Said before the free answer when a model reply could not be trusted. */
+export const FALLBACK_LEAD =
+  "I could not give you a good answer to that one, so it did not use an AI action. Try asking it another way. Here is what I can see from your numbers:";
+
+/**
+ * The context a coach job carries: an object since 0097's endpoint, a
+ * redacted JSON string before it. Anything unreadable is an empty context,
+ * which every free answer copes with.
+ */
+export function jobContext(raw: unknown): Context {
+  if (raw !== null && typeof raw === "object" && !Array.isArray(raw)) {
+    return raw as Context;
+  }
+  if (typeof raw === "string") {
+    try {
+      const parsed = JSON.parse(raw);
+      if (parsed !== null && typeof parsed === "object") {
+        return parsed as Context;
+      }
+    } catch {
+      // An old payload whose redaction broke the JSON (D11).
     }
+  }
+  return {};
+}
+
+/**
+ * A coach question that needs language. The model's reply is checked in code
+ * as well as by schema; a reply that fails twice is replaced by Tack's own
+ * "what next" answer, saved as free, and refunded (`skipped`).
+ */
+export async function replyToCoach(
+  service: SupabaseClient,
+  job: Job,
+  provider?: LLMProvider,
+): Promise<Record<string, unknown>> {
+  if (!job.user_id) throw new Error("user_required");
+  const userId = job.user_id;
+  const threadId = job.payload.thread_id as string;
+
+  // A retry after the reply was saved returns it as it was.
+  const { data: previous } = await service.from("chat_messages")
+    .select("body, actions, answered_by, intent")
+    .eq("job_id", job.id).eq("role", "coach").eq("user_id", userId)
+    .maybeSingle();
+  if (previous) {
+    const fallback = previous.intent === "fallback";
     return {
       threadId,
-      reply,
-      answeredBy: "model",
-      spent: true,
-      remaining: await quotaRemaining(service, job.user_id),
+      reply: previous.body,
+      actions: previous.actions ?? [],
+      answeredBy: previous.answered_by ?? "model",
+      intent: previous.intent ?? "model",
+      spent: !fallback,
+      remaining: await quotaRemaining(service, userId),
+      ...(fallback ? { skipped: "invalid_reply" } : {}),
     };
-  },
+  }
+
+  const ctx = jobContext(job.payload.context);
+  const mode = normaliseMode(job.payload.mode ?? ctx.mode);
+  const history = prepareHistory(
+    await loadHistoryRows(service, { id: job.id, userId, threadId }),
+  );
+  // Compacted and redacted again here: a second line behind the endpoint,
+  // and the only line for a job queued by the old one.
+  const user = coachUserPrompt({
+    facts: redactJson(compactContext(ctx, mode)),
+    history,
+    question: String(job.payload.question ?? ""),
+  });
+
+  const save = async (row: Record<string, unknown>) => {
+    const { error } = await service.from("chat_messages").upsert({
+      job_id: job.id,
+      thread_id: threadId,
+      user_id: userId,
+      role: "coach",
+      ...row,
+    }, { onConflict: "job_id,role" });
+    if (error) throw error;
+  };
+
+  try {
+    const outcome = await runCompletion(
+      service,
+      userId,
+      {
+        feature: "coach_chat",
+        system: coachSystem(mode),
+        user,
+        schema: coachReplySchema(modelRoutesFor(mode)),
+        temperature: 0.5,
+        thinking: "low",
+        maxOutputTokens: 1500,
+      },
+      coachReplyShape,
+      ["body", "actions"],
+      {
+        consumeQuota: false,
+        check: (data) =>
+          checkCoachReply(data as CoachModelReply, { mode, factsText: user }),
+        provider,
+      },
+    );
+    const reply = outcome.data as CoachModelReply;
+    const body = reply.body.trim();
+    const actions = finaliseActions(reply.actions, mode, ctx);
+    await save({ body, actions, intent: "model", answered_by: "model" });
+    return {
+      threadId,
+      reply: body,
+      actions,
+      answeredBy: "model",
+      intent: "model",
+      spent: true,
+      remaining: await quotaRemaining(service, userId),
+    };
+  } catch (error) {
+    // Anything else (a provider that is down) is retried, dead-lettered and
+    // refunded by the queue as before.
+    if (!(error instanceof InvalidModelReply)) throw error;
+    // `next` is total, so there is always something true to say.
+    const next = answerIntent("next", { ...ctx, mode })!;
+    const body = `${FALLBACK_LEAD}\n\n${next.body}`;
+    await save({
+      body,
+      actions: next.actions,
+      intent: "fallback",
+      answered_by: "data",
+    });
+    return {
+      threadId,
+      reply: body,
+      actions: next.actions,
+      answeredBy: "data",
+      intent: "fallback",
+      spent: false,
+      skipped: "invalid_reply",
+      remaining: await quotaRemaining(service, userId),
+    };
+  }
+}
+
+export const conversationHandlers: Record<string, Handler> = {
+  coach_reply: (service, job) => replyToCoach(service, job),
   interview_questions: async (service, job) => {
     if (!job.user_id) throw new Error("user_required");
     const p = job.payload;
@@ -164,7 +279,10 @@ export const conversationHandlers: Record<string, Handler> = {
     const evidence = (job.payload.evidence ?? []) as Evidence[];
 
     const { data: previous } = await service.from("chat_messages")
-      .select("body, citations").eq("job_id", job.id).eq("role", "coach")
+      .select("body, citations, intent").eq("job_id", job.id).eq(
+        "role",
+        "coach",
+      )
       .eq("user_id", job.user_id).maybeSingle();
     if (previous) {
       // A retry after the reply was saved. A saved refusal (no citations) is
@@ -175,6 +293,8 @@ export const conversationHandlers: Record<string, Handler> = {
         reply: previous.body,
         citations: cited,
         answeredBy: "model",
+        intent: previous.intent ??
+          (cited.length > 0 ? "cited" : "guide_refusal"),
         spent: cited.length > 0,
         remaining: await quotaRemaining(service, job.user_id),
         ...(cited.length > 0 ? {} : { skipped: "ungrounded" }),
@@ -209,6 +329,7 @@ export const conversationHandlers: Record<string, Handler> = {
       // [] for a refusal: the app shows it as the guides finding nothing,
       // which cost nothing, rather than as a paid answer.
       citations: checked.citations,
+      intent: checked.answered ? "cited" : "guide_refusal",
     }, { onConflict: "job_id,role" });
     if (error) throw error;
 
@@ -217,6 +338,7 @@ export const conversationHandlers: Record<string, Handler> = {
       reply: checked.text,
       citations: checked.citations,
       answeredBy: "model",
+      intent: checked.answered ? "cited" : "guide_refusal",
       spent: checked.answered,
       remaining: await quotaRemaining(service, job.user_id),
       ...(checked.answered ? {} : { skipped: "ungrounded" }),
