@@ -137,6 +137,19 @@ Deno.test("the start is free: it never touches the quota or the job queue", () =
   }
 });
 
+Deno.test("the daily cap counts every session started, deleted or not", () => {
+  const start = sql.indexOf(
+    "create or replace function public.start_practice_session(",
+  );
+  const body = sql.slice(start, sql.indexOf("end $$;", start));
+  const cap = body.slice(
+    body.indexOf("if (select count(*)"),
+    body.indexOf("too_many_sessions"),
+  );
+  assert(cap.includes("interval '1 day'"), "the cap query was not found");
+  assert(!cap.includes("deleted_at"), "the cap skips deleted sessions");
+});
+
 Deno.test("0096 ends by checking itself", () => {
   const last = sql.lastIndexOf("\ndo $$");
   assert(last > sql.lastIndexOf("create or replace function"));

@@ -618,10 +618,12 @@ begin
   perform pg_advisory_xact_lock(hashtextextended('tack:practice:' || v_uid::text, 0));
 
   -- Free does not mean unbounded. Forty a day is far past any real practice
-  -- and stops a client stuck in a loop from filling the table.
+  -- and stops a client stuck in a loop from filling the table. Every session
+  -- started counts, deleted or not: a student can delete their own sessions,
+  -- so a cap that skipped deleted ones could be reset at will.
   if (select count(*)
         from public.interview_sessions s
-       where s.user_id = v_uid and s.deleted_at is null
+       where s.user_id = v_uid
          and s.started_at > now() - interval '1 day') >= 40 then
     raise exception 'too_many_sessions' using errcode = 'P0001';
   end if;
