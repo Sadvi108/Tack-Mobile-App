@@ -9,7 +9,7 @@ ROLES = {
     # ------------------------------------------------------------------ computer-science default
     "software-engineer": {
         "summary": "Programming basics, data structures, algorithms, databases, debugging and teamwork for a junior engineer.",
-        "reviewed_on": None,
+        "reviewed_on": "2026-11-07",
         "questions": [
             (E, "Data structures", "What is the difference between an array and a linked list? When would you use each?",
              ["Array: items side by side in memory, fast to read by index",
@@ -90,7 +90,7 @@ ROLES = {
     # ------------------------------------------------------------------ statistics default (legacy)
     "data-analyst": {
         "summary": "SQL, Excel, statistics, dashboards, data quality and clear answers to business questions.",
-        "reviewed_on": None,
+        "reviewed_on": "2026-11-07",
         "questions": [
             # legacy nine, same order, tier and wording
             (E, "Statistics", "What is the difference between the mean and the median, and when does it matter?",
@@ -171,7 +171,7 @@ ROLES = {
     # ------------------------------------------------------------------ legacy
     "frontend-developer": {
         "summary": "HTML, CSS, JavaScript and React, layout, performance and accessibility on low-cost phones.",
-        "reviewed_on": None,
+        "reviewed_on": "2026-11-07",
         "questions": [
             # legacy nine, same order, tier and wording
             (E, "Fundamentals", "What happens between typing a URL and the page appearing? Take it as far as you can.",
@@ -253,7 +253,7 @@ ROLES = {
     # ------------------------------------------------------------------ legacy
     "backend-developer": {
         "summary": "APIs, databases, security, concurrency and operations for services that handle real traffic and payments.",
-        "reviewed_on": None,
+        "reviewed_on": "2026-11-07",
         "questions": [
             # legacy nine, same order, tier and wording
             (E, "APIs", "What is the difference between GET and POST, and when does it matter?",
@@ -337,7 +337,7 @@ ROLES = {
     # ------------------------------------------------------------------ legacy
     "qa-engineer": {
         "summary": "Test design, clear bug reports, automation, mobile testing and release risk for software teams.",
-        "reviewed_on": None,
+        "reviewed_on": "2026-11-07",
         "questions": [
             # legacy nine, same order, tier and wording
             (E, "Fundamentals", "What is the difference between a bug and a feature request?",
@@ -418,7 +418,7 @@ ROLES = {
     },
     "full-stack-developer": {
         "summary": "Web basics, frontend, APIs, databases, sign-in, deployment and debugging across a whole web app.",
-        "reviewed_on": None,
+        "reviewed_on": "2026-11-07",
         "questions": [
             (E, "Web basics", "What is the difference between server-side rendering and client-side rendering?",
              ["Server-side: the server sends ready HTML, so the first view is fast and search engines read it",
@@ -497,7 +497,7 @@ ROLES = {
     },
     "mobile-app-developer": {
         "summary": "Language basics, state, offline storage, networking, performance and store release for Android and iOS apps.",
-        "reviewed_on": None,
+        "reviewed_on": "2026-11-07",
         "questions": [
             (E, "Language basics", "What is the main thread, and why must slow work stay off it?",
              ["The main thread draws the screen and handles taps",
@@ -577,7 +577,7 @@ ROLES = {
     },
     "it-support-specialist": {
         "summary": "Hardware, operating systems, networks, accounts, backup and helping staff with IT problems at work.",
-        "reviewed_on": None,
+        "reviewed_on": "2026-11-07",
         "questions": [
             (E, "Hardware", "A computer will not turn on. What do you check, and in what order?",
              ["Power: the socket, the cable, the UPS or IPS, the power strip",
@@ -658,11 +658,11 @@ ROLES = {
     },
     "network-engineer": {
         "summary": "OSI and TCP/IP, subnetting, switching, routing, firewalls and troubleshooting for ISP and office networks.",
-        "reviewed_on": None,
+        "reviewed_on": "2026-11-07",
         "questions": [
             (E, "OSI and TCP/IP", "Name the layers of the OSI model and give one example for each.",
              ["Physical, data link, network, transport, session, presentation, application",
-              "Examples: cable, Ethernet and MAC addresses, IP, TCP and UDP, HTTP",
+              "Examples: cable, Ethernet and MAC addresses, IP, TCP and UDP, TLS, HTTP",
               "Says where switches and routers work"]),
             (E, "OSI and TCP/IP", "What is the difference between TCP and UDP? Give a use for each.",
              ["TCP: a connection with ordered, reliable delivery, such as web pages",
@@ -705,7 +705,7 @@ ROLES = {
             (M, "ISP operations", "Internet traffic passes through several licensed layers before it reaches a home user in Bangladesh. Explain the path, and where you would check the current licence types.",
              ["International capacity comes in through submarine cables and cross-border fibre",
               "Nationwide transmission networks carry it across the country to ISPs",
-              "BTRC licenses each layer, and the licence types are being reformed",
+              "BTRC licenses each layer, and the licence types change over time",
               "Check BTRC's current list instead of relying on old licence names"],
              "https://btrc.gov.bd/"),
             (H, "Troubleshooting", "A fibre cut takes down your main upstream link at night. What do you do?",
@@ -737,11 +737,11 @@ ROLES = {
     },
     "telecommunications-engineer": {
         "summary": "Mobile network basics, radio KPIs, transmission, core network, site power and safe field work.",
-        "reviewed_on": None,
+        "reviewed_on": "2026-11-07",
         "questions": [
             (E, "Mobile network basics", "In simple terms, what is the difference between 2G, 3G, 4G and 5G?",
              ["Each generation adds speed and capacity",
-              "2G: voice and SMS; 3G: basic data; 4G: fast mobile data; 5G: more speed, less delay",
+              "2G: voice and SMS; 3G: mobile internet; 4G: fast mobile data; 5G: more speed, less delay",
               "Older networks often stay on for voice and older phones"]),
             (E, "Mobile network basics", "What is a base station, and what are its main parts?",
              ["The site that links phones to the network by radio",

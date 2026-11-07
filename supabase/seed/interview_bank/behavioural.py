@@ -11,7 +11,7 @@ E, M, H = "easy", "medium", "hard"
 
 CLUSTER = "behavioural"
 
-REVIEWED_ON = None  # "YYYY-MM-DD" once the second reader has signed off
+REVIEWED_ON = "2026-11-07"  # signed off by the second reader (W1)
 
 QUESTIONS = [
     # (tier, category, question, key_points)

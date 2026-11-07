@@ -9,7 +9,7 @@ ROLES = {
     # ------------------------------------------------------------------ textile default
     "apparel-merchandiser": {
         "summary": "Orders, costing, sampling, time and action plans, materials and shipment in a garment factory.",
-        "reviewed_on": None,
+        "reviewed_on": "2026-11-07",
         "questions": [
             (E, "Orders", "What does a merchandiser do in a garment factory, from order to shipment?",
              ["Turns the buyer's order into a plan the factory can follow",
@@ -64,7 +64,7 @@ ROLES = {
               "Compare each by cost, quality risk and who pays",
               "Agree the plan with the buyer in writing before acting"]),
             (H, "Quality", "The final inspection fails on AQL. What happens next, and what do you do?",
-             ["AQL is a sampling rule, so a fail means too many defects in the lot",
+             ["AQL is a sampling rule: too many defects in the sample means the whole lot fails",
               "Find the defect types, then check every piece and repair or replace",
               "Book a re-inspection and update the shipment plan",
               "Fix the root cause so the next order does not repeat it"]),
@@ -88,7 +88,7 @@ ROLES = {
     # ------------------------------------------------------------------ engineering default
     "industrial-engineer": {
         "summary": "Time study, SMV, line balancing, efficiency, capacity and lean methods on a garment factory floor.",
-        "reviewed_on": None,
+        "reviewed_on": "2026-11-07",
         "questions": [
             (E, "Time study and SMV", "What is SMV, and how is it used in a garment factory?",
              ["Standard minute value: the time a trained operator needs for one operation, with allowances",
@@ -167,7 +167,7 @@ ROLES = {
     # ------------------------------------------------------------------ textile
     "textile-production-associate": {
         "summary": "Yarn, knitting, dyeing and finishing, fabric defects and process control in a textile mill.",
-        "reviewed_on": None,
+        "reviewed_on": "2026-11-07",
         "questions": [
             (E, "Fibre and yarn", "What is the difference between knit and woven fabric? Name a garment made from each.",
              ["Knit is loops from one yarn and stretches; woven crosses two sets of yarn",
@@ -246,11 +246,11 @@ ROLES = {
     },
     "textile-quality-inspector": {
         "summary": "AQL inspection, fabric tests, defect types, measurements and reports for fabric and garments.",
-        "reviewed_on": None,
+        "reviewed_on": "2026-11-07",
         "questions": [
             (E, "AQL inspection", "What is AQL, and how is it used in a final inspection?",
-             ["Acceptable quality level: the most defects allowed in a sample for the lot to pass",
-              "The lot size and inspection level set the sample size",
+             ["Acceptable quality level: the worst average defect level the buyer accepts",
+              "Lot size and inspection level give the sample size; the AQL table gives the accept and reject numbers",
               "Defects are counted as critical, major or minor against the buyer's AQL",
               "Pass or fail is decided on the sample, not on every piece"]),
             (E, "Fabric tests", "What is the 4-point system for fabric inspection?",

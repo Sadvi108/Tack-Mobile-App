@@ -9,7 +9,7 @@ ROLES = {
     # ------------------------------------------------------------------ design default (legacy)
     "graphic-designer": {
         "summary": "Briefs, typography, colour and print, branding and client work, in Bangla and English.",
-        "reviewed_on": None,
+        "reviewed_on": "2026-11-07",
         "questions": [
             # legacy nine, same order, tier and wording
             (E, "Colour and print", "What is the difference between RGB and CMYK, and when does it matter?",
@@ -91,7 +91,7 @@ ROLES = {
     # ------------------------------------------------------------------ media default (legacy)
     "content-writer": {
         "summary": "Writing, research, editing, search and brand voice in English and Bangla for Bangladeshi readers.",
-        "reviewed_on": None,
+        "reviewed_on": "2026-11-07",
         "questions": [
             # legacy nine, same order, tier and wording
             (E, "Audience", "How do you decide who you are writing for?",
@@ -174,7 +174,7 @@ ROLES = {
     # ------------------------------------------------------------------ education default
     "school-teacher": {
         "summary": "Lesson planning, classroom management, assessment, different learners and parents in Bangladeshi schools.",
-        "reviewed_on": None,
+        "reviewed_on": "2026-11-07",
         "questions": [
             (E, "Lesson planning", "How do you plan a forty-minute lesson?",
              ["Starts with one clear learning goal students can reach",
@@ -258,7 +258,7 @@ ROLES = {
     # ------------------------------------------------------------------ public-admin default
     "civil-service-officer": {
         "summary": "BCS viva practice: you, your subject, cadre choice, how government works and situational judgement.",
-        "reviewed_on": None,
+        "reviewed_on": "2026-11-07",
         "questions": [
             (E, "About you", "Introduce yourself to the viva board in about one minute.",
              ["Name, home district, university and subject, in a clear order",
@@ -268,7 +268,7 @@ ROLES = {
              ["Two or three real links between your subject and public work",
               "One example, such as using data for planning",
               "Shows you will keep learning outside your subject"]),
-            (E, "Cadre choice", "Why did you put your first-choice cadre at the top of your BCS choice list?",
+            (E, "Cadre choice", "Why did you choose the cadre at the top of your BCS choice list?",
              ["Honest reasons linked to your skills and interests",
               "Shows you know what officers in that cadre actually do",
               "Shows you would also serve well in the other cadres you chose"],
@@ -338,7 +338,7 @@ ROLES = {
     # ------------------------------------------------------------------ law default
     "legal-associate": {
         "summary": "Legal research, drafting, contracts, company work, court procedure and client care for a junior lawyer.",
-        "reviewed_on": None,
+        "reviewed_on": "2026-11-07",
         "questions": [
             (E, "Legal research", "How do you research a legal question you have never seen before?",
              ["Starts with the statute on the official laws website, and checks later amendments",
@@ -425,7 +425,7 @@ ROLES = {
     # ------------------------------------------------------------------ design
     "ui-and-ux-designer": {
         "summary": "Research, wireframes, usability tests, design systems and accessibility for apps used in Bangladesh.",
-        "reviewed_on": None,
+        "reviewed_on": "2026-11-07",
         "questions": [
             (E, "Process", "What is the difference between UI and UX?",
              ["UX: how the whole experience works and feels for the user",
