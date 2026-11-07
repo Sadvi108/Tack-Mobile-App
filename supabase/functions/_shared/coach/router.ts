@@ -23,6 +23,7 @@ import {
   type Mode,
   normaliseMode,
   type RawAction,
+  routesForMode,
 } from "./actions.ts";
 
 export { MODE_WORDS } from "./actions.ts";
@@ -496,7 +497,15 @@ const PREFIX: Record<string, string> = {
   closing: "Applications close: ",
 };
 
-function datesAnswer(ctx: Context): Draft {
+/** Where a follow-up or a closing date is dealt with. Prove may not open the
+ *  application list, so its dates point at the roadmap instead. */
+function datedRoute(mode: Mode): RawAction["route"] {
+  return routesForMode(mode).includes("applications")
+    ? "applications"
+    : "roadmap";
+}
+
+function datesAnswer(ctx: Context, mode: Mode): Draft {
   const items = (ctx.upcoming ?? []).filter((i) => i?.title && i?.on)
     .slice(0, 4);
   if (items.length === 0) {
@@ -522,7 +531,9 @@ function datesAnswer(ctx: Context): Draft {
   lines.push("Start with the first one on this list.");
   return {
     body: lines.join("\n"),
-    actions: [{ route: items[0].kind === "task" ? "roadmap" : "applications" }],
+    actions: [{
+      route: items[0].kind === "task" ? "roadmap" : datedRoute(mode),
+    }],
   };
 }
 
@@ -549,7 +560,7 @@ function nextAnswer(ctx: Context, mode: Mode): Draft {
   const gaps = biggestGaps(ctx);
   const next = ctx.roadmap?.next;
   const lead = isEarly(mode) ? null : urgentDate(ctx);
-  const actions: RawAction[] = lead ? [{ route: "applications" }] : [];
+  const actions: RawAction[] = lead ? [{ route: datedRoute(mode) }] : [];
   let body: string;
   if (gaps.length === 0) {
     if (next) {
@@ -683,7 +694,7 @@ export function answerIntent(id: IntentId, ctx: Context): DataAnswer | null {
       draft = scoreExplainAnswer(ctx, mode);
       break;
     case "dates":
-      draft = isEarly(mode) ? null : datesAnswer(ctx);
+      draft = isEarly(mode) ? null : datesAnswer(ctx, mode);
       break;
     case "next":
       draft = nextAnswer(ctx, mode);

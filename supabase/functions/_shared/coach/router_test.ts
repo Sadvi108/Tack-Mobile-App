@@ -498,6 +498,31 @@ Deno.test("a date within three days leads what next, in later years only", () =>
   assert(build.body.startsWith("The biggest win right now is projects"));
 });
 
+Deno.test("prove's dates point at the roadmap, which it may open", () => {
+  // The application list is not a prove route. Offering it meant the chip
+  // was silently swapped for the default; the roadmap is chosen instead.
+  const followUpFirst = {
+    ...rich,
+    mode: "prove",
+    upcoming: [
+      { kind: "follow_up", title: "Intern · A bank", on: "2026-11-07" },
+      { kind: "task", title: "Build a dashboard", on: "2026-11-10" },
+    ],
+  };
+  const dates = answerIntent("dates", followUpFirst);
+  assertEquals(dates?.actions.map((a) => a.route), ["roadmap"]);
+  const next = answerIntent("next", followUpFirst);
+  assert(next?.body.startsWith("First, a follow-up is due tomorrow"));
+  assertEquals(next?.actions[0].route, "roadmap");
+  // Launch may open it, so it still leads there.
+  assertEquals(
+    answerIntent("dates", { ...followUpFirst, mode: "launch" })?.actions.map(
+      (a) => a.route,
+    ),
+    ["applications"],
+  );
+});
+
 Deno.test("old rules gain chips but keep their words", () => {
   assertEquals(
     answerFromData("how am I doing?", ctx)?.actions.map((a) => a.route),
