@@ -16,10 +16,14 @@ import '../design/tack.dart';
 /// is not a presentational concern, and `TackBottomNav` stays a widget that
 /// draws tabs and reports taps.
 class TackTabShell extends StatelessWidget {
-  const TackTabShell({super.key, required this.shell});
+  const TackTabShell({super.key, required this.shell, this.onSelected});
 
   /// Branches are in the order of [TackTabs.all].
   final StatefulNavigationShell shell;
+
+  /// Hears a switch to another tab, before it happens. Not a re-tap of the tab
+  /// you are on. A plain callback, so the shell needs no `ProviderScope`.
+  final ValueChanged<int>? onSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -41,8 +45,10 @@ class TackTabShell extends StatelessWidget {
             currentIndex: shell.currentIndex,
             // Tapping the tab you are on takes you to its first screen — Radar
             // from the applications list — rather than doing nothing.
-            onTap: (i) =>
-                shell.goBranch(i, initialLocation: i == shell.currentIndex),
+            onTap: (i) {
+              if (i != shell.currentIndex) onSelected?.call(i);
+              shell.goBranch(i, initialLocation: i == shell.currentIndex);
+            },
           ),
         ],
       ),

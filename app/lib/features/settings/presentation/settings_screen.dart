@@ -271,7 +271,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   tone: _Tone.blue,
                   label: 'Review saved changes',
                   hint: 'Resolve changes made on two devices',
-                  onTap: () => context.push('/settings/sync'),
+                  onTap: () => context.push(Routes.settingsSync),
                 ),
                 const _Divider(),
                 _Tap(

@@ -372,7 +372,7 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
     try {
       switch (action) {
         case 'check':
-          context.push('/vault/check/${document.id}');
+          context.push(Routes.cvCheckFor(document.id));
         case 'default':
           await repository.makeDefault(document.id);
           ref.invalidate(documentsProvider);

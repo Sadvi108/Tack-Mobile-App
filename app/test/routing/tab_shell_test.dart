@@ -15,7 +15,11 @@ import '../helpers.dart';
 void main() {
   setUpAll(loadTackFonts);
 
-  Future<GoRouter> pump(WidgetTester tester, {String at = '/home'}) async {
+  Future<GoRouter> pump(
+    WidgetTester tester, {
+    String at = '/home',
+    ValueChanged<int>? onSelected,
+  }) async {
     tester.view.physicalSize = const Size(360, 800);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -39,7 +43,8 @@ void main() {
       initialLocation: at,
       routes: [
         StatefulShellRoute.indexedStack(
-          builder: (context, state, shell) => TackTabShell(shell: shell),
+          builder: (context, state, shell) =>
+              TackTabShell(shell: shell, onSelected: onSelected),
           branches: [
             for (final t in TackTabs.all)
               StatefulShellBranch(
@@ -169,5 +174,24 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('score screen'), findsOneWidget);
     expect(find.byType(TackBottomNav), findsNothing);
+  });
+
+  // tab_selected is recorded from here. A re-tap of the tab you are on is not
+  // a switch, so it is not reported.
+  testWidgets('onSelected reports a switch, not a re-tap', (tester) async {
+    final selected = <int>[];
+    await pump(tester, onSelected: selected.add);
+
+    await tester.tap(inBar('Home'));
+    await tester.pumpAndSettle();
+    expect(selected, isEmpty);
+
+    await tester.tap(inBar('Radar'));
+    await tester.pumpAndSettle();
+    expect(selected, [TackTabs.all.indexOf(TackTabs.radar)]);
+
+    await tester.tap(inBar('Radar'));
+    await tester.pumpAndSettle();
+    expect(selected, hasLength(1));
   });
 }
