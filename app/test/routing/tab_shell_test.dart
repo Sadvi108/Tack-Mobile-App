@@ -36,8 +36,8 @@ void main() {
     );
 
     // Same shape as router.dart: five branches in TackTabs order, the
-    // applications list inside Radar, a single application and the score
-    // screen on the root navigator.
+    // applications list inside Radar, the documents inside Toolkit, a single
+    // application and the score screen on the root navigator.
     final router = GoRouter(
       navigatorKey: root,
       initialLocation: at,
@@ -50,6 +50,11 @@ void main() {
               StatefulShellBranch(
                 routes: [
                   GoRoute(path: t.route, builder: (_, _) => tab(t.label)),
+                  if (t == TackTabs.toolkit)
+                    GoRoute(
+                      path: '/vault',
+                      builder: (_, _) => tab('Documents'),
+                    ),
                   if (t == TackTabs.radar)
                     GoRoute(
                       path: '/applications',
@@ -104,6 +109,9 @@ void main() {
 
     expect(find.byType(TackBottomNav), findsOneWidget);
     expect(find.text('Paths'), findsNothing, reason: 'paths is not a tab');
+    expect(inBar('Toolkit'), findsOneWidget);
+    expect(inBar('Vault'), findsNothing, reason: 'Vault became Toolkit');
+    expect(TackTabs.all, hasLength(5));
     for (final t in TackTabs.all) {
       expect(
         tester.getSize(inBar(t.label)).width,
@@ -134,7 +142,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const Key('Radar field')), 'Dhaka');
 
-    await tester.tap(inBar('Vault'));
+    await tester.tap(inBar('Toolkit'));
     await tester.pumpAndSettle();
     await tester.tap(inBar('Radar'));
     await tester.pumpAndSettle();
@@ -194,4 +202,20 @@ void main() {
     await tester.pumpAndSettle();
     expect(selected, hasLength(1));
   });
+
+  testWidgets(
+    'the documents list lights Toolkit, and Toolkit goes back to it',
+    (tester) async {
+      await pump(tester, at: '/vault');
+      expect(find.text('Documents screen'), findsOneWidget);
+      final bar = tester.widget<TackBottomNav>(find.byType(TackBottomNav));
+      expect(bar.currentIndex, TackTabs.all.indexOf(TackTabs.toolkit));
+      expect(TackTabs.all.indexOf(TackTabs.toolkit), 3);
+
+      // Tapping the tab you are on returns to the hub.
+      await tester.tap(inBar('Toolkit'));
+      await tester.pumpAndSettle();
+      expect(find.text('Toolkit screen'), findsOneWidget);
+    },
+  );
 }
