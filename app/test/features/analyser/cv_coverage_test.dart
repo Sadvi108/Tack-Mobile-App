@@ -14,6 +14,14 @@ class _Idle extends AnalyserController {
   AnalysisState build() => const AnalysisIdle();
 }
 
+class _Spent extends AnalyserController {
+  @override
+  AnalysisState build() => const AnalysisFailed(
+    'You have used today\'s AI actions.',
+    quotaExhausted: true,
+  );
+}
+
 class _Ready extends AnalyserController {
   @override
   AnalysisState build() => const AnalysisReady(
@@ -135,6 +143,38 @@ void main() {
         findsOneWidget,
       );
       expect(find.textContaining('of 4'), findsNothing);
+      expect(hasOverflow(tester), isFalse);
+    });
+
+    // The quota state explains the trade. It used to print the daily number
+    // twice ("Every student gets N a day ... Your next N arrive").
+    testWidgets('a spent allowance explains the trade, never the number', (
+      tester,
+    ) async {
+      await pumpAt(
+        tester,
+        const AnalyserScreen(),
+        size: const Size(360, 1200),
+        overrides: [
+          analyserControllerProvider.overrideWith(_Spent.new),
+          aiAllowanceProvider.overrideWith(
+            (ref) async => const AiAllowance(used: 4, limit: 4),
+          ),
+        ],
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('You have used today\'s AI actions'), findsOneWidget);
+      expect(
+        find.text(
+          'The daily limit is what keeps Tack free for everyone. Plenty here '
+          'costs nothing: the CV check, interview practice with self-checks, '
+          'Radar and your roadmap. More arrive at midnight.',
+        ),
+        findsOneWidget,
+      );
+      expect(find.textContaining(RegExp(r'\d')), findsNothing);
+      expect(find.text('Work on your roadmap instead'), findsOneWidget);
       expect(hasOverflow(tester), isFalse);
     });
   });

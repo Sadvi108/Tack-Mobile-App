@@ -188,19 +188,13 @@ class TackErrorState extends StatelessWidget {
 
 /// The daily AI limit, explained as a tradeoff that keeps the app free rather
 /// than as a punishment, and pointing at work the student can still do.
+///
+/// It never says the number. The allowance is defined once, on the server,
+/// and a screen may say what is left but never what the whole of it is.
 class TackQuotaState extends StatelessWidget {
-  const TackQuotaState({
-    super.key,
-    required this.resetsAt,
-    required this.limit,
-    this.onGoToRoadmap,
-  });
+  const TackQuotaState({super.key, required this.resetsAt, this.onGoToRoadmap});
 
   final String resetsAt;
-
-  /// Read from the server. Hardcoding it here is how the app came to tell
-  /// students a number the database had stopped agreeing with.
-  final int limit;
   final VoidCallback? onGoToRoadmap;
 
   @override
@@ -213,50 +207,15 @@ class TackQuotaState extends StatelessWidget {
           Text('You have used today\'s AI actions', style: TackText.cardTitle),
           const SizedBox(height: TackSpace.sm),
           Text(
-            'Every student gets $limit a day, which is how Tack stays free for '
-            'everyone. Plenty here costs nothing at all — checking your CV, '
-            'practising interviews, Radar. Your next $limit arrive at $resetsAt.',
+            'The daily limit is what keeps Tack free for everyone. Plenty here '
+            'costs nothing: the CV check, interview practice with self-checks, '
+            'Radar and your roadmap. More arrive at $resetsAt.',
             style: TackText.bodyMuted,
           ),
           const SizedBox(height: TackSpace.lg),
           TackButton('Work on your roadmap instead', onPressed: onGoToRoadmap),
         ],
       ),
-    );
-  }
-}
-
-/// The striped placeholder used where an image would otherwise go. There is no
-/// photography anywhere in Tack, deliberately.
-class TackPlaceholderFill extends StatelessWidget {
-  const TackPlaceholderFill({super.key, this.height = 84, this.child});
-
-  final double height;
-  final Widget? child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: height,
-      width: double.infinity,
-      decoration: BoxDecoration(
-        borderRadius: TackRadius.inputAll,
-        border: Border.all(color: TackColors.line2, width: 1.5),
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          tileMode: TileMode.repeated,
-          stops: [0, 0.5, 0.5, 1],
-          colors: [
-            Color(0xFFFBFAF7),
-            Color(0xFFFBFAF7),
-            Color(0xFFF5F2EC),
-            Color(0xFFF5F2EC),
-          ],
-        ),
-      ),
-      alignment: Alignment.center,
-      child: child,
     );
   }
 }

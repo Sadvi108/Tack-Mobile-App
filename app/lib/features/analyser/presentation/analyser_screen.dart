@@ -83,7 +83,6 @@ class _AnalyserScreenState extends ConsumerState<AnalyserScreen> {
           exhausted
               ? TackQuotaState(
                   resetsAt: 'midnight',
-                  limit: allowance?.limit ?? 0,
                   onGoToRoadmap: () => context.go(Routes.roadmap),
                 )
               : TackErrorState(
