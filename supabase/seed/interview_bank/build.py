@@ -411,16 +411,21 @@ update public.company_interview_packs p
 
 -- --------------------------------------------------------------- backfill
 -- Answers practised before this round get their pool question and key
--- points, matched by exact text within the session's role.
+-- points, matched by exact text within the session's role. A text in both
+-- the role's pool and the behavioural pool takes the role's question.
 update public.interview_questions q
-   set pool_question_id = p.id, key_points = p.key_points
-  from public.interview_sessions s, public.interview_pool_questions p
- where s.id = q.session_id
-   and q.pool_question_id is null
-   and p.is_active
-   and p.question = q.question
-   and (p.kind = 'behavioural'
-        or p.role_slug = coalesce(s.role_slug, public.interview_slug(s.role)));
+   set pool_question_id = m.pool_id, key_points = m.key_points
+  from (select distinct on (old.id) old.id as question_id, p.id as pool_id, p.key_points
+          from public.interview_questions old
+          join public.interview_sessions s on s.id = old.session_id
+          join public.interview_pool_questions p
+            on p.is_active
+           and p.question = old.question
+           and (p.kind = 'behavioural'
+                or p.role_slug = coalesce(s.role_slug, public.interview_slug(s.role)))
+         where old.pool_question_id is null
+         order by old.id, (p.kind = 'role') desc, p.id) m
+ where q.id = m.question_id;
 """ % (_block("roles", data["roles"]), _block("aliases", data["aliases"]),
        _block("paths", data["paths"]), _block("pool", data["pool"]),
        _block("sets", data["sets"]), _block("packs", data["packs"])))

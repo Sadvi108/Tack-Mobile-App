@@ -610,6 +610,12 @@ class CliTest(TempDirs):
         self.assertIn("<> 'on'", block)
         self.assertIn("raise exception", block)
 
+    def test_the_backfill_prefers_the_role_question(self):
+        sql = self._generated()
+        backfill = sql[sql.index("-- backfill"):sql.index("-- ----", sql.index("-- backfill") + 1)]
+        self.assertIn("distinct on (old.id)", backfill)
+        self.assertIn("order by old.id, (p.kind = 'role') desc", backfill)
+
     def test_role_sort_order_follows_the_field_list(self):
         write_content(self.content, clusters=["software", "business", "creative_public",
                                               "engineering"])
