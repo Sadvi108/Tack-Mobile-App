@@ -589,6 +589,27 @@ class CliTest(TempDirs):
         self.assertIn("v_n <> 36", sql)
         self.assertTrue(sql.rstrip().endswith("end $$;"))
 
+    def _generated(self):
+        write_content(self.content, clusters=["software", "business", "creative_public",
+                                              "engineering"])
+        self.assertEqual(self.cli("--out", self.out_path())[0], 0)
+        with open(self.out_path(), encoding="utf-8") as f:
+            return f.read()
+
+    def test_a_run_outside_a_transaction_fails_before_writing(self):
+        # set local does nothing outside a transaction, and the seed guard
+        # would then skip every seed set without a word.
+        sql = self._generated()
+        body = "\n".join(line for line in sql.splitlines() if not line.startswith("--"))
+        guard = body.index("do $$")
+        self.assertLess(body.index("set local tack.seeding = 'on';"), guard)
+        for write in ("create temp table", "insert into", "update public.", "delete from"):
+            self.assertLess(guard, body.index(write), write)
+        block = body[guard:body.index("end $$;", guard)]
+        self.assertIn("current_setting('tack.seeding', true)", block)
+        self.assertIn("<> 'on'", block)
+        self.assertIn("raise exception", block)
+
     def test_role_sort_order_follows_the_field_list(self):
         write_content(self.content, clusters=["software", "business", "creative_public",
                                               "engineering"])

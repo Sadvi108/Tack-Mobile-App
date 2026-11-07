@@ -265,6 +265,19 @@ def compose_build(roles, behavioural):
     }
 
 
+# `set local` lasts only inside a transaction. Run outside one it does nothing,
+# 0096's guard then silently skips every update to a seed set, and old app
+# builds keep 0069's sets with no error anywhere. This makes that run fail.
+SEEDING_GUARD = """
+do $$
+begin
+  if coalesce(current_setting('tack.seeding', true), '') <> 'on' then
+    raise exception 'run this inside a transaction: tack.seeding is off, so seed sets would be skipped';
+  end if;
+end $$;
+"""
+
+
 def _block(tag, items):
     lines = [json.dumps(item, ensure_ascii=False) for item in items]
     body = "[\n" + ",\n".join(lines) + "\n]"
@@ -315,6 +328,7 @@ def render(data):
         w("--\n-- Not in this build (a later cluster ships them): %s.\n"
           % ", ".join(missing))
     w("\nset local tack.seeding = 'on';\n")
+    w(SEEDING_GUARD)
 
     w("""
 -- ------------------------------------------------------------------ roles
