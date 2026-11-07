@@ -8,14 +8,14 @@ CLUSTER = "business"
 ROLES = {
     "management-trainee": {
         "summary": "General graduate questions on business sense, numbers, estimation, problem solving and teamwork.",
-        "reviewed_on": None,
+        "reviewed_on": "2026-11-07",
         "questions": [
             (E, "Business awareness",
              "Pick a business you know well. How does it make money, and what are its biggest costs?",
              ["Names the customer and what they pay for",
               "Main costs, such as materials, staff, rent and delivery",
               "One clear way it could earn more or spend less"]),
-            (E, "Communication",
+            (E, "Motivation",
              "Why do you want to join a management trainee programme rather than a job in one department?",
              ["Wants to learn how departments work together",
               "Ready for rotation and postings outside Dhaka",
@@ -27,12 +27,12 @@ ROLES = {
               "Margin is profit over the selling price: one fifth",
               "Mark-up is profit over the cost: one quarter",
               "Explains why the two numbers are different"]),
-            (E, "Teamwork",
-             "Tell us about a group project where one member did not do their part. What did you do?",
-             ["Talked to them early and in private to find the reason",
-              "Shared the work again with clear tasks and dates",
-              "Told the teacher or supervisor only when needed, with facts",
-              "Says what they would do differently next time"]),
+            (E, "Leadership",
+             "You lead a group project and one member is not doing their part. What do you do?",
+             ["Talks to them early and in private to find the reason",
+              "Shares the work again with clear tasks and dates",
+              "Tells the teacher or supervisor only when needed, with facts",
+              "Keeps the rest of the group informed and treats everyone fairly"]),
             (E, "Problem solving",
              "You are posted to a regional depot outside Dhaka in your first month. How do you learn the work quickly?",
              ["Reads the SOPs and works beside experienced staff",
@@ -103,11 +103,11 @@ ROLES = {
     },
     "banking-officer": {
         "summary": "Accounts and KYC, payments, cash, credit basics and money laundering checks at a bank branch.",
-        "reviewed_on": None,
+        "reviewed_on": "2026-11-07",
         "questions": [
             (E, "Banking basics", "What is the difference between a savings account and a current account?",
              ["Savings: for individuals to keep money and earn some profit",
-              "Current: for businesses and frequent transactions, with cheque books",
+              "Current: for businesses and frequent transactions; usually no profit is paid",
               "Fees and minimum balance rules differ by bank"]),
             (E, "Banking basics", "What does Bangladesh Bank do?",
              ["It is the central bank: it issues currency and sets monetary policy",
@@ -187,7 +187,7 @@ ROLES = {
     },
     "accountant": {
         "summary": "Accounting basics, statements, reconciliation, VAT and tax, month end and ethics for junior accountants.",
-        "reviewed_on": None,
+        "reviewed_on": "2026-11-07",
         "questions": [
             (E, "Fundamentals", "What is the difference between cash and accrual accounting?",
              ["Cash basis records income and costs when money moves",
@@ -272,7 +272,7 @@ ROLES = {
     },
     "digital-marketer": {
         "summary": "Metrics, paid social, budgets, funnels and content for digital marketing in a Facebook-first market.",
-        "reviewed_on": None,
+        "reviewed_on": "2026-11-07",
         "questions": [
             (E, "Metrics", "What is the difference between reach and impressions?",
              ["Reach: how many different people saw it",
@@ -353,7 +353,7 @@ ROLES = {
     },
     "market-research-analyst": {
         "summary": "Survey design, sampling, field work and analysis for market and household research across Bangladesh.",
-        "reviewed_on": None,
+        "reviewed_on": "2026-11-07",
         "questions": [
             (E, "Research design", "What is the difference between primary and secondary research? Give an example of each.",
              ["Primary: data you collect yourself, such as a survey or interviews",
@@ -434,7 +434,7 @@ ROLES = {
     },
     "business-analyst": {
         "summary": "Requirements, process mapping, stakeholders, priorities and testing for business analysts.",
-        "reviewed_on": None,
+        "reviewed_on": "2026-11-07",
         "questions": [
             (E, "Role", "What does a business analyst actually do day to day?",
              ["Learns the problem and the needs from users and managers",
@@ -515,7 +515,7 @@ ROLES = {
     },
     "hr-executive": {
         "summary": "Recruitment, onboarding, payroll, labour law and employee relations for HR teams in Bangladesh.",
-        "reviewed_on": None,
+        "reviewed_on": "2026-11-07",
         "questions": [
             (E, "Recruitment", "What would you look at first on a CV, and why?",
              ["The must-have requirements of the role",
@@ -560,7 +560,7 @@ ROLES = {
               "Record decisions and keep candidates informed"]),
             (H, "Performance", "An employee is underperforming. Take me through the conversation and what you write down.",
              ["Prepare facts and examples, and meet in private",
-              "Listen for causes: skills, workload, health or problems at home",
+              "Listen for causes: skills, workload, health or personal problems",
               "Agree clear targets, support and a review date, in writing",
               "Follow the company process if it leads to warnings"]),
             (E, "Onboarding", "What should a new employee's first week look like?",
@@ -585,7 +585,7 @@ ROLES = {
               "Follow the company's harassment policy and complaint process",
               "Investigate fairly and act on what is found"]),
             (H, "Labour law", "A factory needs to set up its participation committee. What is HR's role, and where do you check the rules?",
-             ["Participation committees come from the Labour Act and its rules",
+             ["Participation committees come from the Labour Act and its rules; check the current amended text",
               "Run a fair, open process for workers to choose their representatives",
               "Help set up regular meetings and keep minutes",
               "Treat it as a way to solve problems early"],
@@ -600,7 +600,7 @@ ROLES = {
     },
     "credit-analyst": {
         "summary": "Financial statements, ratios, cash flow, collateral and credit risk for SME and corporate loans.",
-        "reviewed_on": None,
+        "reviewed_on": "2026-11-07",
         "questions": [
             (E, "Financial statements", "Which three financial statements would you ask a borrower for, and what does each tell you?",
              ["Income statement: sales, costs and profit over a period",
@@ -684,7 +684,7 @@ ROLES = {
     },
     "audit-associate": {
         "summary": "Audit basics, risk, internal control, sampling and working papers for articleship and audit roles.",
-        "reviewed_on": None,
+        "reviewed_on": "2026-11-07",
         "questions": [
             (E, "Audit basics", "What is the difference between external audit and internal audit?",
              ["External audit gives an independent opinion on the financial statements",
@@ -769,7 +769,7 @@ ROLES = {
     },
     "supply-chain-analyst": {
         "summary": "Forecasting, inventory, procurement, logistics and warehouse data for supply chain teams in Bangladesh.",
-        "reviewed_on": None,
+        "reviewed_on": "2026-11-07",
         "questions": [
             (E, "Inventory", "What is safety stock, and why do we keep it?",
              ["Extra stock that covers uncertain demand or late supply",
@@ -850,7 +850,7 @@ ROLES = {
     },
     "operations-executive": {
         "summary": "Processes, rosters, service quality, daily reports and problem solving for operations teams.",
-        "reviewed_on": None,
+        "reviewed_on": "2026-11-07",
         "questions": [
             (E, "Process", "What is an SOP, and why does an operations team need one?",
              ["A standard operating procedure: written steps for a routine task",
@@ -931,7 +931,7 @@ ROLES = {
     },
     "sales-executive": {
         "summary": "Territory, distributors, retail coverage, targets and negotiation for field sales in Bangladesh.",
-        "reviewed_on": None,
+        "reviewed_on": "2026-11-07",
         "questions": [
             (E, "Primary and secondary sales", "What is the difference between primary sales and secondary sales?",
              ["Primary: the company sells to the distributor",
@@ -1012,7 +1012,7 @@ ROLES = {
     },
     "brand-executive": {
         "summary": "Consumer insight, brand health, campaigns, trade marketing and budgets for consumer brands.",
-        "reviewed_on": None,
+        "reviewed_on": "2026-11-07",
         "questions": [
             (E, "Marketing basics", "What are the four Ps of marketing? Use a product you know as an example.",
              ["Product, price, place and promotion",

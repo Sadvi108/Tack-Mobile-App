@@ -8,7 +8,7 @@ CLUSTER = "engineering"
 ROLES = {
     "civil-site-engineer": {
         "summary": "Concrete, reinforcement, soil, quantities and safety on a Bangladeshi building site.",
-        "reviewed_on": None,
+        "reviewed_on": "2026-11-07",
         "questions": [
             (E, "Concrete", "What is curing, and what happens if concrete is not cured properly?",
              ["Curing keeps new concrete wet so the cement keeps hardening",
@@ -32,7 +32,7 @@ ROLES = {
               "Materials, vibrator, workers and the curing plan are ready"]),
             (M, "Quantities", "How do you estimate the bricks for a 10-inch brick wall?",
              ["Find the wall volume and take out doors and windows",
-              "Use brick size plus mortar joint to get bricks per cubic metre",
+              "Use brick size plus mortar joint to get bricks per cubic foot or cubic metre",
               "Add a small wastage allowance and work out the mortar"]),
             (M, "Concrete", "The cylinder test results come back below the required strength. What do you do?",
              ["Check the test record first: sampling, curing of samples, the lab",
@@ -75,7 +75,7 @@ ROLES = {
     },
     "electrical-engineer": {
         "summary": "Circuits, transformers, protection, power factor, substations, generators and electrical safety.",
-        "reviewed_on": None,
+        "reviewed_on": "2026-11-07",
         "questions": [
             (E, "Circuits", "What is the difference between AC and DC, and why is AC used for the power grid?",
              ["AC changes direction many times a second; DC flows one way",
@@ -157,7 +157,7 @@ ROLES = {
     },
     "mechanical-engineer": {
         "summary": "Maintenance, boilers, compressors, generators, HVAC, pumps and safety in factories and building services.",
-        "reviewed_on": None,
+        "reviewed_on": "2026-11-07",
         "questions": [
             (E, "Maintenance", "What is the difference between preventive and breakdown maintenance?",
              ["Breakdown maintenance: fix it after it fails",
@@ -220,7 +220,7 @@ ROLES = {
               "Run only critical loads when pressure is low",
               "Consider a backup fuel, such as diesel, and its storage"]),
             (H, "Boilers and compressors", "Your factory's boiler inspection is next month. How do you prepare?",
-             ["Boilers must be registered and hold a valid fitness certificate from the Chief Inspector of Boilers",
+             ["Boilers must be registered with and certified by the Office of the Chief Inspector of Boilers",
               "Check logs, water treatment records and past inspection reports",
               "Test safety valves and controls, and fix leaks before the visit",
               "Make sure operators are trained and know the emergency steps"],

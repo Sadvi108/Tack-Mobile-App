@@ -8,7 +8,7 @@ CLUSTER = "pharma_development"
 ROLES = {
     "pharmaceutical-quality-analyst": {
         "summary": "GMP, quality control tests, SOPs, data integrity and deviations in pharmaceutical and other quality labs.",
-        "reviewed_on": None,
+        "reviewed_on": "2026-11-07",
         "questions": [
             (E, "GMP", "What is GMP, and why does it matter in a pharmaceutical plant?",
              ["Good manufacturing practice: making medicines safely and the same way every time",
@@ -91,7 +91,7 @@ ROLES = {
     },
     "development-programme-associate": {
         "summary": "Project cycle, logframes, budgets, donor reporting and community work in NGO and development programmes.",
-        "reviewed_on": None,
+        "reviewed_on": "2026-11-07",
         "questions": [
             (E, "Project cycle", "What are the main stages of a development project?",
              ["Needs assessment and design",
@@ -174,7 +174,7 @@ ROLES = {
     },
     "medical-promotion-officer": {
         "summary": "Product knowledge, doctor visits, territory planning and ethical promotion for pharmaceutical field work.",
-        "reviewed_on": None,
+        "reviewed_on": "2026-11-07",
         "questions": [
             (E, "Pharmacology basics", "What is the difference between the generic name and the brand name of a medicine?",
              ["Generic name: the active ingredient, the same everywhere",
@@ -255,7 +255,7 @@ ROLES = {
     },
     "monitoring-and-evaluation-assistant": {
         "summary": "Indicators, baseline surveys, data tools, data cleaning and reporting for monitoring and evaluation work.",
-        "reviewed_on": None,
+        "reviewed_on": "2026-11-07",
         "questions": [
             (E, "Indicators", "What is the difference between an output indicator and an outcome indicator?",
              ["Output: what the project delivers, such as people trained",
