@@ -4,7 +4,10 @@ import 'package:tack/design/tack.dart';
 import 'package:tack/routing/router.dart';
 
 import '../application/interview.dart';
+import 'role_picker_sheet.dart';
 
+/// Choosing what to practise: a role from the student's own data, the kind of
+/// questions, how hard, and whether to time it.
 class InterviewSetupView extends ConsumerStatefulWidget {
   const InterviewSetupView({
     super.key,
@@ -18,7 +21,7 @@ class InterviewSetupView extends ConsumerStatefulWidget {
 
   final bool busy;
   final void Function({
-    required String role,
+    required InterviewRole role,
     required InterviewType type,
     required Difficulty difficulty,
     required bool timer,
@@ -32,68 +35,63 @@ class InterviewSetupView extends ConsumerStatefulWidget {
 }
 
 class _InterviewSetupViewState extends ConsumerState<InterviewSetupView> {
-  /// Null until the student picks one, so the default can follow their target
-  /// role once the profile resolves.
-  ///
-  /// This was a `late` field initialised from `ref.read` on first build, which
-  /// meant that if the profile had not loaded yet — the ordinary case, it is a
-  /// FutureProvider — every student was offered "Frontend developer" whatever
-  /// they were actually aiming at.
-  String? _picked;
+  /// Null until the student picks one, so the suggestion can arrive first.
+  InterviewRole? _picked;
   InterviewType _type = InterviewType.mixed;
   Difficulty _difficulty = Difficulty.medium;
 
   /// Off by default, on purpose.
   bool _timer = false;
 
-  static const _roles = [
-    'Frontend developer',
-    'Backend developer',
-    'Data analyst',
-    'Digital marketer',
-    'HR executive',
-    'Business analyst',
-    'Graphic designer',
-    'QA engineer',
-    'Accountant',
-    'Content writer',
-  ];
-
   @override
   Widget build(BuildContext context) {
     final history =
         ref.watch(interviewHistoryProvider).value ?? const <InterviewSession>[];
-    final role =
-        _picked ??
-        ref.watch(profileProvider).value?.targetRole ??
-        'Frontend developer';
+    final catalogAsync = ref.watch(interviewCatalogProvider);
+    final catalog = catalogAsync.value ?? InterviewCatalog.empty;
+
+    // The suggestion is the default until the student chooses for themselves.
+    final suggestion = catalog.suggested;
+    final suggested = suggestion == null
+        ? null
+        : catalog.roleBySlug(suggestion.slug) ??
+              InterviewRole(slug: suggestion.slug, title: suggestion.title);
+    final role = _picked ?? suggested;
+    final reason = _picked == null && suggestion != null
+        ? reasonLine(suggestion)
+        : null;
 
     return TackScaffold(
       header: TackHeader(
         title: 'Interview practice',
-        onBack: () => tackBack(context),
+        onBack: () => tackBack(context, fallback: Routes.toolkit),
       ),
       pinnedCta: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Stated before the work starts, never after. Questions a role has
-          // already been given come from the bank and cost nothing; new ones
-          // and every piece of feedback are model calls.
+          // Stated before the work starts, never after.
           Text(
-            'Feedback on each answer uses one AI action. New questions for a '
-            'role can use one too.',
+            'Questions and self-checks are free. Feedback on each answer '
+            'uses one AI action.',
             style: TackText.bodyMuted,
           ),
+          if (role == null) ...[
+            const SizedBox(height: TackSpace.xs),
+            Text('Choose a role to start.', style: TackText.meta),
+          ],
           const SizedBox(height: TackSpace.sm),
           TackButton(
             'Start practising',
             loading: widget.busy,
-            onPressed: () => widget.onStart(
-              role: role,
-              type: _type,
-              difficulty: _difficulty,
-              timer: _timer,
-            ),
+            onPressed: role == null
+                ? null
+                : () => widget.onStart(
+                    role: role,
+                    type: _type,
+                    difficulty: _difficulty,
+                    timer: _timer,
+                  ),
           ),
         ],
       ),
@@ -104,7 +102,6 @@ class _InterviewSetupViewState extends ConsumerState<InterviewSetupView> {
           if (ref.watch(dueQuestionsProvider).value case final due?
               when due.isNotEmpty) ...[
             TackCard(
-              background: TackColors.tealTint,
               onTap: () => widget.onPractiseAgain(due),
               child: Row(
                 children: [
@@ -112,14 +109,25 @@ class _InterviewSetupViewState extends ConsumerState<InterviewSetupView> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Practise again', style: TackText.cardTitle),
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                'Practise again',
+                                style: TackText.cardTitle,
+                              ),
+                            ),
+                            const SizedBox(width: TackSpace.sm),
+                            TackPill.teal('Free'),
+                          ],
+                        ),
                         const SizedBox(height: TackSpace.xs),
                         Text(
                           due.length == 1
-                              ? 'One answer is ready to practise again. '
-                                    'Free — it does not use an AI action.'
-                              : '${due.length} answers are ready to practise '
-                                    'again. Free — they do not use AI actions.',
+                              ? 'One answer is ready to try again. It does '
+                                    'not use an AI action.'
+                              : '${due.length} answers are ready to try '
+                                    'again. They do not use AI actions.',
                           style: TackText.bodyMuted,
                         ),
                       ],
@@ -129,42 +137,33 @@ class _InterviewSetupViewState extends ConsumerState<InterviewSetupView> {
                   TackIcon(
                     TackIcons.chevronRight,
                     size: 18,
-                    color: TackColors.tealText,
+                    color: TackColors.muted,
                   ),
                 ],
               ),
             ),
             const SizedBox(height: TackSpace.xl),
           ],
-          Text('Which role?', style: TackText.fieldLabel),
-          const SizedBox(height: TackSpace.sm),
-          TackSelectField<String>(
-            hint: 'Choose a role',
-            value: role,
-            valueLabel: (r) => r,
-            onTap: () async {
-              final picked = await showTackSheet<String>(
-                context: context,
-                title: 'Practise for',
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    for (final role in _roles)
-                      TackTapRow(
-                        onTap: () => Navigator.of(context).pop(role),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: TackSpace.screen,
-                          vertical: 14,
-                        ),
-                        child: Text(role, style: TackText.rowTitle),
-                      ),
-                    const SizedBox(height: TackSpace.lg),
-                  ],
-                ),
-              );
-              if (picked != null) setState(() => _picked = picked);
-            },
-          ),
+
+          if (catalogAsync.hasError && catalogAsync.value == null)
+            TackErrorState(
+              title: 'Roles did not load',
+              body:
+                  'Check your connection and try again. The company packs '
+                  'below still work.',
+              onRetry: () => ref.invalidate(interviewCatalogProvider),
+            )
+          else
+            _RoleCard(
+              role: role,
+              reason: reason,
+              onTap: catalog.isEmpty
+                  ? null
+                  : () async {
+                      final picked = await showRolePicker(context, catalog);
+                      if (picked != null) setState(() => _picked = picked);
+                    },
+            ),
           const SizedBox(height: TackSpace.lg),
 
           Text('What kind of questions?', style: TackText.fieldLabel),
@@ -226,9 +225,10 @@ class _InterviewSetupViewState extends ConsumerState<InterviewSetupView> {
           ),
 
           // The question a student actually has the night before is not
-          // "behavioural or technical" — it is "I have an interview at bKash
-          // on Thursday". This costs no quota at all: the questions are seeded
-          // and the session is written straight to the tables.
+          // "behavioural or technical" — it is "I have an interview at a
+          // particular company on Thursday". This costs no quota at all: the
+          // questions are seeded and the session is written straight to the
+          // tables.
           Consumer(
             builder: (context, ref, _) {
               final packs = ref.watch(companyPacksProvider).value ?? const [];
@@ -243,8 +243,9 @@ class _InterviewSetupViewState extends ConsumerState<InterviewSetupView> {
                   ),
                   const SizedBox(height: TackSpace.xs),
                   Text(
-                    'What each is known to ask. Free — these do not use one of '
-                    'your daily AI actions.',
+                    'Practice questions Tack wrote for some well-known '
+                    'employers. Free — these do not use one of your daily AI '
+                    'actions.',
                     style: TackText.bodyMuted,
                   ),
                   const SizedBox(height: TackSpace.md),
@@ -318,6 +319,59 @@ class _InterviewSetupViewState extends ConsumerState<InterviewSetupView> {
           ],
           const SizedBox(height: TackSpace.xl),
         ],
+      ),
+    );
+  }
+}
+
+/// The role being practised, and why it was chosen. Tapping it opens the
+/// role picker.
+class _RoleCard extends StatelessWidget {
+  const _RoleCard({required this.role, required this.reason, this.onTap});
+
+  final InterviewRole? role;
+  final String? reason;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final title = role?.title;
+    return Semantics(
+      button: true,
+      label: title == null
+          ? 'Choose a role'
+          : 'Practising for $title. Change role',
+      onTap: onTap,
+      excludeSemantics: true,
+      child: TackCard(
+        onTap: onTap,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: TackSpace.tapTarget),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Practising for', style: TackText.meta),
+                    const SizedBox(height: 2),
+                    Text(title ?? 'Choose a role', style: TackText.cardTitle),
+                    if (reason != null) ...[
+                      const SizedBox(height: TackSpace.xs),
+                      Text(reason!, style: TackText.bodyMuted),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(width: TackSpace.md),
+              TackIcon(
+                TackIcons.chevronRight,
+                size: 18,
+                color: TackColors.muted,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

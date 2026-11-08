@@ -11,7 +11,7 @@ import '../data/interview_models.dart';
 import '../data/interview_repository.dart';
 
 export '../../../core/failure.dart' show Failure;
-export '../../profile/application/profile.dart' show modeProvider, profileProvider;
+export '../../profile/application/profile.dart' show modeProvider;
 export '../../score/application/score.dart' show readinessProvider;
 export '../data/interview_catalog.dart';
 export '../data/interview_models.dart';

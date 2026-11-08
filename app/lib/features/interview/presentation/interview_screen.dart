@@ -71,6 +71,13 @@ class _InterviewScreenState extends ConsumerState<InterviewScreen> {
       final session = await ref
           .read(interviewRepositoryProvider)
           .startFromPack(pack: pack, timerEnabled: timer);
+      ref
+          .read(interviewAnalyticsProvider)
+          .started(
+            type: InterviewType.mixed,
+            difficulty: Difficulty.medium,
+            pack: true,
+          );
       if (!mounted) return;
       setState(() {
         _session = session;
@@ -87,8 +94,10 @@ class _InterviewScreenState extends ConsumerState<InterviewScreen> {
     }
   }
 
+  /// Starting from the role's question pool. Free: the database draws the
+  /// questions and writes the session; no model and no AI action.
   Future<void> _start({
-    required String role,
+    required InterviewRole role,
     required InterviewType type,
     required Difficulty difficulty,
     required bool timer,
@@ -97,11 +106,19 @@ class _InterviewScreenState extends ConsumerState<InterviewScreen> {
     try {
       final session = await ref
           .read(interviewRepositoryProvider)
-          .start(
-            role: role,
+          .startPractice(
+            roleSlug: role.slug,
             type: type,
             difficulty: difficulty,
             timerEnabled: timer,
+          );
+      ref
+          .read(interviewAnalyticsProvider)
+          .started(
+            roleSlug: role.slug,
+            type: type,
+            difficulty: difficulty,
+            pack: false,
           );
       if (!mounted) return;
       setState(() {
