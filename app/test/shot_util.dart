@@ -34,6 +34,7 @@ Future<void> shoot(
         '/home',
         '/roadmap',
         '/radar',
+        '/toolkit',
         '/vault',
         '/profile',
         '/applications',
