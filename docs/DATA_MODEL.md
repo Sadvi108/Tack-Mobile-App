@@ -1,7 +1,8 @@
 # Data model
 
-Generated from the live database. 40 tables, Row Level Security enabled and
-forced on every one. Regenerate with `node tool/psql.js` — see the command in
+Generated from the live database, Row Level Security enabled and forced on
+every table. The interview pool of 0096 is added by hand until the next
+regeneration. Regenerate with `node tool/psql.js` — see the command in
 `docs/` history if it drifts.
 
 Ownership shapes:
@@ -275,15 +276,36 @@ model_answer text
 created_at timestamp with time zone
 ```
 
+### `interview_pool_questions`
+
+Reference (0096). Written only by seed migrations.
+
+```
+id uuid                  -- uuid5 from build.py: role and normalised text, stable across builds
+role_slug text           -- null for the behavioural pool
+kind text                -- 'behavioural' | 'role'
+difficulty USER-DEFINED
+category text            -- sentence case, as written ("Data quality", "HR round")
+question text
+key_points jsonb         -- 2-4 strings: what a strong answer covers
+source_url text          -- set when the question cites a Bangladesh rule
+sort_order integer       -- authoring order within the role
+is_active boolean
+created_at timestamp with time zone
+```
+
 ### `interview_question_bank`
+
+Reference. The fixed sets old app builds read through the interview function.
 
 ```
 id uuid
 role_slug text
 session_type USER-DEFINED
 difficulty USER-DEFINED
-questions jsonb
+questions jsonb          -- [{question, category, key_points?, pool_id?}]
 created_at timestamp with time zone
+source text              -- 'seed' | 'model' (0096); the seed guard protects 'seed'
 ```
 
 ### `interview_questions`
@@ -298,6 +320,44 @@ category text
 answer_text text
 skipped boolean
 answered_at timestamp with time zone
+pool_question_id uuid    -- 0096: the pool question it was drawn from
+key_points jsonb         -- 0096: copied from the pool, [] for packs and old sets
+self_check jsonb         -- 0096: {"covered": [0, 2], "total": 4}, written by the owner
+```
+
+### `interview_role_aliases`
+
+Reference (0096). Other names job ads use for a role, lower case.
+
+```
+alias text
+role_slug text
+```
+
+### `interview_role_paths`
+
+Reference (0096). Catalog career paths with no role of their own, mapped to
+the nearest role.
+
+```
+path_slug text
+role_slug text
+```
+
+### `interview_roles`
+
+Reference (0096). One default per career field.
+
+```
+slug text
+title text
+cluster text             -- the content file it comes from
+field_slug text
+summary text
+is_field_default boolean
+sort_order integer       -- line of the field in career_fields.txt x 100, default first
+is_active boolean        -- a role is retired, never deleted
+created_at timestamp with time zone
 ```
 
 ### `interview_sessions`
@@ -318,7 +378,46 @@ weakest_area text
 points_earned integer
 summary jsonb
 deleted_at timestamp with time zone
+role_slug text           -- 0096: the pool role; null for packs and older sessions
 ```
+
+`role` keeps the role's title, so history, `interview_due()`, the application
+checklist and `coach_context()` read what they always did. `overall_score` is
+null when nothing was scored by AI, so free practice never lowers readiness.
+
+### Interview question pool (0096, 0098)
+
+- **Where questions come from.** Hand-written content in
+  `supabase/seed/interview_bank/roles_*.py` and `behavioural.py`, checked by
+  `validate.py`. `build.py` turns it into a seed migration (0098). Questions
+  never come from a model: the interview function serves a role's fixed set or
+  the student's nearest role's.
+- **Practice.** `start_practice_session()` draws from the pool (avoiding what
+  the student saw in the last 90 days) and writes the session and its questions
+  in one transaction. Free: no model, no AI action. Forty starts a day per
+  student, counting deleted sessions.
+- **Which role.** `interview_resolve_role_for()` tries a hint, then the
+  student's primary path, their target role, their intended field, then
+  `management-trainee`. `interview_catalog()` returns the suggestion and every
+  field with its roles.
+- **The seed guard.** A `BEFORE UPDATE` trigger on `interview_question_bank`
+  skips any update to a `source = 'seed'` row unless the transaction set
+  `tack.seeding = 'on'`. Only a seed migration sets it (`set local`, and a DO
+  block that fails if it is not on). The worker's model sets can never replace
+  a hand-written set.
+- **Adding a role next round.** Add it to `MANIFEST` in `validate.py`, write its
+  content in its cluster's file, have the other writer read it and set
+  `reviewed_on`, then:
+
+  ```
+  python3 supabase/seed/interview_bank/validate.py --strict --all \
+    supabase/seed/interview_bank/roles_*.py supabase/seed/interview_bank/behavioural.py
+  python3 supabase/seed/interview_bank/build.py --out supabase/migrations/NNNN_interview_pool_refresh.sql
+  python3 supabase/seed/interview_bank/build.py --verify
+  ```
+
+  Never edit an applied migration; a refresh is a new one. Ids come from the
+  text, so unchanged questions keep their ids and students their history.
 
 ### `job_analyses`
 
