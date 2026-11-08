@@ -3262,3 +3262,25 @@ The CTO reviewed `ph/w5-foundation` against C5 and approved it. These rulings ch
    `core/ai/allowance.dart` in the same file: both declare `AiAllowance` and `aiAllowanceProvider`.
 6. **§0, every worktree.** Run `cd app && dart run build_runner build --delete-conflicting-outputs`
    before `flutter analyze` or `flutter test`: `local_db.g.dart` is gitignored.
+
+## Appendix C. Round result and carry-overs (2026-11-09)
+
+All five workstreams merged into `feat/practice-hub-and-smarter-coach` after spec and quality review
+by the CTO. Final integration head: `flutter analyze` clean, 795 Flutter tests, 293 Deno tests,
+27 generator tests, `validate.py --strict --all` 0 errors on 40 of 40 roles, `build.py --verify`
+matches 0098. Migrations 0096, 0097 and 0098 are written, not applied.
+
+`app/test/features/applications/applications_back_test.dart` and
+`app/test/features/auth/delete_account_test.dart` join W5's files.
+
+Carried to the next round (Minor, from the reviews):
+- `app/lib/features/auth/application/delete_account.dart:25` closes the local database by hand, and
+  the provider closes it again on sign-out. Check on a device that nothing watching it throws.
+- `TackQuotaState` (`app/lib/design/components/states.dart`): muted text on the amber tint has no
+  contrast row. The pattern predates this round.
+- `interview_repository.dart:236`: the legacy model-calling `start()` has no caller. Delete it.
+- `PRIVACY.md` still says primary-school children get no profile (deferred P1-8). Fix before public release.
+- The account deletion has a narrow gap: an upload from a still-signed-in phone between the final
+  empty check and deleting the user would leave one file.
+- Agent second reads are not a practitioner review. Each role's questions still need a person who
+  works in that field (CEO decision).
