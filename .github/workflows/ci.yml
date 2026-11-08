@@ -77,3 +77,18 @@ jobs:
 
       - name: Test
         run: deno task --frozen test
+
+  content:
+    name: Interview content
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.9"
+      - name: Unit tests
+        run: python3 -m unittest discover -s supabase/seed/interview_bank -p 'test_*.py'
+      - name: Validate content
+        run: python3 supabase/seed/interview_bank/build.py --check
+      - name: Generated migration matches the content
+        run: python3 supabase/seed/interview_bank/build.py --verify

@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tack/features/interview/data/interview_models.dart';
-import 'package:tack/features/interview/data/interview_repository.dart';
+import 'package:tack/features/interview/application/interview.dart';
 import 'package:tack/features/interview/presentation/interview_screen.dart';
-import 'package:tack/features/profile/data/profile.dart';
-import 'package:tack/features/profile/data/education_stage.dart';
-import 'package:tack/features/profile/data/profile_repository.dart';
 
 import 'helpers.dart';
 import 'shot_util.dart';
@@ -36,20 +32,31 @@ void main() {
             pack('brac', 'BRAC', 4),
           ],
         ),
-        profileProvider.overrideWith(
-          (ref) async => Profile(
-            id: 'u1',
-            fullName: 'Rafiq Hossain',
-            countryId: 'bd',
-            countryName: 'Bangladesh',
-            cityId: 'dhaka',
-            cityName: 'Dhaka',
-            stage: EducationStage.bachelors,
-            mode: YearMode.launch,
-            targetRole: 'Backend developer',
-            onboardingCompletedAt: DateTime(2026, 1, 1),
+        interviewCatalogProvider.overrideWith(
+          (ref) async => const InterviewCatalog(
+            suggested: RoleSuggestion(
+              slug: 'backend-developer',
+              title: 'Backend developer',
+              fieldSlug: 'computer-science',
+              fieldName: 'Computer science and software',
+              reason: RoleReason.yourTarget,
+            ),
+            fields: [
+              InterviewField(
+                slug: 'computer-science',
+                name: 'Computer science and software',
+                roles: [
+                  InterviewRole(
+                    slug: 'backend-developer',
+                    title: 'Backend developer',
+                    questionCount: 15,
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
+        dueQuestionsProvider.overrideWith((ref) async => const []),
       ],
       panels: const [0, 700],
     );

@@ -3,7 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:tack/features/interview/data/interview_models.dart';
 import 'package:tack/features/interview/data/interview_repository.dart';
 import 'package:tack/features/interview/presentation/interview_screen.dart';
-import 'package:tack/features/profile/data/profile_repository.dart';
+import 'package:tack/features/interview/application/interview.dart'
+    show InterviewCatalog, interviewCatalogProvider;
 
 import '../../helpers.dart';
 
@@ -73,7 +74,9 @@ void main() {
         dueQuestionsProvider.overrideWith((ref) async => due),
         interviewHistoryProvider.overrideWith((ref) async => const []),
         companyPacksProvider.overrideWith((ref) async => const []),
-        profileProvider.overrideWith((ref) async => null),
+        interviewCatalogProvider.overrideWith(
+          (ref) async => InterviewCatalog.empty,
+        ),
       ];
     }
 
