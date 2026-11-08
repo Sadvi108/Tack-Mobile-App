@@ -12,6 +12,22 @@ class SummaryView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // A free session is measured against its key points, never as a zero out
+    // of ten: nothing was scored, so there is no score to show.
+    final Widget? ring = session.anyAiScored
+        ? ScoreRing(
+            score: (session.overallScore ?? session.averageScore).round(),
+            max: 10,
+            caption: 'of 10',
+          )
+        : session.keyPointsTotal > 0
+        ? ScoreRing(
+            score: session.keyPointsCovered,
+            max: session.keyPointsTotal,
+            caption: 'key points covered',
+          )
+        : null;
+
     return TackScaffold(
       header: TackHeader(title: 'How it went', onBack: () => tackBack(context)),
       pinnedCta: TackButton('Practise again', onPressed: onAgain),
@@ -21,12 +37,10 @@ class SummaryView extends StatelessWidget {
           TackCard(
             child: Row(
               children: [
-                ScoreRing(
-                  score: (session.overallScore ?? session.averageScore).round(),
-                  max: 10,
-                  caption: 'of 10',
-                ),
-                const SizedBox(width: TackSpace.lg),
+                if (ring != null) ...[
+                  ring,
+                  const SizedBox(width: TackSpace.lg),
+                ],
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -60,13 +74,19 @@ class SummaryView extends StatelessWidget {
                   if (session.strongestArea != null) ...[
                     Text('Strongest', style: TackText.monoLabel),
                     const SizedBox(height: 4),
-                    Text(session.strongestArea!, style: TackText.rowTitle),
+                    Text(
+                      displayCategory(session.strongestArea!),
+                      style: TackText.rowTitle,
+                    ),
                     const SizedBox(height: TackSpace.md),
                   ],
                   if (session.weakestArea != null) ...[
                     Text('WORTH PRACTISING', style: TackText.monoLabel),
                     const SizedBox(height: 4),
-                    Text(session.weakestArea!, style: TackText.rowTitle),
+                    Text(
+                      displayCategory(session.weakestArea!),
+                      style: TackText.rowTitle,
+                    ),
                   ],
                 ],
               ),
@@ -98,8 +118,10 @@ class SummaryView extends StatelessWidget {
                         foreground: TackColors.muted,
                       )
                     else if (question.feedback != null)
+                      TackPill.teal(question.feedback!.score.toStringAsFixed(1))
+                    else if (question.selfCheck case final check?)
                       TackPill.teal(
-                        question.feedback!.score.toStringAsFixed(1),
+                        '${check.covered.length} of ${check.total}',
                       ),
                   ],
                 ),

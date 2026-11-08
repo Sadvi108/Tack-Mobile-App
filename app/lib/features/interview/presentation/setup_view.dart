@@ -4,6 +4,7 @@ import 'package:tack/design/tack.dart';
 import 'package:tack/routing/router.dart';
 
 import '../application/interview.dart';
+import 'interview_widgets.dart';
 import 'role_picker_sheet.dart';
 
 /// Choosing what to practise: a role from the student's own data, the kind of
@@ -262,6 +263,8 @@ class _InterviewSetupViewState extends ConsumerState<InterviewSetupView> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(pack.name, style: TackText.rowTitle),
+                                  const SizedBox(height: 2),
+                                  PackDisclaimer(company: pack.name),
                                   const SizedBox(height: 2),
                                   Text(
                                     '${pack.questions.length} questions',

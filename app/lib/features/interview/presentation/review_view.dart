@@ -118,6 +118,11 @@ class _ReviewViewState extends ConsumerState<ReviewView> {
                 title: 'To work on',
                 body: q.toImprove.map((t) => '· $t').join('\n'),
               ),
+            if (q.keyPoints.isNotEmpty)
+              NoteCard(
+                title: 'What a strong answer covers',
+                body: q.keyPoints.map((p) => '· $p').join('\n'),
+              ),
             if (q.modelAnswer?.isNotEmpty ?? false)
               NoteCard(title: 'A strong answer', body: q.modelAnswer!),
           ],

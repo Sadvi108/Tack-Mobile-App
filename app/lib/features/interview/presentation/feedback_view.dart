@@ -13,9 +13,14 @@ class FeedbackView extends StatefulWidget {
     required this.isLast,
     required this.onNext,
     required this.onFinish,
+    this.keyPoints = const [],
   });
 
   final AnswerFeedback feedback;
+
+  /// What a strong answer covers, shown after the AI's notes when the
+  /// question has them.
+  final List<String> keyPoints;
   final int questionNumber;
   final int total;
   final bool isLast;
@@ -87,6 +92,10 @@ class _FeedbackViewState extends State<FeedbackView> {
               icon: TackIcons.arrowRight,
               iconColor: TackColors.amberText,
             ),
+            const SizedBox(height: TackSpace.stack),
+          ],
+          if (widget.keyPoints.isNotEmpty) ...[
+            KeyPointsCard(points: widget.keyPoints),
             const SizedBox(height: TackSpace.stack),
           ],
 
