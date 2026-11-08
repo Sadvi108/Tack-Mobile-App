@@ -25,7 +25,7 @@ class ToolkitScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final mode = ref.watch(modeProvider);
     final status = ref.watch(toolkitStatusProvider);
-    final documents = ref.watch(documentsProvider);
+    final documents = ref.watch(toolkitDocumentsProvider);
     final allowance = ref.watch(aiAllowanceProvider);
     final online = ref.watch(isOnlineProvider);
     final queued = ref.watch(pendingChangesProvider).value ?? 0;
@@ -45,7 +45,7 @@ class ToolkitScreen extends ConsumerWidget {
           return TackErrorState(
             title: documentsErrorTitle,
             body: documentsErrorBody,
-            onRetry: () => ref.invalidate(documentsProvider),
+            onRetry: () => ref.invalidate(toolkitDocumentsProvider),
           );
         }
         if (status.documentCount == null) {
@@ -72,7 +72,7 @@ class ToolkitScreen extends ConsumerWidget {
         color: TackColors.maroonText,
         onRefresh: () async {
           ref
-            ..invalidate(documentsProvider)
+            ..invalidate(toolkitDocumentsProvider)
             ..invalidate(dueQuestionsProvider)
             ..invalidate(aiAllowanceProvider);
         },

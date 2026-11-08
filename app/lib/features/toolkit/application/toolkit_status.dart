@@ -6,7 +6,6 @@ import '../../vault/application/cv_check.dart';
 // What the hub's screen reads from other features, through this layer only.
 export '../../interview/application/practice.dart' show dueQuestionsProvider;
 export '../../profile/application/profile.dart' show modeProvider, YearMode;
-export '../../vault/application/cv_check.dart' show documentsProvider;
 
 /// What the hub knows about the student's documents and practice.
 ///
@@ -41,6 +40,10 @@ class ToolkitStatus {
     );
   }
 }
+
+/// The student's documents, as the hub reads and refreshes them. The same
+/// provider as the documents list, so a refresh here refreshes both.
+final toolkitDocumentsProvider = documentsProvider;
 
 /// Combines the documents and what is due. Never fails as a whole: a failed
 /// read leaves its fields null.
