@@ -9,6 +9,8 @@ import '../../../core/failure.dart';
 import '../../../design/tack.dart';
 import '../../../routing/router.dart';
 import '../../analyser/application/analyser_controller.dart';
+import '../../toolkit/application/toolkit_analytics.dart';
+import '../../toolkit/application/toolkit_tools.dart';
 import '../../score/data/score_repository.dart';
 import '../application/checklist.dart';
 import '../data/application_models.dart';
@@ -268,6 +270,12 @@ class ApplicationDetailScreen extends ConsumerWidget {
         }
         await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
       case ChecklistAction.practise:
+        ref.read(toolOpenedProvider)(
+          ToolkitTool.interview,
+          ToolSource.application,
+        );
+        // Awaited, not tackOpen: the checklist is read again when the student
+        // comes back. A cover route, so tackOpen would push it anyway.
         await context.push(Routes.interview);
         ref.invalidate(checklistProvider(application.id));
       case ChecklistAction.prep:
@@ -367,6 +375,12 @@ class ApplicationDetailScreen extends ConsumerWidget {
         );
       }
       if (!context.mounted) return;
+      ref.read(toolOpenedProvider)(
+        ToolkitTool.analyser,
+        ToolSource.application,
+      );
+      // Awaited for the same reason as practice: the checklist is read again
+      // on the way back.
       await context.push(Routes.analyser);
       ref.invalidate(checklistProvider(application.id));
     } catch (e) {

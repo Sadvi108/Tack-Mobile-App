@@ -1,7 +1,9 @@
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:tack/core/offline/local_db.dart';
 import 'package:tack/core/offline/sync.dart';
 import 'package:tack/design/tack.dart';
@@ -12,6 +14,7 @@ import 'package:tack/features/roadmap/presentation/journey_line.dart';
 import 'package:tack/features/roadmap/presentation/roadmap_screen.dart';
 import 'package:tack/features/roadmap/presentation/suggestion_card.dart';
 
+import 'package:tack/routing/router.dart';
 import '../../helpers.dart';
 
 RoadmapTask task(
@@ -609,5 +612,53 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.textContaining('skipped step'), findsNothing);
     });
+  });
+
+  // Career paths have no tab. The roadmap is where a student decides what to
+  // follow, so the way to the paths is in its header.
+  testWidgets('the header opens the career paths, and back returns', (
+    tester,
+  ) async {
+    tester.view.physicalSize = shortAndroid;
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    final router = GoRouter(
+      initialLocation: Routes.roadmap,
+      routes: [
+        GoRoute(path: Routes.roadmap, builder: (_, _) => const RoadmapScreen()),
+        GoRoute(
+          path: Routes.paths,
+          builder: (context, _) => Scaffold(
+            body: TextButton(
+              onPressed: () => tackBack(context),
+              child: const Text('paths page'),
+            ),
+          ),
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: overrides([roadmap()]),
+        child: MaterialApp.router(
+          theme: buildTackTheme(),
+          routerConfig: router,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final paths = find.bySemanticsLabel('Career paths');
+    expect(paths, findsOneWidget);
+    expect(tester.getSize(paths).height, greaterThanOrEqualTo(44));
+    await tester.tap(paths);
+    await tester.pumpAndSettle();
+    expect(find.text('paths page'), findsOneWidget);
+
+    await tester.tap(find.text('paths page'));
+    await tester.pumpAndSettle();
+    expect(find.byType(RoadmapScreen), findsOneWidget);
   });
 }

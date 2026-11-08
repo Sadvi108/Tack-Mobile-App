@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../design/tack.dart';
 import '../../../routing/router.dart';
@@ -34,7 +33,7 @@ class ScoreScreen extends ConsumerWidget {
       loading: () => TackScaffold(
         header: TackHeader(
           title: 'Readiness score',
-          onBack: () => context.go(Routes.home),
+          onBack: () => tackBack(context),
         ),
         body: const Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -48,7 +47,7 @@ class ScoreScreen extends ConsumerWidget {
       error: (_, _) => TackScaffold(
         header: TackHeader(
           title: 'Readiness score',
-          onBack: () => context.go(Routes.home),
+          onBack: () => tackBack(context),
         ),
         body: TackErrorState(
           body: 'Your score did not load. Check your connection and try again.',
@@ -63,13 +62,13 @@ class ScoreScreen extends ConsumerWidget {
         return TackScaffold(
           header: TackHeader(
             title: 'Readiness score',
-            onBack: () => context.go(Routes.home),
+            onBack: () => tackBack(context),
           ),
           pinnedCta: biggestWin == null
               ? null
               : TackButton(
                   biggestWin.action,
-                  onPressed: () => context.go(biggestWin.route),
+                  onPressed: () => tackOpen(context, biggestWin.route),
                 ),
           body: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -141,7 +140,7 @@ class ScoreScreen extends ConsumerWidget {
                       if (i > 0) const TackDivider(),
                       _ComponentRow(
                         component: rows[i],
-                        onTap: () => context.go(rows[i].route),
+                        onTap: () => tackOpen(context, rows[i].route),
                       ),
                     ],
                   ],

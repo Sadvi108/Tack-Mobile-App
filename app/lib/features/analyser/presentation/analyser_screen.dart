@@ -41,7 +41,7 @@ class _AnalyserScreenState extends ConsumerState<AnalyserScreen> {
     return TackScaffold(
       header: TackHeader(
         title: 'Job analyser',
-        onBack: () => tackBack(context),
+        onBack: () => tackBack(context, fallback: Routes.toolkit),
         trailing: state is AnalysisReady
             ? TackButton.ghost(
                 'New',
@@ -192,7 +192,7 @@ class _Input extends StatelessWidget {
           controller.text.trim().length < 80
               ? 'Paste a bit more — a line or two is not enough to analyse.'
               : '${controller.text.trim().length} characters',
-          style: TackText.meta.copyWith(fontSize: 13.5),
+          style: TackText.meta,
         ),
         const SizedBox(height: TackSpace.xl),
       ],
@@ -299,7 +299,7 @@ class _Result extends StatelessWidget {
           const SizedBox(height: TackSpace.sm),
           Text(
             'This description had already been analysed, so it cost you nothing.',
-            style: TackText.meta.copyWith(fontSize: 13.5),
+            style: TackText.meta,
           ),
         ],
         const SizedBox(height: TackSpace.stackLoose),
@@ -366,7 +366,7 @@ class _CvCoverageCard extends ConsumerWidget {
           const SizedBox(height: TackSpace.md),
           TackButton.secondary(
             'Check my CV',
-            onPressed: () => context.go(Routes.vault),
+            onPressed: () => context.push(Routes.cvCheck),
           ),
         ],
       );
