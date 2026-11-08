@@ -89,7 +89,7 @@ class _CvBuilderScreenState extends ConsumerState<CvBuilderScreen> {
       setState(() => _busy = false);
       TackToast.show(
         context,
-        message: 'Saved to your Vault. Tack is reading it now.',
+        message: 'Saved to your documents. Tack is reading it now.',
         actionLabel: 'Open',
         onAction: () => context.go(Routes.vault),
       );
@@ -126,7 +126,7 @@ class _CvBuilderScreenState extends ConsumerState<CvBuilderScreen> {
 
         return _shell(
           pinnedCta: TackButton(
-            'Save to my Vault',
+            'Save to my documents',
             loading: _busy,
             onPressed: () => _saveToVault(doc, layout),
           ),

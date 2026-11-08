@@ -8,7 +8,7 @@
  * server could produce itself — and would make re-extraction impossible
  * without asking the student to upload the file again.
  *
- * Photos can be stored and opened in the vault. Reading them is deferred:
+ * Photos can be stored and opened in your documents. Reading them is deferred:
  * direct WASM OCR exceeded the hosted worker's CPU limit in the live test.
  */
 
@@ -49,7 +49,7 @@ const DOCX =
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
 export const SUPPORTED_CV_MESSAGE =
-  "For CV feedback, upload a text PDF or Word (.docx) file. You can still keep and open photos in your vault.";
+  "For CV feedback, upload a text PDF or Word (.docx) file. You can still keep and open photos in your documents.";
 
 /** Stored photo types. These must not start the experimental OCR engine. */
 const IMAGES = new Set([

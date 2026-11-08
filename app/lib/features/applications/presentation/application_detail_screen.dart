@@ -305,7 +305,7 @@ class ApplicationDetailScreen extends ConsumerWidget {
       if (options.isEmpty) {
         TackToast.show(
           context,
-          message: 'Add a CV to your vault first, then attach it here.',
+          message: 'Add a CV to your documents first, then attach it here.',
         );
         return;
       }

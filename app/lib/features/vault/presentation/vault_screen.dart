@@ -35,7 +35,10 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
     final upload = ref.watch(uploadControllerProvider);
 
     return TackScaffold(
-      header: const TackHeader(title: 'Your documents'),
+      header: TackHeader(
+        title: 'Your documents',
+        onBack: () => tackBack(context, fallback: Routes.toolkit),
+      ),
       pinnedCta: upload.busy
           ? null
           : TackButton(
