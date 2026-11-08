@@ -133,6 +133,30 @@ void main() {
     expect(tester.getSize(find.byType(SettingsScreen)).width, 360);
   });
 
+  // It used to say nothing about the student leaves Tack's database, which
+  // the coach and every other AI feature contradict.
+  testWidgets('the privacy line matches what the app actually does', (
+    tester,
+  ) async {
+    await pumpAt(
+      tester,
+      const SettingsScreen(),
+      size: const Size(360, 2400),
+      overrides: overrides(),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text(
+        'There is no advertising and no third-party analytics. AI features, '
+        'including the coach, send your text to Google with contact details '
+        'removed.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.textContaining('nothing about you leaves'), findsNothing);
+  });
+
   testWidgets('deleting an account takes more than one tap', (tester) async {
     await pumpAt(tester, const SettingsScreen(), overrides: overrides());
     await tester.pumpAndSettle();

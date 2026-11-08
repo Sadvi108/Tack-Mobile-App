@@ -306,9 +306,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: TackSpace.xs),
             child: Text(
-              'Everything Tack holds about you lives in one database that only '
-              'you can read. There is no advertising, no third-party analytics '
-              'and no crash service — nothing about you leaves it.',
+              'There is no advertising and no third-party analytics. AI '
+              'features, including the coach, send your text to Google with '
+              'contact details removed.',
               style: TackText.meta,
             ),
           ),

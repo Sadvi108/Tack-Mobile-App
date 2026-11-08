@@ -2,7 +2,7 @@
 
 **Tack** — a careers app for students in Bangladesh.
 
-Last updated: 25 October 2026
+Last updated: 9 November 2026
 
 This describes what Tack actually does with your information. Every claim here
 matches something in the code, and where a limit is enforced by the software
@@ -39,7 +39,7 @@ activities; the job you are aiming at and the industries you like; anything you
 type into the coach, an interview answer, or a note on an application.
 
 **Because you uploaded it.** CVs, certificates and any other document you add
-to your Vault, along with the text we extract from them in order to score them.
+to your documents, along with the text we extract from them in order to score them.
 
 **Because you used the app.** Which screens you opened, which steps you ticked,
 how many applications you have, and your readiness score over time.
@@ -88,6 +88,10 @@ text is sent.** Email addresses, Bangladeshi phone numbers, long ID numbers and
 web links are extracted locally first; they are kept in our own database and
 never placed in the prompt.
 
+So that an answer can follow the conversation, the coach also sends up to the
+last six messages of that conversation with each new question. Each of them has
+its contact details removed in the same way before it is sent.
+
 Your daily AI allowance is shown in the app and resets at midnight in Bangladesh.
 Free checks and cached results do not spend an AI action. Nothing you do in Tack sends anything to a
 model unless you ask for it by using one of those features.
@@ -107,11 +111,12 @@ Apify collection tasks. These scheduled collections receive no student account,
 profile or search terms. Browsing these vacancies reads Tack's own cached copy.
 The original posting link is shown so you can check details before applying.
 
-### Sign-in — Google
+### Sign-in — Google and GitHub
 
 If you choose "Continue with Google", Google tells us your email address and
-name. If you sign up with an email and password instead, Google is not involved
-at all.
+name. If you choose GitHub, GitHub tells us your email address and the name on
+your GitHub account. If you sign up with an email and password instead, neither
+is involved at all.
 
 ---
 
@@ -134,7 +139,7 @@ advertising identifier anywhere in this app.
 - **Your profile and your work** — until you delete your account.
 - **Usage analytics and error reports** — 90 days, then deleted automatically
   by a nightly job.
-- **A document you delete** — removed from your Vault at once, and erased from
+- **A document you delete** — removed from your documents at once, and erased from
   storage 30 days later. The delay exists so that deleting the wrong file is
   recoverable by asking us within that window.
 - **Your whole account** — see below.
