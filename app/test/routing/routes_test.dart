@@ -1,10 +1,16 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:tack/design/tack.dart' show TackStatus;
+import 'package:tack/features/applications/data/application_models.dart';
+import 'package:tack/features/dashboard/application/insights.dart';
+import 'package:tack/features/dashboard/data/dashboard_feed.dart';
 import 'package:tack/features/notifications/data/notification_repository.dart';
 import 'package:tack/features/score/data/readiness.dart';
 import 'package:tack/features/toolkit/application/toolkit_tools.dart';
 import 'package:tack/routing/router.dart';
+
+import '../features/dashboard/insights_test.dart' as fixture show feed, today;
 
 /// Every location the app writes, checked against the real route tree.
 ///
@@ -150,6 +156,69 @@ void main() {
           ).route,
         );
       }
+    });
+
+    test('every suggestion on Home, over a full fixture', () {
+      final timeline = [
+        for (final (days, route) in [
+          (-3, Routes.roadmap),
+          (0, Routes.application('a1')),
+          (2, Routes.roadmap),
+        ])
+          TimelineEntry(
+            kind: TimelineKind.task,
+            id: 't$days',
+            title: 'Step',
+            on: fixture.today.add(Duration(days: days)),
+            route: route,
+            isOverdue: days < 0,
+          ),
+      ];
+      final ids = <String>{};
+      for (final counts in const [
+        ApplicationCounts({TackStatus.applied: 9}),
+        ApplicationCounts({TackStatus.interview: 2}),
+      ]) {
+        for (final hasCv in [true, false]) {
+          for (final chosenPaths in [0, 1]) {
+            final insights = buildInsights(
+              fixture.feed(
+                hasCv: hasCv,
+                chosenPaths: chosenPaths,
+                counts: counts,
+                timeline: timeline,
+                skillGap: const [
+                  SkillGap(id: 's', name: 'SQL', importance: 'core'),
+                ],
+                roadmap: const RoadmapSummary(
+                  done: 1,
+                  total: 5,
+                  overdue: 0,
+                  nextTaskId: 't1',
+                  nextTaskTitle: 'Learn joins',
+                ),
+              ),
+              limit: 100,
+            );
+            for (final insight in insights) {
+              ids.add(insight.id);
+              if (insight.route case final route?) resolves(route);
+            }
+          }
+        }
+      }
+      expect(
+        ids,
+        containsAll([
+          'overdue',
+          'due-today',
+          'interview-stage',
+          'no-cv',
+          'no-path',
+          'skill-gap',
+          'no-callbacks',
+        ]),
+      );
     });
 
     test('every Toolkit tool', () {

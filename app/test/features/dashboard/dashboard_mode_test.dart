@@ -135,7 +135,7 @@ String allText(WidgetTester tester) => tester
 /// The dashboard's own words, without the navigation underneath it.
 ///
 /// The five tabs are the same in every mode, so a first-year's screen carries
-/// a tab labelled "Application" whatever their year. That is furniture — a
+/// a tab labelled "Radar" whatever their year. That is furniture — a
 /// permanent destination's name — and it is not the dashboard telling a
 /// first-year to go and apply for things. The language rule is about what the
 /// screen says; it is checked here on the body, and the tab bar has its own
@@ -387,6 +387,40 @@ void main() {
         expect(tester.takeException(), isNull);
       }
     });
+  });
+
+  // The tools live in the Toolkit now. Home keeps the nudges that point at
+  // them, and the coach button, but no longer lists them.
+  group('Home keeps context, not a catalogue', () {
+    const everyMode = [
+      (YearMode.discover, 0),
+      (YearMode.explore, 1),
+      (YearMode.build, 2),
+      (YearMode.prove, 3),
+      (YearMode.launch, 4),
+      (YearMode.graduate, 5),
+    ];
+
+    for (final (mode, year) in everyMode) {
+      testWidgets('${mode.name} has no tool list, and still has the coach', (
+        tester,
+      ) async {
+        await pumpAt(
+          tester,
+          const DashboardScreen(),
+          size: const Size(360, 4000),
+          overrides: overridesFor(mode, year),
+        );
+        await tester.pumpAndSettle();
+
+        final text = allText(tester);
+        expect(text, isNot(contains('When it gets real')));
+        expect(text, isNot(contains('Practise an interview')));
+        expect(text, isNot(contains('Check a job description')));
+        expect(find.text('Ask'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      });
+    }
   });
 
   group('setting up', () {

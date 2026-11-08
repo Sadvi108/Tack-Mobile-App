@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../roadmap/data/roadmap_models.dart';
 import '../../score/data/readiness.dart';
 import '../data/dashboard_repository.dart';
+import '../../../routing/routes.dart';
 
 /// One row of "Your next three actions".
 ///
@@ -69,7 +70,7 @@ List<NextAction> rankNextActions({
         title: nextTaskTitle,
         points: nextTaskPoints,
         effortMinutes: nextTaskMinutes ?? 45,
-        route: '/roadmap',
+        route: Routes.roadmap,
         taskId: nextTaskId,
       ),
     // Still supported, and still what the unit tests exercise: given whole
@@ -83,7 +84,7 @@ List<NextAction> rankNextActions({
                 title: task.title,
                 points: task.points,
                 effortMinutes: task.estMinutes ?? 45,
-                route: '/roadmap',
+                route: Routes.roadmap,
                 taskId: task.id,
               ),
   ];
