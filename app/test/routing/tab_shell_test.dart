@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tack/design/tack.dart';
+import 'package:tack/routing/router.dart';
 import 'package:tack/routing/tab_bar.dart';
 
 import '../helpers.dart';
@@ -53,7 +54,19 @@ void main() {
                   if (t == TackTabs.toolkit)
                     GoRoute(
                       path: '/vault',
-                      builder: (_, _) => tab('Documents'),
+                      builder: (context, _) => Scaffold(
+                        body: Column(
+                          children: [
+                            const Text('Documents screen'),
+                            // The real list's back arrow.
+                            TextButton(
+                              onPressed: () =>
+                                  tackBack(context, fallback: Routes.toolkit),
+                              child: const Text('documents back'),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   if (t == TackTabs.radar)
                     GoRoute(
@@ -75,6 +88,29 @@ void main() {
         GoRoute(
           path: '/score',
           builder: (_, _) => const Scaffold(body: Text('score screen')),
+        ),
+        // Interview practice covers the bar, with the back fallbacks the
+        // interview screen uses (C6): setup to the hub, review to setup.
+        GoRoute(
+          path: Routes.interview,
+          builder: (context, _) => Scaffold(
+            body: TextButton(
+              onPressed: () => tackBack(context, fallback: Routes.toolkit),
+              child: const Text('interview setup'),
+            ),
+          ),
+          routes: [
+            GoRoute(
+              path: 'review',
+              builder: (context, _) => Scaffold(
+                body: TextButton(
+                  onPressed: () =>
+                      tackBack(context, fallback: Routes.interview),
+                  child: const Text('practise again'),
+                ),
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -218,4 +254,51 @@ void main() {
       expect(find.text('Toolkit screen'), findsOneWidget);
     },
   );
+
+  group('interview practice from the Toolkit', () {
+    testWidgets('opened from the hub, it covers the bar and back returns', (
+      tester,
+    ) async {
+      final router = await pump(tester, at: Routes.toolkit);
+      router.push(Routes.interview);
+      await tester.pumpAndSettle();
+      expect(find.text('interview setup'), findsOneWidget);
+      expect(find.byType(TackBottomNav), findsNothing);
+
+      await tester.tap(find.text('interview setup'));
+      await tester.pumpAndSettle();
+      expect(find.text('Toolkit screen'), findsOneWidget);
+      final bar = tester.widget<TackBottomNav>(find.byType(TackBottomNav));
+      expect(bar.currentIndex, TackTabs.all.indexOf(TackTabs.toolkit));
+    });
+
+    testWidgets('a cold start on practise again backs out to setup, then '
+        'the hub', (tester) async {
+      await pump(tester, at: Routes.interviewReview);
+      expect(find.text('practise again'), findsOneWidget);
+
+      await tester.tap(find.text('practise again'));
+      await tester.pumpAndSettle();
+      expect(find.text('interview setup'), findsOneWidget);
+
+      await tester.tap(find.text('interview setup'));
+      await tester.pumpAndSettle();
+      expect(find.text('Toolkit screen'), findsOneWidget);
+      final bar = tester.widget<TackBottomNav>(find.byType(TackBottomNav));
+      expect(bar.currentIndex, TackTabs.all.indexOf(TackTabs.toolkit));
+    });
+
+    testWidgets('the documents list backs out to the hub with nothing under '
+        'it', (tester) async {
+      final router = await pump(tester, at: Routes.vault);
+      expect(router.canPop(), isFalse);
+      await tester.tap(find.text('documents back'));
+      await tester.pumpAndSettle();
+      expect(find.text('Toolkit screen'), findsOneWidget);
+      expect(
+        tester.widget<TackBottomNav>(find.byType(TackBottomNav)).currentIndex,
+        TackTabs.all.indexOf(TackTabs.toolkit),
+      );
+    });
+  });
 }

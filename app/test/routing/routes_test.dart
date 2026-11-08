@@ -8,6 +8,22 @@ import 'package:tack/features/dashboard/data/dashboard_feed.dart';
 import 'package:tack/features/notifications/data/notification_repository.dart';
 import 'package:tack/features/score/data/readiness.dart';
 import 'package:tack/features/toolkit/application/toolkit_tools.dart';
+import 'package:tack/features/analyser/presentation/analyser_screen.dart';
+import 'package:tack/features/applications/presentation/applications_screen.dart';
+import 'package:tack/features/coach/application/coach_routes.dart';
+import 'package:tack/features/coach/data/coach_models.dart';
+import 'package:tack/features/coach/presentation/coach_screen.dart';
+import 'package:tack/features/cv_builder/presentation/cv_builder_screen.dart';
+import 'package:tack/features/interview/presentation/interview_screen.dart';
+import 'package:tack/features/paths/presentation/path_detail_screen.dart';
+import 'package:tack/features/paths/presentation/paths_screen.dart';
+import 'package:tack/features/profile/presentation/profile_screen.dart';
+import 'package:tack/features/radar/presentation/radar_screen.dart';
+import 'package:tack/features/roadmap/presentation/roadmap_screen.dart';
+import 'package:tack/features/score/presentation/score_screen.dart';
+import 'package:tack/features/toolkit/presentation/toolkit_screen.dart';
+import 'package:tack/features/vault/presentation/cv_check_entry_screen.dart';
+import 'package:tack/features/vault/presentation/vault_screen.dart';
 import 'package:tack/routing/router.dart';
 
 import '../features/dashboard/insights_test.dart' as fixture show feed, today;
@@ -18,6 +34,9 @@ import '../features/dashboard/insights_test.dart' as fixture show feed, today;
 /// exist". A link that resolves in the wrong place flips the tab under the
 /// student or leaves back with nowhere to go. Both are invisible until tapped.
 void main() {
+  // Before the router: GoRouter sets up a binding, and the widget tests
+  // below need it to be the test one.
+  TestWidgetsFlutterBinding.ensureInitialized();
   final root = GlobalKey<NavigatorState>();
   final router = GoRouter(
     navigatorKey: root,
@@ -46,6 +65,18 @@ void main() {
     final shell = first.route as StatefulShellRoute;
     final top = first.matches.first.route;
     return shell.branches.indexWhere((b) => b.routes.contains(top));
+  }
+
+  /// The screen the real tree builds for [location], without building it:
+  /// the matched route's own builder, called with the state it would get.
+  Widget screenAt(BuildContext context, String location) {
+    final matches = match(location);
+    final leaf = matches.last;
+    final route = leaf.route;
+    return route.builder!(
+      context,
+      leaf.buildState(router.configuration, matches),
+    );
   }
 
   void resolves(String location) {
@@ -242,6 +273,109 @@ void main() {
         expect(item, isNotNull, reason: route);
         resolves(item!.route);
       }
+    });
+  });
+
+  // Every place a chip, a card or a suggestion can take a student, followed
+  // to the screen the real tree builds there.
+  group('the screen at the end of every link', () {
+    late BuildContext context;
+
+    Future<void> grabContext(WidgetTester tester) => tester.pumpWidget(
+      Builder(
+        builder: (c) {
+          context = c;
+          return const SizedBox.shrink();
+        },
+      ),
+    );
+
+    testWidgets('every coach chip opens a real screen', (tester) async {
+      await grabContext(tester);
+      const expected = <String, Type>{
+        'interview': InterviewScreen,
+        'practice': InterviewScreen,
+        'analyser': AnalyserScreen,
+        'cv_check': CvCheckEntryScreen,
+        'cv_builder': CvBuilderScreen,
+        'roadmap': RoadmapScreen,
+        'radar': RadarScreen,
+        'score': ScoreScreen,
+        'paths': PathsScreen,
+        'path': PathDetailScreen,
+        'applications': ApplicationsScreen,
+        'profile': ProfileScreen,
+      };
+      for (final MapEntry(key: id, value: screen) in expected.entries) {
+        final destination = coachDestination(
+          CoachAction(route: id, label: 'x', slug: 'data-analyst'),
+        );
+        expect(destination, isNotNull, reason: id);
+        resolves(destination!);
+        expect(screenAt(context, destination).runtimeType, screen, reason: id);
+      }
+      // The CV check chip opens the entry, which picks the CV itself.
+      expect(
+        coachDestination(const CoachAction(route: 'cv_check', label: 'x')),
+        Routes.cvCheck,
+      );
+      // Practise again is the review route, which the screen reads from its
+      // own matched location (Appendix B, ruling 4).
+      expect(
+        match(
+          coachDestination(const CoachAction(route: 'practice', label: 'x'))!,
+        ).last.matchedLocation,
+        Routes.interviewReview,
+      );
+      // A bad slug falls back to the list rather than a broken page.
+      expect(
+        coachDestination(
+          const CoachAction(route: 'path', label: 'x', slug: '../etc'),
+        ),
+        Routes.paths,
+      );
+      expect(coachDestination(const CoachAction(route: 'x', label: 'x')), null);
+    });
+
+    testWidgets('every Toolkit card opens its screen', (tester) async {
+      await grabContext(tester);
+      const expected = <ToolkitTool, Type>{
+        ToolkitTool.interview: InterviewScreen,
+        ToolkitTool.practiseAgain: InterviewScreen,
+        ToolkitTool.analyser: AnalyserScreen,
+        ToolkitTool.cvCheck: CvCheckEntryScreen,
+        ToolkitTool.cvBuilder: CvBuilderScreen,
+        ToolkitTool.documents: VaultScreen,
+        ToolkitTool.coach: CoachScreen,
+      };
+      for (final MapEntry(key: tool, value: screen) in expected.entries) {
+        expect(
+          screenAt(context, tool.route).runtimeType,
+          screen,
+          reason: tool.name,
+        );
+      }
+      expect(screenAt(context, Routes.toolkit), isA<ToolkitScreen>());
+    });
+
+    testWidgets('the suggestions that point at tools open them', (
+      tester,
+    ) async {
+      await grabContext(tester);
+      final insights = buildInsights(
+        fixture.feed(
+          counts: const ApplicationCounts({TackStatus.interview: 1}),
+        ),
+        limit: 100,
+      );
+      final interview = insights.firstWhere((i) => i.id == 'interview-stage');
+      expect(screenAt(context, interview.route!), isA<InterviewScreen>());
+
+      final noCallbacks = buildInsights(
+        fixture.feed(counts: const ApplicationCounts({TackStatus.applied: 9})),
+        limit: 100,
+      ).firstWhere((i) => i.id == 'no-callbacks');
+      expect(screenAt(context, noCallbacks.route!), isA<CvCheckEntryScreen>());
     });
   });
 }
