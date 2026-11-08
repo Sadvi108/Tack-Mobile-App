@@ -10,6 +10,7 @@ import '../../../core/supabase/client.dart';
 import '../../../design/tack.dart';
 import '../../../routing/router.dart';
 import '../../auth/application/auth_controller.dart';
+import '../../auth/application/delete_account.dart';
 import '../../auth/data/auth_repository.dart';
 import '../../auth/data/validators.dart';
 import '../../profile/data/profile_repository.dart';
@@ -490,7 +491,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
     setState(() => _deleting = true);
     try {
-      await ref.read(authRepositoryProvider).deleteAccount();
+      await ref.read(deleteAccountEverywhereProvider)();
       // No toast. The router sends them to the welcome screen the moment the
       // session clears, and a "deleted" message on a screen for signed-out
       // people would be talking to somebody who is no longer there.
