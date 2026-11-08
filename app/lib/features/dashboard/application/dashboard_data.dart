@@ -8,6 +8,7 @@ import '../data/dashboard_feed.dart';
 import '../data/dashboard_repository.dart';
 import 'insights.dart';
 import 'next_actions.dart';
+import '../../../routing/routes.dart';
 
 /// Everything the dashboard draws, resolved together.
 ///
@@ -127,7 +128,7 @@ List<NextAction> remainingSetupSteps({
         title: 'Upload your CV',
         points: worth('cv_quality'),
         effortMinutes: 1,
-        route: '/vault',
+        route: Routes.vault,
         componentKey: 'cv_quality',
       ),
     if (chosenPathCount == 0)
@@ -138,7 +139,7 @@ List<NextAction> remainingSetupSteps({
         // than showing a number.
         points: 0,
         effortMinutes: 1,
-        route: '/paths',
+        route: Routes.paths,
       ),
     // Never shown to a first-year: application activity is weighted zero in
     // explore mode on purpose, and telling them to apply for jobs would
@@ -148,7 +149,7 @@ List<NextAction> remainingSetupSteps({
         title: 'Add your first application',
         points: worth('application_activity'),
         effortMinutes: 2,
-        route: '/applications',
+        route: Routes.applications,
         componentKey: 'application_activity',
       ),
   ];

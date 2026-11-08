@@ -1,4 +1,7 @@
 import '../features/settings/presentation/sync_screen.dart';
+import '../core/analytics.dart';
+import '../features/toolkit/presentation/toolkit_screen.dart';
+import '../features/vault/presentation/cv_check_entry_screen.dart';
 import '../features/vault/presentation/cv_check_screen.dart';
 export 'routes.dart';
 import 'routes.dart';
@@ -89,153 +92,19 @@ final routerProvider = Provider<GoRouter>((ref) {
       }
       return destination;
     },
-    routes: [
-      GoRoute(
-        path: Routes.splash,
-        builder: (context, state) => const SplashScreen(),
-      ),
-      GoRoute(
-        path: Routes.welcome,
-        builder: (context, state) => const WelcomeScreen(),
-      ),
-      GoRoute(
-        path: Routes.login,
-        builder: (context, state) => const LoginScreen(),
-      ),
-      GoRoute(
-        path: Routes.signup,
-        builder: (context, state) => const SignUpScreen(),
-      ),
-      GoRoute(
-        path: Routes.forgotPassword,
-        builder: (context, state) => const ForgotPasswordScreen(),
-      ),
-      GoRoute(
-        path: Routes.resetPassword,
-        builder: (context, state) => const ResetPasswordScreen(),
-      ),
-      GoRoute(
-        path: Routes.onboarding,
-        builder: (context, state) => const IntakeScreen(),
-      ),
-      // The five tabs, in the order of TackTabs.all.
-      StatefulShellRoute.indexedStack(
-        builder: (context, state, shell) => TackTabShell(shell: shell),
-        branches: [
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: Routes.home,
-                builder: (context, state) => const DashboardScreen(),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: Routes.roadmap,
-                builder: (context, state) => const RoadmapScreen(),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: Routes.radar,
-                builder: (context, state) => const RadarScreen(),
-              ),
-              // Tracking is the second half of Radar, so the standalone list
-              // keeps the Radar tab lit. A single application covers the bar.
-              GoRoute(
-                path: Routes.applications,
-                builder: (context, state) => const ApplicationsScreen(),
-                routes: [
-                  GoRoute(
-                    path: ':id',
-                    parentNavigatorKey: root,
-                    builder: (context, state) => ApplicationDetailScreen(
-                      id: state.pathParameters['id']!,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: Routes.vault,
-                builder: (context, state) => const VaultScreen(),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: Routes.profile,
-                builder: (context, state) => const ProfileScreen(),
-              ),
-            ],
-          ),
-        ],
-      ),
-      GoRoute(
-        path: Routes.paths,
-        builder: (context, state) => const PathsScreen(),
-        routes: [
-          GoRoute(
-            path: ':slug',
-            builder: (context, state) =>
-                PathDetailScreen(slug: state.pathParameters['slug']!),
-          ),
-        ],
-      ),
-      GoRoute(
-        path: Routes.coach,
-        builder: (context, state) => const CoachScreen(),
-      ),
-      GoRoute(
-        path: Routes.score,
-        builder: (context, state) => const ScoreScreen(),
-      ),
-      GoRoute(
-        path: '/vault/check/:id',
-        builder: (context, state) =>
-            CvCheckScreen(documentId: state.pathParameters['id']!),
-      ),
-      GoRoute(
-        path: Routes.analyser,
-        builder: (context, state) => const AnalyserScreen(),
-      ),
-      GoRoute(
-        path: Routes.interview,
-        builder: (context, state) => const InterviewScreen(),
-        routes: [
-          // Practise again. The same screen reads its own path and opens
-          // straight into the answers that are due.
-          GoRoute(
-            path: 'review',
-            builder: (context, state) => const InterviewScreen(),
-          ),
-        ],
-      ),
-      GoRoute(
-        path: '/settings/sync',
-        builder: (context, state) => const SyncScreen(),
-      ),
-      GoRoute(
-        path: Routes.settings,
-        builder: (context, state) => const SettingsScreen(),
-      ),
-      GoRoute(
-        path: Routes.cvBuilder,
-        builder: (context, state) => const CvBuilderScreen(),
-      ),
-      GoRoute(
-        path: Routes.notifications,
-        builder: (context, state) => const NotificationsScreen(),
-      ),
-    ],
+    routes: tackRoutes(
+      root: root,
+      onTabSelected: (index) => ref
+          .read(analyticsProvider)
+          .track(
+            'tab_selected',
+            properties: {
+              'tab': TackTabs.all[index].route.substring(1),
+              'mode': ref.read(modeProvider).name,
+            },
+          )
+          .ignore(),
+    ),
     errorBuilder: (context, state) => TackScaffold(
       header: TackHeader(
         title: 'Not found',
@@ -248,6 +117,169 @@ final routerProvider = Provider<GoRouter>((ref) {
     ),
   );
 });
+
+/// Every route in the app, in one tree.
+///
+/// A function rather than inline in [routerProvider] so tests can build a
+/// `GoRouter` from the real tree and prove that every location the app writes
+/// resolves where it should. [root] is the navigator that screens covering the
+/// tab bar land on; [onTabSelected] hears a switch to another tab.
+///
+/// Tools (interview, coach, analyser, CV builder) stay top-level routes:
+/// pushing a location under another branch would flip the tab underneath the
+/// tool, and the server already writes `/interview`.
+List<RouteBase> tackRoutes({
+  required GlobalKey<NavigatorState> root,
+  ValueChanged<int>? onTabSelected,
+}) => [
+  GoRoute(
+    path: Routes.splash,
+    builder: (context, state) => const SplashScreen(),
+  ),
+  GoRoute(
+    path: Routes.welcome,
+    builder: (context, state) => const WelcomeScreen(),
+  ),
+  GoRoute(path: Routes.login, builder: (context, state) => const LoginScreen()),
+  GoRoute(
+    path: Routes.signup,
+    builder: (context, state) => const SignUpScreen(),
+  ),
+  GoRoute(
+    path: Routes.forgotPassword,
+    builder: (context, state) => const ForgotPasswordScreen(),
+  ),
+  GoRoute(
+    path: Routes.resetPassword,
+    builder: (context, state) => const ResetPasswordScreen(),
+  ),
+  GoRoute(
+    path: Routes.onboarding,
+    builder: (context, state) => const IntakeScreen(),
+  ),
+  // The five tabs, in the order of TackTabs.all.
+  StatefulShellRoute.indexedStack(
+    builder: (context, state, shell) =>
+        TackTabShell(shell: shell, onSelected: onTabSelected),
+    branches: [
+      StatefulShellBranch(
+        routes: [
+          GoRoute(
+            path: Routes.home,
+            builder: (context, state) => const DashboardScreen(),
+          ),
+        ],
+      ),
+      StatefulShellBranch(
+        routes: [
+          GoRoute(
+            path: Routes.roadmap,
+            builder: (context, state) => const RoadmapScreen(),
+          ),
+        ],
+      ),
+      StatefulShellBranch(
+        routes: [
+          GoRoute(
+            path: Routes.radar,
+            builder: (context, state) => const RadarScreen(),
+          ),
+          // Tracking is the second half of Radar, so the standalone list
+          // keeps the Radar tab lit. A single application covers the bar.
+          GoRoute(
+            path: Routes.applications,
+            builder: (context, state) => const ApplicationsScreen(),
+            routes: [
+              GoRoute(
+                path: ':id',
+                parentNavigatorKey: root,
+                builder: (context, state) =>
+                    ApplicationDetailScreen(id: state.pathParameters['id']!),
+              ),
+            ],
+          ),
+        ],
+      ),
+      StatefulShellBranch(
+        routes: [
+          // First, so it is the branch's default location.
+          GoRoute(
+            path: Routes.toolkit,
+            builder: (context, state) => const ToolkitScreen(),
+          ),
+          // The documents are the "keep" half of the toolkit, so the list
+          // keeps the Toolkit tab lit, like /applications inside Radar.
+          GoRoute(
+            path: Routes.vault,
+            builder: (context, state) => const VaultScreen(),
+          ),
+        ],
+      ),
+      StatefulShellBranch(
+        routes: [
+          GoRoute(
+            path: Routes.profile,
+            builder: (context, state) => const ProfileScreen(),
+          ),
+        ],
+      ),
+    ],
+  ),
+  GoRoute(
+    path: Routes.paths,
+    builder: (context, state) => const PathsScreen(),
+    routes: [
+      GoRoute(
+        path: ':slug',
+        builder: (context, state) =>
+            PathDetailScreen(slug: state.pathParameters['slug']!),
+      ),
+    ],
+  ),
+  GoRoute(path: Routes.coach, builder: (context, state) => const CoachScreen()),
+  GoRoute(path: Routes.score, builder: (context, state) => const ScoreScreen()),
+  GoRoute(
+    path: Routes.cvCheck,
+    builder: (context, state) => const CvCheckEntryScreen(),
+  ),
+  GoRoute(
+    path: '${Routes.cvCheck}/:id',
+    builder: (context, state) =>
+        CvCheckScreen(documentId: state.pathParameters['id']!),
+  ),
+  GoRoute(
+    path: Routes.analyser,
+    builder: (context, state) => const AnalyserScreen(),
+  ),
+  GoRoute(
+    path: Routes.interview,
+    builder: (context, state) => const InterviewScreen(),
+    routes: [
+      // Practise again. The same screen reads its own path and opens
+      // straight into the answers that are due.
+      GoRoute(
+        path: 'review',
+        builder: (context, state) => const InterviewScreen(),
+      ),
+    ],
+  ),
+  GoRoute(
+    path: Routes.settingsSync,
+    builder: (context, state) => const SyncScreen(),
+  ),
+  GoRoute(
+    path: Routes.settings,
+    builder: (context, state) => const SettingsScreen(),
+  ),
+  GoRoute(
+    path: Routes.cvBuilder,
+    builder: (context, state) => const CvBuilderScreen(),
+  ),
+  GoRoute(
+    path: Routes.notifications,
+    builder: (context, state) => const NotificationsScreen(),
+  ),
+];
 
 /// Goes back, and always goes somewhere.
 ///

@@ -409,9 +409,8 @@ class SectionHeading extends StatelessWidget {
                 child: Center(
                   child: Text(
                     actionLabel!,
-                    style: TackText.pill.copyWith(
+                    style: TackText.buttonSmall.copyWith(
                       color: TackColors.maroonText,
-                      fontSize: 14,
                     ),
                   ),
                 ),

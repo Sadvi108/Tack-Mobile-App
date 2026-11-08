@@ -228,10 +228,7 @@ class _InsightCard extends StatelessWidget {
                     insight.ctaLabel!,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TackText.pill.copyWith(
-                      color: accent,
-                      fontSize: 14.5,
-                    ),
+                    style: TackText.buttonSmall.copyWith(color: accent),
                   ),
                 ),
                 const SizedBox(width: TackSpace.xs),

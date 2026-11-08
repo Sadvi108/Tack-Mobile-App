@@ -155,8 +155,10 @@ Deno.test("componentRoute agrees with the score screen's routes", async () => {
   );
   const body = dart.split("String get route => switch (key) {")[1]
     .split("};")[0];
-  // The app's paths, as chip route ids. /vault/check is where the score's CV
-  // action goes once the Toolkit lands; /vault is where it goes today.
+  // The app's destinations, as chip route ids. The Dart side writes them as
+  // `Routes` constants (or, before the Toolkit round, as path literals).
+  // /vault/check is where the score's CV action goes once the Toolkit lands;
+  // /vault is where it goes today.
   const ids: Record<string, CoachRoute> = {
     "/profile": "profile",
     "/vault": "cv_check",
@@ -164,15 +166,22 @@ Deno.test("componentRoute agrees with the score screen's routes", async () => {
     "/interview": "interview",
     "/applications": "applications",
     "/roadmap": "roadmap",
+    "Routes.profile": "profile",
+    "Routes.vault": "cv_check",
+    "Routes.cvCheck": "cv_check",
+    "Routes.interview": "interview",
+    "Routes.applications": "applications",
+    "Routes.roadmap": "roadmap",
   };
   let checked = 0;
   for (
     const arm of body.matchAll(
-      /((?:'[a-z_]+'\s*\|\|\s*)*'[a-z_]+')\s*=>\s*'([^']+)'/g,
+      /((?:'[a-z_]+'\s*\|\|\s*)*'[a-z_]+')\s*=>\s*('[^']+'|Routes\.[a-zA-Z]+)/g,
     )
   ) {
-    const route = ids[arm[2]];
-    assert(route, `no chip route for ${arm[2]}`);
+    const target = arm[2].replaceAll("'", "");
+    const route = ids[target];
+    assert(route, `no chip route for ${target}`);
     for (const key of arm[1].matchAll(/'([a-z_]+)'/g)) {
       assertEquals(componentRoute(key[1]), route, key[1]);
       checked++;

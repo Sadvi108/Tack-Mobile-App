@@ -1,3 +1,4 @@
+import '../../../routing/routes.dart';
 import '../../profile/data/profile.dart';
 
 /// One of the eleven things the readiness score is made of.
@@ -62,12 +63,12 @@ class ScoreComponent {
     'projects' ||
     'activities' ||
     'experience' ||
-    'certifications' => '/profile',
-    'cv_quality' => '/vault',
-    'interview_practice' => '/interview',
-    'application_activity' => '/applications',
-    'roadmap_progress' => '/roadmap',
-    _ => '/profile',
+    'certifications' => Routes.profile,
+    'cv_quality' => Routes.vault,
+    'interview_practice' => Routes.interview,
+    'application_activity' => Routes.applications,
+    'roadmap_progress' => Routes.roadmap,
+    _ => Routes.profile,
   };
 
   /// Rough minutes of effort, used to rank the next three actions by value for

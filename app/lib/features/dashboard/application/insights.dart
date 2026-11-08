@@ -1,6 +1,7 @@
 import '../../../design/tack.dart';
 import '../../profile/data/profile.dart';
 import '../data/dashboard_feed.dart';
+import '../../../routing/routes.dart';
 
 /// How an insight should feel, which decides its colour and nothing else.
 enum InsightTone {
@@ -80,7 +81,7 @@ List<Insight> buildInsights(DashboardFeed feed, {int limit = 5}) {
             : 'They are still worth doing. Start with the oldest and the rest will feel smaller.',
         tone: InsightTone.urgent,
         ctaLabel: 'Take a look',
-        route: overdue.length == 1 ? first.route : '/roadmap',
+        route: overdue.length == 1 ? first.route : Routes.roadmap,
       ),
     );
   }
@@ -103,6 +104,28 @@ List<Insight> buildInsights(DashboardFeed feed, {int limit = 5}) {
         tone: InsightTone.urgent,
         ctaLabel: 'Open it',
         route: dueToday.first.route,
+      ),
+    );
+  }
+
+  // -------------------------------------------------------------- interview
+  // An application at interview is when practice pays most. Only for the
+  // years that talk about jobs; nobody junior is told about applications.
+  final atInterview = feed.counts[TackStatus.interview];
+  if (talksAboutJobs && atInterview > 0) {
+    cards.add(
+      Insight(
+        id: 'interview-stage',
+        label: 'INTERVIEW',
+        title: atInterview == 1
+            ? 'One application is at interview'
+            : '$atInterview applications are at interview',
+        body:
+            'Practise the questions they are likely to ask. Company packs are '
+            'free.',
+        tone: InsightTone.opportunity,
+        ctaLabel: 'Practise now',
+        route: Routes.interview,
       ),
     );
   }
@@ -172,7 +195,7 @@ List<Insight> buildInsights(DashboardFeed feed, {int limit = 5}) {
             'Upload it and Tack reads it for you — the skills it finds fill in your profile and your score.',
         tone: InsightTone.opportunity,
         ctaLabel: 'Add your CV',
-        route: '/vault',
+        route: Routes.vault,
       ),
     );
   }
@@ -189,7 +212,7 @@ List<Insight> buildInsights(DashboardFeed feed, {int limit = 5}) {
             'Everything else builds from it: your roadmap, the skills worth learning, and what your score is measured against.',
         tone: InsightTone.opportunity,
         ctaLabel: 'Explore paths',
-        route: '/paths',
+        route: Routes.paths,
       ),
     );
   }
@@ -210,8 +233,8 @@ List<Insight> buildInsights(DashboardFeed feed, {int limit = 5}) {
         tone: InsightTone.opportunity,
         ctaLabel: 'See the path',
         route: feed.primaryPathSlug == null
-            ? '/paths'
-            : '/paths/${feed.primaryPathSlug}',
+            ? Routes.paths
+            : Routes.path(feed.primaryPathSlug!),
       ),
     );
   }
@@ -232,7 +255,7 @@ List<Insight> buildInsights(DashboardFeed feed, {int limit = 5}) {
         ].join(' · '),
         tone: InsightTone.opportunity,
         ctaLabel: 'Open the roadmap',
-        route: '/roadmap',
+        route: Routes.roadmap,
       ),
     );
   }
@@ -253,7 +276,7 @@ List<Insight> buildInsights(DashboardFeed feed, {int limit = 5}) {
               'That usually points at the CV rather than at you. Have Tack score it and fix the two things it flags.',
           tone: InsightTone.opportunity,
           ctaLabel: 'Check my CV',
-          route: '/vault',
+          route: Routes.cvCheck,
         ),
       );
     }

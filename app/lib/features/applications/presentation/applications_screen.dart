@@ -21,7 +21,10 @@ class ApplicationsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return TackScaffold(
-      header: const TackHeader(title: 'Applications'),
+      header: TackHeader(
+        title: 'Applications',
+        onBack: () => tackBack(context, fallback: Routes.radar),
+      ),
       body: const ApplicationsBody(),
     );
   }

@@ -66,6 +66,40 @@ void main() {
     );
   });
 
+  // Interview practice is opened from the Toolkit, and also by notifications
+  // and the coach with nothing under it. Its back falls back to the hub.
+  testWidgets('a cold start on the interview goes back to the Toolkit hub', (
+    tester,
+  ) async {
+    final router = GoRouter(
+      initialLocation: Routes.interview,
+      routes: [
+        GoRoute(
+          path: Routes.toolkit,
+          builder: (_, _) => const Scaffold(body: Text('toolkit hub')),
+        ),
+        GoRoute(
+          path: Routes.interview,
+          builder: (context, _) => Scaffold(
+            body: Center(
+              child: TextButton(
+                onPressed: () => tackBack(context, fallback: Routes.toolkit),
+                child: const Text('back'),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+    await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('back'));
+    await tester.pumpAndSettle();
+    expect(find.text('toolkit hub'), findsOneWidget);
+  });
+
   testWidgets('a screen can name where back should land', (tester) async {
     await pump(tester, at: '/deep-to-vault');
     await tester.tap(find.text('back'));

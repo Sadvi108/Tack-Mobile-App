@@ -456,9 +456,13 @@ error, data — instead of a permanent optimistic guess.
 |---|---|---|
 | Home | `/home` | dashboard → `/score`, `/paths`, `/paths/:slug`, `/notifications` |
 | Roadmap | `/roadmap` | roadmap → `/roadmap/task/:id` |
-| Application | `/applications` | list → `/applications/:id` → `/analyser`, `/interview` |
-| Vault | `/vault` | list → `/vault/:id`, `/vault/:id/versions` |
+| Radar | `/radar` | Radar, and `/applications` (the tracker) inside the same branch → `/applications/:id` on the root navigator |
+| Toolkit | `/toolkit` | the hub, and `/vault` (your documents) inside the same branch. Tools open over the bar: `/interview`, `/interview/review`, `/analyser`, `/vault/check`, `/vault/check/:id`, `/cv-builder`, `/coach` |
 | Profile | `/profile` | profile → `/profile/edit/:section`, `/settings`, `/settings/preferences` |
+
+The Vault tab became Toolkit (November 2026): students upload a CV once but
+practise, check and ask every week, so the tab leads with those tools and keeps
+the documents as one part of it.
 
 Replace the per-screen `_Nav` widgets with a single
 `StatefulShellRoute.indexedStack` and five branches. Each branch keeps its own

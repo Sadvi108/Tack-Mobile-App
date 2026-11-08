@@ -383,15 +383,18 @@ class CoachComposer extends StatelessWidget {
               duration: TackMotion.fast,
               width: 52,
               height: 52,
+              // While a reply is coming the button steps back to the maroon
+              // tint. White on strokeFaint was under 2:1 in light mode, and
+              // strokeFaint is a stroke, never a surface for an icon.
               decoration: BoxDecoration(
-                color: busy ? TackColors.strokeFaint : TackColors.maroon,
+                color: busy ? TackColors.maroonTint : TackColors.maroon,
                 borderRadius: TackRadius.buttonAll,
               ),
               child: Center(
                 child: TackIcon(
                   TackIcons.arrowRight,
                   size: 22,
-                  color: TackColors.onBrand,
+                  color: busy ? TackColors.maroonText : TackColors.onBrand,
                 ),
               ),
             ),

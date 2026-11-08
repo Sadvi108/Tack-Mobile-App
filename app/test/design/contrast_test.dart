@@ -169,6 +169,20 @@ final _pairs = <Pair>[
     () => TackColors.amberTint,
     _body,
   ),
+  // Body text on a tinted card: interview feedback's "What went well" and
+  // "What to sharpen" lists.
+  (
+    'ink on the teal tint',
+    () => TackColors.ink,
+    () => TackColors.tealTint,
+    _body,
+  ),
+  (
+    'ink on the amber tint',
+    () => TackColors.ink,
+    () => TackColors.amberTint,
+    _body,
+  ),
   (
     'blueText on its tint',
     () => TackColors.blueText,
@@ -357,7 +371,8 @@ final _pairs = <Pair>[
     _large,
   ),
   (
-    'an unpicked segment on its track',
+    // Also the neutral pill: a skipped answer in the interview summary.
+    'an unpicked segment on its track, or a neutral pill',
     () => TackColors.muted,
     () => TackColors.line,
     _body,

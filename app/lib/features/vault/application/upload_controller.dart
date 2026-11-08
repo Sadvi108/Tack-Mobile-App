@@ -101,7 +101,7 @@ class UploadController extends Notifier<UploadState> {
           fileName: title,
           failure: const Failure(
             'Your CV is saved, but Tack could not start reading it. '
-            'Open it from your vault and try again.',
+            'Open it from your documents and try again.',
           ),
         );
         ref.invalidate(documentsProvider);

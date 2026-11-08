@@ -21,6 +21,29 @@ Apify credentials and dedicated saved search tasks still need configuration;
 no live vacancies have been imported. Install an updated Flutter build for the
 new source labels and workplace behavior.
 
+**Practice hub and smarter coach — November 2026 (app `0.3.0+8000`):** three
+migrations are written and not yet applied: `0096_question_pool_schema`,
+`0097_coach_context_v2` and `0098_interview_pool_seed` (98 migrations in all).
+There are 12 Edge Function entry points; this round changes `worker`, `coach`,
+`interview`, `delete-account` and `policies` and adds none. The owner does it,
+in this order, and nothing here is done by a developer:
+
+1. Before `0098`, read `interview_question_bank` for model-written rows. Once
+   `0096` is applied every row has a `source`, and
+   `node tool/verify_interview_bank.js` lists the `source = 'model'` ones.
+   Delete them only after the new `interview` function is deployed.
+2. Apply `0096` → `0097` → `0098` with `node tool/migrate.js`. Each ends in its
+   own checks; a failure rolls that file back.
+3. Run `node tool/verify_interview_bank.js`, `node tool/verify_coach_context.js`,
+   `node tool/verify_rpc_surface.js`, `node tool/verify_atomic_ai_jobs.js` and
+   `node tool/verify_coach_cited.js`.
+4. Deploy `worker`, then `coach`, `interview`, `delete-account` and `policies`.
+   Then run `node tool/verify_delete_account.js` on disposable accounts.
+5. Only then release the app, built with `--dart-define-from-file=env/prod.json`.
+   It must not ship before `0098`: it reads the new columns and needs a
+   non-empty interview catalogue. Older builds keep working against the new
+   functions.
+
 ## What is already live
 
 Checked against the project on 8 September 2026. See
@@ -180,10 +203,16 @@ cd app && flutter analyze && flutter test
 ```
 
 ```bash
-cd supabase/functions && deno fmt --check && deno lint \
-  && deno check analyze-jd/index.ts coach/index.ts delete-account/index.ts \
-       interview/index.ts radar/index.ts score-cv/index.ts worker/index.ts
+cd app && dart format --output=none --set-exit-if-changed lib test
 ```
+
+```bash
+cd supabase/functions && deno fmt --check && deno lint \
+  && deno task --frozen check && deno task --frozen test
+```
+
+`deno task --frozen check` type-checks all 12 entry points; `--frozen` fails
+rather than quietly updating the lock file.
 
 Live checks against real throwaway accounts, each of which cleans up after
 itself:

@@ -10,6 +10,7 @@ import '../../../core/supabase/client.dart';
 import '../../../design/tack.dart';
 import '../../../routing/router.dart';
 import '../../auth/application/auth_controller.dart';
+import '../../auth/application/delete_account.dart';
 import '../../auth/data/auth_repository.dart';
 import '../../auth/data/validators.dart';
 import '../../profile/data/profile_repository.dart';
@@ -271,7 +272,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   tone: _Tone.blue,
                   label: 'Review saved changes',
                   hint: 'Resolve changes made on two devices',
-                  onTap: () => context.push('/settings/sync'),
+                  onTap: () => context.push(Routes.settingsSync),
                 ),
                 const _Divider(),
                 _Tap(
@@ -305,9 +306,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: TackSpace.xs),
             child: Text(
-              'Everything Tack holds about you lives in one database that only '
-              'you can read. There is no advertising, no third-party analytics '
-              'and no crash service — nothing about you leaves it.',
+              'There is no advertising and no third-party analytics. AI '
+              'features, including the coach, send your text to Google with '
+              'contact details removed.',
               style: TackText.meta,
             ),
           ),
@@ -490,7 +491,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
     setState(() => _deleting = true);
     try {
-      await ref.read(authRepositoryProvider).deleteAccount();
+      await ref.read(deleteAccountEverywhereProvider)();
       // No toast. The router sends them to the welcome screen the moment the
       // session clears, and a "deleted" message on a screen for signed-out
       // people would be talking to somebody who is no longer there.

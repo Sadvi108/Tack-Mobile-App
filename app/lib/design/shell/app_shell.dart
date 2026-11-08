@@ -288,6 +288,13 @@ class TackTab {
 /// to go. Paths is reached from the dashboard and from the roadmap, both of
 /// which lead with it in the modes where it is the point.
 ///
+/// The vault then became Toolkit. A student uploads a CV once, but practises
+/// an interview, checks a job post and asks the coach every week, and those
+/// tools were scattered across Home and buried in screens. The tab now opens
+/// on a hub of everything used to get ready, and the documents are one part of
+/// it: `/vault` stays a route inside the Toolkit branch, so it keeps the tab
+/// lit, the same way `/applications` sits inside Radar.
+///
 /// Radar then took the Application slot rather than becoming a sixth tab, for
 /// the same 360px reason. It did not displace the tracker: finding a role and
 /// tracking it are one job, so tracking is the second view inside Radar, and
@@ -311,10 +318,10 @@ class TackTabs {
     icon: TackIcons.radar,
     route: '/radar',
   );
-  static const vault = TackTab(
-    label: 'Vault',
-    icon: TackIcons.vault,
-    route: '/vault',
+  static const toolkit = TackTab(
+    label: 'Toolkit',
+    icon: TackIcons.toolkit,
+    route: '/toolkit',
   );
   static const profile = TackTab(
     label: 'Profile',
@@ -322,7 +329,7 @@ class TackTabs {
     route: '/profile',
   );
 
-  static const all = <TackTab>[home, roadmap, radar, vault, profile];
+  static const all = <TackTab>[home, roadmap, radar, toolkit, profile];
 }
 
 class TackBottomNav extends StatelessWidget {

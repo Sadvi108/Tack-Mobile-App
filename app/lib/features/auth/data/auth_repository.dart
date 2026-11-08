@@ -181,8 +181,8 @@ class AuthRepository {
   /// key to `auth.users`, so the database cascade would leave every CV behind
   /// with no owner left to attribute it to.
   ///
-  /// Signs out afterwards so the app cannot sit holding a session for a user
-  /// that no longer exists.
+  /// It does not sign out: `deleteAccountEverywhere` erases this phone's copy
+  /// of the account first, then signs out.
   Future<void> deleteAccount() async {
     try {
       final res = await _db.functions.invoke('delete-account');
@@ -199,13 +199,6 @@ class AuthRepository {
     } catch (e) {
       throw Failure.from(e);
     }
-
-    // Best effort: the session is already invalid server-side, and refusing to
-    // clear it locally would strand the student on a signed-in shell for an
-    // account that is gone.
-    try {
-      await _db.auth.signOut();
-    } catch (_) {}
   }
 }
 
