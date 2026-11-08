@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tack/features/notifications/data/notification_repository.dart';
 import 'package:tack/features/score/data/readiness.dart';
+import 'package:tack/features/toolkit/application/toolkit_tools.dart';
 import 'package:tack/routing/router.dart';
 
 /// Every location the app writes, checked against the real route tree.
@@ -148,6 +149,12 @@ void main() {
             createdAt: DateTime(2026),
           ).route,
         );
+      }
+    });
+
+    test('every Toolkit tool', () {
+      for (final tool in ToolkitTool.values) {
+        resolves(tool.route);
       }
     });
 
