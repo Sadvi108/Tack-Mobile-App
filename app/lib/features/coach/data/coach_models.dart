@@ -200,15 +200,3 @@ class CoachReply {
     intent: json['intent'] is String ? json['intent'] as String : null,
   );
 }
-
-/// The questions Tack can always answer for nothing.
-///
-/// Shown on the empty screen because a student who does not know which
-/// questions are free will spend the allowance before they learn. Every one of
-/// these is answered from their own numbers, so none of them costs anything.
-const freeQuestions = <String>[
-  'What should I do next?',
-  'How am I doing?',
-  'What skills am I missing?',
-  'How far through my roadmap am I?',
-];

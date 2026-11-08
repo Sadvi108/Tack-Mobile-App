@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../design/tack.dart';
-import '../data/coach_models.dart';
+import '../application/coach.dart';
 
 /// Under a reply answered from Tack's career guides: which guides, each one a
 /// tap away. A student can read the source instead of taking the coach's word
