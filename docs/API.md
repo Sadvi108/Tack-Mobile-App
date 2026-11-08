@@ -122,20 +122,82 @@ keys in the renderer.
 
 | Function | Returns | Notes |
 |---|---|---|
-| `interview_due()` | `jsonb` | Up to ten answered questions due for practice today (Dhaka), with the student's own answer and feedback notes. Free: no model, no quota. |
+| `interview_catalog()` | `jsonb` | Everything the setup screen needs in one round trip (0096): `{suggested, fields}`. Raises `42501` when signed out. |
+| `start_practice_session(p_role_slug text, p_session_type interview_type default 'mixed', p_difficulty difficulty_level default 'medium', p_count int default 5, p_timer boolean default false)` | `jsonb` | Starts a session from the hand-written pool (0096). Free: no model, no quota. Returns `{session_id, role_slug, role_title, question_count}`. |
+| `interview_due()` | `jsonb` | Up to ten answered questions due for practice today (Dhaka), with the student's own answer and feedback notes. Each item also carries `key_points` and `category` (0096). Free: no model, no quota. |
 | `review_interview_question(p_question_id uuid, p_grade text)` | `jsonb` | One self-grade (`again`, `hard`, `good`, `easy`). The schedule is SM-2 in `tack_next_review()`; returns `{due_on, interval_days}`. |
 
 Called by `interview/data/interview_repository.dart`. Rows in
 `interview_reviews` are written only by a trigger and this function (0078).
 
+`interview_catalog()`:
+
+```json
+{
+  "suggested": {"slug": "civil-site-engineer", "title": "Civil site engineer",
+                "field_slug": "civil-engineering", "field_name": "Civil engineering",
+                "resolved_from": "your_path"},
+  "fields": [
+    {"slug": "civil-engineering", "name": "Civil engineering",
+     "roles": [
+       {"slug": "civil-site-engineer", "title": "Civil site engineer",
+        "summary": "Concrete, reinforcement, soil, quantities and safety on a building site.",
+        "question_count": 15, "is_field_default": true,
+        "aliases": ["civil engineer", "site engineer", "junior civil engineer"]}
+     ]}
+  ]
+}
+```
+
+`suggested` is the student's nearest role, resolved without a model:
+`resolved_from` is one of `exact`, `alias`, `path`, `field`, `your_path`,
+`your_target`, `your_field` or `general` (`management-trainee`, the general
+graduate set). Fields are ordered by `career_fields.sort_order`, then name, and
+only fields with an active role appear. Roles are ordered by `sort_order`, then
+title; `question_count` counts active role questions.
+
+`start_practice_session(...)` draws the questions (`interview_draw`): the
+behavioural pool takes the gentlest slots and the role pool the rest, fresh
+questions first. Errors: signed out `42501 'not signed in'`; `p_count` outside
+3–10 `22023`; an unknown or inactive role `P0002 'that role is not in the
+bank'`; 40 or more sessions started in the last day `P0001
+'too_many_sessions'`; fewer than three questions drawn `P0001 'not enough
+questions for that role'` (rolled back). Fewer than asked lowers
+`question_count`. `session.role` still holds the role's title, so history,
+`interview_due().role` and `coach_context()` read as before.
+
 ### Coach
 
 | Function | Returns | Notes |
 |---|---|---|
-| `coach_allowance()` | `jsonb` | `{used, limit}` for today. Read this to show the counter — do not derive it from `consume_quota`, which returns what is *left*. |
-| `coach_context()` | `jsonb` | The student's numbers, assembled for the coach. Contact details are stripped again by `redact()` before anything leaves for a model. |
+| `coach_allowance()` | `jsonb` | `{used, limit}` for today. The app shows what is left (`limit - used`), never the limit itself (R14). Do not derive it from `consume_quota`, which returns what is *left*. |
+| `coach_context()` | `jsonb` | The student's numbers, assembled for the coach (version 2, 0097). Raises `42501` when signed out. Every string leaf is redacted again (`redactJson`) before anything leaves for a model. |
 
-Called by `coach/data/coach_repository.dart`.
+`coach_allowance()` is read by `core/ai/allowance.dart`; `coach_context()` is
+called by the `coach` edge function with the student's own JWT.
+
+`coach_context()` version 2. Every key from 0053 keeps its name and type; the
+rest are additive. Nothing a student typed as free text is in it: no
+application notes, no `next_action` text, no interview answers, no CV text, no
+chat bodies.
+
+| Key | Shape | Notes |
+|---|---|---|
+| `version` | `2` | |
+| `today` | `date` | Today in Dhaka (`tack_today()`). |
+| `mode`, `year_of_study`, `years_total`, `stage`, `target_role`, `expected_graduation` | as 0053 | |
+| `score` | `{total, components}` | The latest `readiness_scores` row. |
+| `cohort` | `{average, size}` or `null` | Same mode and year, from `cohort_benchmarks` (hides cohorts under five). |
+| `target_path` | `{title, slug}` or `null` | The primary path only, chosen as `dashboard_feed()` chooses it. |
+| `skills_held` | `string[]` | Up to 40 names. |
+| `skill_gap` | `string[]` | Core skills of the target path the student does not hold. |
+| `roadmap` | `{done, total, overdue, next, next_due, next_points}` | Counted exactly as `dashboard_feed()` counts it (0077): tasks of a deleted roadmap do not count. |
+| `applications` | `{status: count}` | Prove, launch and graduate only; `{}` for discover, explore and build. |
+| `has_cv` | `boolean` | Kept for older endpoints. |
+| `cv` | `{has_cv, last_check}` | `last_check` is `{on, problems, suggestions, top: [{kind, severity, title}]}` from the newest check of a live document, or `null`. Titles are fixed templates, never CV text. |
+| `interview` | `{sessions, last, average, by_category, due_reviews}` | `last` is `{on, role, score}`; `by_category` is `[{category, average, answers}]` from the last 30 AI-scored answers, weakest first. |
+| `upcoming` | `[{kind, title, on}]` | Prove and later only, otherwise `[]`. Up to six items from a week ago to two weeks ahead: `task`, `follow_up` (`job title · company`) and `closing`. Titles only, at most 80 characters. |
+| `streak` | `int` | Distinct active days in the last 14. |
 
 ### Onboarding, profile and scoring
 
@@ -182,19 +244,70 @@ All are `POST` with a JSON body and a bearer JWT. All return JSON.
 Ask the careers coach a question.
 
 ```json
-{ "question": "What should I do next?", "threadId": "uuid | omitted" }
+{ "question": "What should I do next?", "threadId": "uuid | omitted",
+  "operationId": "uuid" }
 ```
 
-Answers from Tack's own numbers where it can, and spends one of the three daily
-AI actions only when the question genuinely needs language.
+The app always sends a version 4 UUID `operationId` and reuses it when it
+retries, so a retry is never charged or answered twice. Answers from Tack's
+own numbers where it can, and spends one AI action only when the question
+genuinely needs language.
+
+A question with an email address, phone number or national ID in it is
+refused before anything is queued or saved:
 
 ```json
-{ "threadId": "uuid", "reply": "…", "answeredBy": "data" | "model",
-  "remaining": 2, "spent": false }
+400 { "error": { "code": "pii_in_question",
+  "message": "Your question has what looks like an email address or phone number in it. Take it out and send it again." } }
 ```
 
-`answeredBy: "data"` means it cost nothing. When the allowance is gone:
-`reply: null, remaining: 0, spent: false`.
+A free answer (no model, no quota):
+
+```json
+200 { "threadId": "uuid", "reply": "…",
+  "actions": [{ "label": "Open your roadmap", "route": "roadmap" }],
+  "intent": "next", "answeredBy": "data", "citations": [], "remaining": 4,
+  "spent": false }
+```
+
+`citations` is present only when the career guides were asked and had nothing.
+A question that needs the model returns `202` with a job id (as every AI
+endpoint does). The job's `result` is
+`{threadId, reply, actions, intent, answeredBy, spent, remaining}`. A model
+reply that fails its checks twice is replaced by a free answer and refunded:
+`answeredBy: "data"`, `intent: "fallback"`, `skipped: "invalid_reply"`,
+`spent: false`. A spent allowance is `429 quota_exhausted`.
+
+`intent` says what answered: the free rules `interview`, `cv`,
+`score_explain`, `dates` (prove and later), `next`, `score`, `weakest`,
+`skills`, `roadmap` or `applications`; or `model`, `cited`, `guide_refusal`
+or `fallback`. It is stored on the reply (`chat_messages.intent`).
+
+`actions` are the chips under a reply: at most three
+`{label, route[, slug]}`, labelled by Tack, never by the model. The model only
+picks route ids, never `path`. Route ids and where the app opens them:
+
+| Route id | Opens | Label |
+|---|---|---|
+| `interview` | `Routes.interview` | Practise an interview |
+| `practice` | `Routes.interviewReview` | Practise again |
+| `analyser` | `Routes.analyser` | Check a job description (discover and explore: See what a job asks for) |
+| `cv_check` | `Routes.cvCheck` | Check your CV |
+| `cv_builder` | `Routes.cvBuilder` | Build your CV |
+| `roadmap` | `Routes.roadmap` | Open your roadmap |
+| `radar` | `Routes.radar` | See internships (build) or See your matches |
+| `score` | `Routes.score` | See your score |
+| `paths` | `Routes.paths` | Explore paths |
+| `path` | `Routes.path(slug)`, or `Routes.paths` without a good slug | Read about {title} |
+| `applications` | `Routes.applications` | Open your applications |
+| `profile` | `Routes.profile` | Update your profile |
+
+Discover and explore may be offered `paths`, `path`, `roadmap`, `score`,
+`profile` and `analyser`; build and prove add `cv_check`, `cv_builder`,
+`interview`, `practice` and `radar`; launch and graduate get every route,
+including `applications`. An app that does not know a route draws no chip.
+The list is one list in `_shared/coach/actions.ts`, the CHECK on
+`chat_messages.actions` (0097) and `coach_routes.dart`, held together by tests.
 
 A question the free rules cannot answer is looked up in Tack's own career
 guides first (`search_career_catalog`, 0085, 0086). When the top chunk names
@@ -235,7 +348,7 @@ nothing here calls a model. Boards are only refreshed on the first page
 Returns `202` with `{status: "queued", jobId, quotaRemaining}` and never
 blocks — reading the file and calling the model happen in the worker. Bytes
 already parsed come back `200` with `{status: "ready", …}` and cost no quota:
-re-uploading your own CV should not spend one of three daily actions.
+re-uploading your own CV should not spend one of the day's AI actions.
 
 ### `analyze-jd`
 
@@ -304,11 +417,16 @@ POST /functions/v1/interview/evaluate
 { "questionId": "uuid", "answer": "…" }
 ```
 
-→ `{questions, cached, quotaRemaining}` and `{feedback, quotaRemaining}`.
+→ `{questions, cached, quotaRemaining, role, resolvedFrom}` and
+`{feedback, quotaRemaining}`.
 
-`cached: true` means the questions came from `interview_question_bank` and cost
-no quota. Since `0069` seeded all 90 combinations, that is every request the
-app can make — the model is only reached for a role the app does not offer.
+`questions` never calls a model and never enqueues a job: the set comes from
+the hand-written pool of the nearest role (0096, 0098). `role` is that role and
+`resolvedFrom` how it was found (`exact`, `alias`, `path`, `field`,
+`your_path`, `your_target`, `your_field` or `general`), so the app can say when
+it fell back. The request schema and the older response keys are unchanged, so
+an old app keeps working. The new app starts sessions with
+`start_practice_session(...)` instead. `evaluate` still uses one AI action.
 
 ### `cv-check`
 

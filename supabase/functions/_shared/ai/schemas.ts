@@ -272,6 +272,33 @@ export const citedAnswerShape: Shape = {
   confidence: "number",
 };
 
+/**
+ * The coach's reply: a body and one or two route ids from the list the
+ * student's year may see. The model never writes a chip's label; Tack does
+ * (`coach/actions.ts`).
+ */
+export function coachReplySchema(routes: readonly string[]) {
+  return {
+    type: "object",
+    properties: {
+      body: { type: "string" },
+      actions: {
+        type: "array",
+        minItems: 1,
+        maxItems: 2,
+        items: {
+          type: "object",
+          properties: { route: { type: "string", enum: [...routes] } },
+          required: ["route"],
+        },
+      },
+    },
+    required: ["body", "actions"],
+  };
+}
+
+export const coachReplyShape: Shape = { body: "string", actions: "object[]" };
+
 export const answerFeedbackShape: Shape = {
   score: "number",
   went_well: "string[]",

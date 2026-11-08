@@ -16,17 +16,11 @@ export interface CompletionRequest {
   maxOutputTokens?: number;
 
   /**
-   * Prose instead of JSON.
-   *
-   * Every other feature extracts structure and is validated against a schema
-   * before anything is stored — that rule stands. The coach is the one place
-   * where the reply *is* the product: a sentence a student reads, with nothing
-   * to parse out of it. A schema there would mean asking the model for JSON
-   * containing an English paragraph, validating the wrapper, and displaying
-   * the paragraph unchecked — the appearance of validation over none.
-   *
-   * The trade is real and narrow: this reply is not schema-checked, so it is
-   * never stored as structured data and never drives a number on screen.
+   * Prose instead of JSON. JSON is the default, and every feature uses it:
+   * the coach included, which asks for `{body, actions}` so its chips can be
+   * validated and its body checked in code (`coach/reply.ts`) before anything
+   * is stored. A prose reply would skip the schema check, so nothing should
+   * ask for one without the same scrutiny written for it.
    */
   format?: "json" | "text";
 
@@ -175,9 +169,12 @@ export function selectProvider(): LLMProvider {
 function mockFixture(feature: string, input: string): unknown {
   switch (feature) {
     case "coach_chat":
+      // Passes every check a real reply must: no number, no word an early
+      // year should not read, and a chip every year may see.
       return {
-        reply:
-          "Choose one skill from your roadmap and practise it in a small project this week.",
+        body:
+          "This is a mock reply. Set AI_PROVIDER=gemini to talk to the real model. Open your roadmap and finish one task this week.",
+        actions: [{ route: "roadmap" }],
       };
     case "analyse_jd":
       return {

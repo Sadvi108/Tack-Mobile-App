@@ -51,6 +51,61 @@ List<GuideRef> _guidesOf(List<GuideCitation> citations) {
   ];
 }
 
+/// A chip under a coach reply: a screen to open, labelled by Tack.
+///
+/// The label always comes from the server (the model only ever picks a route
+/// id). The route ids are one list in TypeScript (`_shared/coach/actions.ts`),
+/// in SQL (0097's CHECK) and here; tests hold them together.
+class CoachAction {
+  const CoachAction({required this.route, required this.label, this.slug});
+
+  final String route;
+  final String label;
+
+  /// Only on `path`: which career path to open.
+  final String? slug;
+
+  static const routes = {
+    'interview',
+    'practice',
+    'analyser',
+    'cv_check',
+    'cv_builder',
+    'roadmap',
+    'radar',
+    'score',
+    'paths',
+    'path',
+    'applications',
+    'profile',
+  };
+
+  static final slugPattern = RegExp(r'^[a-z0-9-]{1,80}$');
+
+  /// Null for anything malformed, an unknown route or a bad slug, so a newer
+  /// server can add a route without breaking an older app.
+  static CoachAction? fromJson(Object? raw) {
+    if (raw is! Map) return null;
+    final route = raw['route'];
+    final label = raw['label'];
+    final slug = raw['slug'];
+    if (route is! String || !routes.contains(route)) return null;
+    if (label is! String) return null;
+    final text = label.trim();
+    if (text.length < 2 || text.length > 48) return null;
+    if (slug != null && (slug is! String || !slugPattern.hasMatch(slug))) {
+      return null;
+    }
+    return CoachAction(route: route, label: text, slug: slug as String?);
+  }
+
+  /// At most three, as the database allows.
+  static List<CoachAction> listFrom(Object? raw) => [
+    if (raw is List)
+      for (final a in raw) ?CoachAction.fromJson(a),
+  ].take(3).toList();
+}
+
 /// One line of the conversation.
 class ChatMessage {
   const ChatMessage({
@@ -61,6 +116,8 @@ class ChatMessage {
     this.answeredBy,
     this.citations = const [],
     this.fromGuides = false,
+    this.actions = const [],
+    this.intent,
   });
 
   final String id;
@@ -69,7 +126,7 @@ class ChatMessage {
   final DateTime createdAt;
 
   /// `data` when Tack answered from its own numbers and spent nothing,
-  /// `model` when it cost one of the day's three. Null on a student's line.
+  /// `model` when it used one AI action. Null on a student's line.
   final String? answeredBy;
 
   /// Set when the reply was answered from Tack's career guides.
@@ -78,6 +135,14 @@ class ChatMessage {
   /// The guides were asked. With no citations, they had nothing to say, and
   /// the reply cost nothing whichever way it was answered.
   final bool fromGuides;
+
+  /// Screens the reply points at. Empty on a student's line and on replies
+  /// saved before 0097.
+  final List<CoachAction> actions;
+
+  /// What answered it: a router id, or model, cited, guide_refusal or
+  /// fallback. Null on a student's line and on older replies.
+  final String? intent;
 
   bool get isStudent => role == 'student';
   bool get wasFree => answeredBy == 'data';
@@ -94,6 +159,8 @@ class ChatMessage {
     answeredBy: row['answered_by'] as String?,
     citations: GuideCitation.listFrom(row['citations']),
     fromGuides: row['citations'] is List,
+    actions: CoachAction.listFrom(row['actions']),
+    intent: row['intent'] is String ? row['intent'] as String : null,
   );
 }
 
@@ -104,9 +171,10 @@ class CoachReply {
     required this.remaining,
     this.body,
     this.answeredBy,
-    this.limitMessage,
     this.citations = const [],
     this.fromGuides = false,
+    this.actions = const [],
+    this.intent,
   });
 
   final String threadId;
@@ -115,14 +183,10 @@ class CoachReply {
   final String? answeredBy;
   final List<GuideCitation> citations;
   final bool fromGuides;
+  final List<CoachAction> actions;
+  final String? intent;
 
   bool get guideRefusal => fromGuides && citations.isEmpty;
-
-  /// Set instead of [body] when the day's three are gone. Phrased as a trade
-  /// that keeps Tack free, never as a telling-off.
-  final String? limitMessage;
-
-  bool get hitLimit => limitMessage != null;
   bool get wasFree => answeredBy == 'data';
 
   factory CoachReply.fromJson(Map<String, dynamic> json) => CoachReply(
@@ -130,20 +194,9 @@ class CoachReply {
     remaining: (json['remaining'] as num?)?.toInt() ?? 0,
     body: json['reply'] as String?,
     answeredBy: json['answeredBy'] as String?,
-    limitMessage: json['limit'] as String?,
     citations: GuideCitation.listFrom(json['citations']),
     fromGuides: json['citations'] is List,
+    actions: CoachAction.listFrom(json['actions']),
+    intent: json['intent'] is String ? json['intent'] as String : null,
   );
 }
-
-/// The questions Tack can always answer for nothing.
-///
-/// Shown on the empty screen because a student who does not know which
-/// questions are free will spend the allowance before they learn. Every one of
-/// these is answered from their own numbers, so none of them costs anything.
-const freeQuestions = <String>[
-  'What should I do next?',
-  'How am I doing?',
-  'What skills am I missing?',
-  'How far through my roadmap am I?',
-];

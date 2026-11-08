@@ -186,6 +186,81 @@ class TackChip extends StatelessWidget {
   }
 }
 
+/// A chip that opens a screen: under a coach reply, "Open your roadmap".
+///
+/// At least 44px tall, labelled for screen readers, and pressed by colour
+/// alone in 150ms. maroonText on a card (and on its own tint while pressed)
+/// is already held to AA in both palettes.
+class TackActionChip extends StatefulWidget {
+  const TackActionChip(this.label, {super.key, required this.onTap});
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  State<TackActionChip> createState() => _TackActionChipState();
+}
+
+class _TackActionChipState extends State<TackActionChip> {
+  bool _pressed = false;
+
+  void _press(bool pressed) {
+    if (_pressed != pressed) setState(() => _pressed = pressed);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: widget.label,
+      // The visible text is the label; excluding it keeps a screen reader
+      // from reading it twice, and onTap gives the action back.
+      excludeSemantics: true,
+      onTap: widget.onTap,
+      child: GestureDetector(
+        onTap: widget.onTap,
+        onTapDown: (_) => _press(true),
+        onTapUp: (_) => _press(false),
+        onTapCancel: () => _press(false),
+        behavior: HitTestBehavior.opaque,
+        child: AnimatedContainer(
+          duration: TackMotion.fast,
+          curve: TackMotion.curve,
+          constraints: const BoxConstraints(minHeight: TackSpace.tapTarget),
+          padding: const EdgeInsets.symmetric(
+            horizontal: TackSpace.md,
+            vertical: TackSpace.sm,
+          ),
+          decoration: BoxDecoration(
+            color: _pressed ? TackColors.maroonTint : TackColors.white,
+            borderRadius: TackRadius.pillAll,
+            border: Border.all(color: TackColors.maroonText),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Flexible(
+                child: Text(
+                  widget.label,
+                  style: TackText.rowTitle.copyWith(
+                    color: TackColors.maroonText,
+                  ),
+                ),
+              ),
+              const SizedBox(width: TackSpace.xs),
+              TackIcon(
+                TackIcons.arrowRight,
+                size: 16,
+                color: TackColors.maroonText,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// The filter strip above the application list. The counts double as the
 /// filter, so one row does two jobs on a 360px screen.
 class CountFilterChip extends StatelessWidget {

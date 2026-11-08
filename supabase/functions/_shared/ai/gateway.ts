@@ -2,7 +2,11 @@ import { validateResponse } from "./response_validation.ts";
 import { assertClean, redact } from "./redact.ts";
 import { SupabaseClient } from "@supabase/supabase-js";
 
-import { CompletionRequest, selectProvider } from "./provider.ts";
+import {
+  type CompletionRequest,
+  type LLMProvider,
+  selectProvider,
+} from "./provider.ts";
 import { validate } from "./schemas.ts";
 
 /**
@@ -32,6 +36,31 @@ export class QuotaExhausted extends Error {
 }
 
 /**
+ * The model's reply failed validation twice: the shape, the schema or the
+ * caller's own check. A caller can answer something free instead; anything
+ * else that throws (a provider that is down) is a normal retry.
+ */
+export class InvalidModelReply extends Error {
+  constructor(readonly problems: string[]) {
+    super("model reply failed validation");
+    this.name = "InvalidModelReply";
+  }
+}
+
+export interface CompletionOptions {
+  /** Quota is taken when the student submits, which is usually in the
+   *  endpoint rather than here. The worker passes false so a queued job is
+   *  not charged a second time. */
+  consumeQuota?: boolean;
+  /** Checks only code can make (a number the facts do not hold, a word a
+   *  year must not read). Problem codes, never input text: they go into the
+   *  retry prompt. */
+  check?: (data: unknown) => string[];
+  /** Tests only. Production always uses selectProvider(). */
+  provider?: LLMProvider;
+}
+
+/**
  * Everything that has to happen around a model call.
  *
  * Quota is consumed on submission rather than on success, because a student
@@ -44,10 +73,7 @@ export async function runCompletion(
   request: CompletionRequest,
   shape: Parameters<typeof validate>[1],
   required: string[],
-  // Quota is taken when the student submits, which is usually in the endpoint
-  // rather than here. The worker passes false so a queued job is not charged
-  // a second time.
-  options: { consumeQuota?: boolean } = {},
+  options: CompletionOptions = {},
 ): Promise<GatewayOutcome> {
   let remaining: number;
   if (options.consumeQuota ?? true) {
@@ -65,7 +91,7 @@ export async function runCompletion(
 
   request = { ...request, user: redact(request.user).text };
   assertClean(request.user);
-  const provider = selectProvider();
+  const provider = options.provider ?? selectProvider();
   let result;
   try {
     result = await provider.complete(request);
@@ -80,10 +106,14 @@ export async function runCompletion(
     throw error;
   }
 
-  let problems = [
-    ...validate(result.data, shape, required),
-    ...validateResponse(request.feature, result.data),
+  // The caller's own check is merged in, so its problems get the same one
+  // corrective retry as a wrong shape does.
+  const problemsOf = (data: unknown) => [
+    ...validate(data, shape, required),
+    ...validateResponse(request.feature, data),
+    ...(options.check ? options.check(data) : []),
   ];
+  let problems = problemsOf(result.data);
 
   // One corrective retry. Models occasionally return a nearly-right shape, and
   // a single re-ask is cheaper than failing the student's only run.
@@ -96,13 +126,12 @@ export async function runCompletion(
         }. ` +
         `Reply again with valid JSON only.`,
     });
-    const retryProblems = [
-      ...validate(retry.data, shape, required),
-      ...validateResponse(request.feature, retry.data),
-    ];
+    const retryProblems = problemsOf(retry.data);
     if (retryProblems.length === 0) {
       result = retry;
       problems = [];
+    } else {
+      problems = retryProblems;
     }
   }
 
@@ -118,7 +147,11 @@ export async function runCompletion(
   });
 
   if (problems.length > 0) {
-    throw new Error(`model reply failed validation: ${problems.join("; ")}`);
+    // Codes only, never the reply: they are safe in a log.
+    console.warn(
+      `${request.feature}: model reply rejected twice: ${problems.join("; ")}`,
+    );
+    throw new InvalidModelReply(problems);
   }
 
   return { data: result.data, cached: false, remaining };
