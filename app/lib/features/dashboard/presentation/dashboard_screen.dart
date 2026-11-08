@@ -506,12 +506,7 @@ class _NextSevenDays extends StatelessWidget {
               hasApplications
                   ? 'Nothing due this week. A good week to line up what is next.'
                   : 'Nothing here yet. Add an application and its dates show up here.',
-              style: const TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 15,
-                height: 1.45,
-                color: onMaroon,
-              ),
+              style: TackText.body.copyWith(height: 1.45, color: onMaroon),
             )
           else
             // Rows touch, with no gap between them. The gap used to be padding
@@ -544,7 +539,6 @@ class _NextSevenDays extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                           style: TackText.body.copyWith(
                             color: TackColors.onBrand,
-                            fontSize: 15,
                           ),
                         ),
                       ),

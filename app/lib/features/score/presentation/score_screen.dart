@@ -226,7 +226,7 @@ class _ComponentRow extends StatelessWidget {
               Expanded(child: Text(component.label, style: TackText.rowTitle)),
               Text(
                 '${component.earned} of ${component.max}',
-                style: TackText.meta.copyWith(fontSize: 14),
+                style: TackText.meta,
               ),
             ],
           ),
@@ -236,12 +236,7 @@ class _ComponentRow extends StatelessWidget {
             const SizedBox(height: TackSpace.sm),
             Row(
               children: [
-                Expanded(
-                  child: Text(
-                    component.action,
-                    style: TackText.meta.copyWith(fontSize: 14),
-                  ),
-                ),
+                Expanded(child: Text(component.action, style: TackText.meta)),
                 const SizedBox(width: TackSpace.sm),
                 TackPill('+${component.available}'),
               ],
