@@ -8,6 +8,7 @@ import {
 import { hashText, quotaRemaining } from "../_shared/ai/gateway.ts";
 import { redact } from "../_shared/ai/redact.ts";
 import { enqueueStudentJob } from "../_shared/jobs/enqueue.ts";
+import { questionsFor } from "../_shared/interview/bank.ts";
 
 Deno.serve(async (req) => {
   const early = preflight(req);
@@ -19,29 +20,43 @@ Deno.serve(async (req) => {
   if (action === "questions") {
     const body = await readRequest(req, questionsRequest);
     if (body instanceof Response) return body;
-    const role = redact(body.role).text;
-    const roleSlug = role.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-    const { data: cached } = await service.from("interview_question_bank")
-      .select("questions")
-      .eq("role_slug", roleSlug).eq("session_type", body.sessionType)
-      .eq("difficulty", body.difficulty).maybeSingle();
-    if (cached && cached.questions.length >= body.count) {
-      return json({
-        questions: cached.questions.slice(0, body.count),
-        cached: true,
-        quotaRemaining: await quotaRemaining(service, auth.userId),
-      });
-    }
-    const hash = await hashText(
-      `${roleSlug}:${body.sessionType}:${body.difficulty}:${body.count}`,
+    // Hand-written questions only. A role the bank lacks gets the student's
+    // nearest role, resolved in the database; nothing is ever sent to a model
+    // for questions again, so this never spends an AI action.
+    const served = await questionsFor(
+      {
+        readSet: async (roleSlug) => {
+          const { data, error } = await service.from("interview_question_bank")
+            .select("questions")
+            .eq("role_slug", roleSlug).eq("session_type", body.sessionType)
+            .eq("difficulty", body.difficulty).maybeSingle();
+          return error ? null : data?.questions ?? null;
+        },
+        resolve: async (hint) => {
+          const { data, error } = await service.rpc(
+            "interview_resolve_role_for",
+            { p_user_id: auth.userId, p_hint: hint },
+          );
+          return error ? null : data;
+        },
+      },
+      redact(body.role).text,
+      body.role,
+      body.count,
     );
-    return enqueueStudentJob(service, auth.userId, "interview_questions", {
-      role,
-      role_slug: roleSlug,
-      session_type: body.sessionType,
-      difficulty: body.difficulty,
-      count: body.count,
-    }, `interview_questions:${auth.userId}:${hash}`);
+    if (!served) {
+      return fail(
+        "Practice questions could not be loaded. Try again in a moment.",
+        503,
+      );
+    }
+    return json({
+      questions: served.questions,
+      cached: true,
+      role: served.role,
+      resolvedFrom: served.resolvedFrom,
+      quotaRemaining: await quotaRemaining(service, auth.userId),
+    });
   }
   if (action === "evaluate") {
     const body = await readRequest(req, evaluateRequest);

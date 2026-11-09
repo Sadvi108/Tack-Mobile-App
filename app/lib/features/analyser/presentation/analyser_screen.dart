@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/ai/allowance.dart';
 import '../../../core/failure.dart';
 import '../../../design/tack.dart';
-import '../../coach/data/coach_repository.dart';
 import '../../../routing/router.dart';
 import '../application/analyser_controller.dart';
 import '../application/cv_coverage.dart';
@@ -41,7 +41,7 @@ class _AnalyserScreenState extends ConsumerState<AnalyserScreen> {
     return TackScaffold(
       header: TackHeader(
         title: 'Job analyser',
-        onBack: () => tackBack(context),
+        onBack: () => tackBack(context, fallback: Routes.toolkit),
         trailing: state is AnalysisReady
             ? TackButton.ghost(
                 'New',
@@ -83,7 +83,6 @@ class _AnalyserScreenState extends ConsumerState<AnalyserScreen> {
           exhausted
               ? TackQuotaState(
                   resetsAt: 'midnight',
-                  limit: allowance?.limit ?? 0,
                   onGoToRoadmap: () => context.go(Routes.roadmap),
                 )
               : TackErrorState(
@@ -143,7 +142,6 @@ class _Input extends StatelessWidget {
     // student ends up told they have actions they have already spent.
     if (allowance == null) return const SizedBox.shrink();
     final left = allowance!.remaining;
-    final limit = allowance!.limit;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -161,11 +159,12 @@ class _Input extends StatelessWidget {
               ),
               const SizedBox(width: TackSpace.md),
               Expanded(
+                // What is left, never the whole allowance (R14).
                 child: Text(
                   left > 0
-                      ? '$left of $limit AI actions left today, shared across '
-                            'Tack. They reset at midnight.'
-                      : 'No AI actions left today. They reset at midnight.',
+                      ? '${allowanceLine(allowance!)}, shared across Tack. '
+                            'They reset at midnight.'
+                      : '${allowanceLine(allowance!)}. They reset at midnight.',
                   style: TackText.bodyMuted,
                 ),
               ),
@@ -193,7 +192,7 @@ class _Input extends StatelessWidget {
           controller.text.trim().length < 80
               ? 'Paste a bit more — a line or two is not enough to analyse.'
               : '${controller.text.trim().length} characters',
-          style: TackText.meta.copyWith(fontSize: 13.5),
+          style: TackText.meta,
         ),
         const SizedBox(height: TackSpace.xl),
       ],
@@ -300,7 +299,7 @@ class _Result extends StatelessWidget {
           const SizedBox(height: TackSpace.sm),
           Text(
             'This description had already been analysed, so it cost you nothing.',
-            style: TackText.meta.copyWith(fontSize: 13.5),
+            style: TackText.meta,
           ),
         ],
         const SizedBox(height: TackSpace.stackLoose),
@@ -367,7 +366,7 @@ class _CvCoverageCard extends ConsumerWidget {
           const SizedBox(height: TackSpace.md),
           TackButton.secondary(
             'Check my CV',
-            onPressed: () => context.go(Routes.vault),
+            onPressed: () => context.push(Routes.cvCheck),
           ),
         ],
       );

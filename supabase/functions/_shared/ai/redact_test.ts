@@ -1,5 +1,10 @@
 import { assert, assertEquals, assertThrows } from "@std/assert";
-import { assertClean, redact } from "./redact.ts";
+import {
+  assertClean,
+  containsContactDetails,
+  redact,
+  redactJson,
+} from "./redact.ts";
 
 Deno.test("email addresses never reach the model", () => {
   const { text, found } = redact(
@@ -64,4 +69,71 @@ Deno.test("redaction leaves ordinary text alone", () => {
     "Three years of Python and SQL, plus a 2024 internship at a bank.";
   const { text } = redact(input);
   assertEquals(text, input);
+});
+
+Deno.test("redactJson cleans every string leaf and keeps the shape", () => {
+  const value = {
+    title: "Mail rafiq@example.com",
+    nested: {
+      list: ["see https://rafiq.dev/work", "call 01712345678", 7, null, true],
+      deeper: [{ note: "plain words" }],
+    },
+    count: 3,
+  };
+  const out = redactJson(value);
+  assertEquals(out, {
+    title: "Mail [email]",
+    nested: {
+      list: ["see [link]", "call [phone]", 7, null, true],
+      deeper: [{ note: "plain words" }],
+    },
+    count: 3,
+  });
+  // The input is left as it was.
+  assertEquals(value.title, "Mail rafiq@example.com");
+});
+
+Deno.test("a link inside a field no longer breaks the JSON around it", () => {
+  // Redacting the stringified object let the URL pattern run on through the
+  // closing quote and the next field.
+  const ctx = {
+    upcoming: [{ title: "Read https://example.com/guide", on: "2026-11-08" }],
+    roadmap: { next: "Email me at x@y.co" },
+  };
+  const whole = redact(JSON.stringify(ctx)).text;
+  let brokeBefore = false;
+  try {
+    JSON.parse(whole);
+  } catch {
+    brokeBefore = true;
+  }
+  assert(brokeBefore, "the old way should have broken this");
+
+  const text = JSON.stringify(redactJson(ctx));
+  const back = JSON.parse(text);
+  assertEquals(back.upcoming[0], { title: "Read [link]", on: "2026-11-08" });
+  assertEquals(back.roadmap.next, "Email me at [email]");
+  assertClean(text);
+});
+
+Deno.test("a question with contact details in it is caught before anything", () => {
+  for (
+    const q of [
+      "Is rafiq@example.com a good email for my CV?",
+      "Can you call me on 01712345678?",
+      "My NID is 1990123456789, is that on my CV?",
+      "write to rifat. hasan @example.com",
+    ]
+  ) {
+    assert(containsContactDetails(q), q);
+  }
+  for (
+    const q of [
+      "How do I explain a gap year in an interview?",
+      "Is https://rafiq.dev a good portfolio link?",
+      "What should I do in 2027?",
+    ]
+  ) {
+    assert(!containsContactDetails(q), q);
+  }
 });

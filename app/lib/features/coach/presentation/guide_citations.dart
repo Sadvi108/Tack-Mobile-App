@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../design/tack.dart';
-import '../data/coach_models.dart';
+import '../application/coach.dart';
 
 /// Under a reply answered from Tack's career guides: which guides, each one a
 /// tap away. A student can read the source instead of taking the coach's word
@@ -17,10 +17,7 @@ class GuideCitations extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          "From Tack's career guides",
-          style: TackText.meta.copyWith(fontSize: 12.5),
-        ),
+        Text("From Tack's career guides", style: TackText.meta),
         const SizedBox(height: TackSpace.xs),
         Wrap(
           spacing: TackSpace.sm,

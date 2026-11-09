@@ -32,20 +32,10 @@ class AnalysisRepository {
         'analyze-jd',
         body: {'text': text, 'jobId': ?jobId},
       );
+      // Only a success arrives here: functions_client throws on anything
+      // else, and Failure.from keeps the server's sentence and code. A spent
+      // allowance is a Failure with code `quota_exhausted`.
       final body = (response.data as Map?)?.cast<String, dynamic>() ?? const {};
-
-      if (response.status == 429) {
-        return AnalysisFailed(
-          _errorMessage(body) ??
-              'You have used today\'s AI actions. They reset at midnight.',
-          quotaExhausted: true,
-        );
-      }
-      if (response.status >= 400) {
-        return AnalysisFailed(
-          _errorMessage(body) ?? 'That did not work. Try again in a moment.',
-        );
-      }
 
       if (body['status'] == 'ready') {
         return AnalysisReady(
@@ -254,14 +244,6 @@ class AnalysisRepository {
       throw Failure.from(e);
     }
   }
-
-  static String? _errorMessage(Map<String, dynamic> body) {
-    final error = body['error'];
-    if (error is Map && error['message'] is String) {
-      return error['message'] as String;
-    }
-    return null;
-  }
 }
 
 final analysisRepositoryProvider = Provider<AnalysisRepository>(
@@ -271,4 +253,5 @@ final analysisRepositoryProvider = Provider<AnalysisRepository>(
 /// Deliberately gone: the analyser used to count its own allowance against
 /// bucket `ai_actions` with a local `dailyQuota = 3`, while the coach counted
 /// `ai` and the database enforced something else again. Watch
-/// `aiAllowanceProvider` instead — one pool, one number, read from the server.
+/// `aiAllowanceProvider` in `core/ai/allowance.dart` instead — one pool, one
+/// number, read from the server.

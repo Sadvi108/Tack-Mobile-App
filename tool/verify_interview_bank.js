@@ -1,14 +1,19 @@
 #!/usr/bin/env node
-/* Live verification that interview practice is free.
+/* Live verification that interview practice is free, from the question pool.
 
-   `interview_question_bank` is a cache keyed on (role, session_type,
-   difficulty). The first student to ask for a combination pays one of their
-   three daily AI actions and everybody after gets it free — but it was empty
-   from the day it was created, so every student paid for questions the last
-   one had already generated.
+   Owner-only: run after 0096 and 0098 are applied and the interview function
+   is deployed. It creates one disposable student and deletes it at the end.
 
-   The check that matters is not "does it return questions" but "did it cost
-   anything". `ai_usage` is read before and after and must not move.
+   What it proves:
+     1. every active role has its 9 fixed sets, for old app builds;
+     2. every role's title resolves to that role, so a typed role finds it;
+     3. the interview function serves the bank, and a role it lacks resolves
+        to the nearest one, with no model call and no AI action spent;
+     4. start_practice_session draws distinct questions, avoids the ones this
+        student just saw, writes no ai_usage row, and is closed to anon;
+     5. interview_catalog suggests a role;
+   and it lists, read-only, every set the worker wrote from a model, so the
+   owner can decide about removing them (plan R24, §7).
 
      node tool/verify_interview_bank.js */
 const path = require('path');
@@ -22,14 +27,6 @@ const URL = process.env.SUPABASE_URL;
 const ANON = process.env.SUPABASE_ANON_KEY;
 const SVC = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const PASSWORD = 'Test-passw0rd!';
-
-const ROLES = [
-  'Frontend developer', 'Backend developer', 'Data analyst',
-  'Digital marketer', 'HR executive', 'Business analyst',
-  'Graphic designer', 'QA engineer', 'Accountant', 'Content writer',
-];
-const TYPES = ['behavioural', 'technical', 'mixed'];
-const LEVELS = ['easy', 'medium', 'hard'];
 
 let pass = 0, fail = 0;
 const ok = (n, c, extra = '') => {
@@ -58,8 +55,7 @@ async function makeStudent() {
 }
 
 /* The action is the last path segment, not a body field — the app calls
-   invoke('interview/questions'). Worth stating because docs/API.md had it as a
-   body field and this check is what caught that. */
+   invoke('interview/questions'). */
 const askFor = (token, role, sessionType, difficulty) =>
   fetch(`${URL}/functions/v1/interview/questions`, {
     method: 'POST',
@@ -69,6 +65,18 @@ const askFor = (token, role, sessionType, difficulty) =>
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ role, sessionType, difficulty, count: 5 }),
+  });
+
+/* A client RPC, as the app makes it: PostgREST with the caller's own token. */
+const rpc = (token, name, params = {}) =>
+  fetch(`${URL}/rest/v1/rpc/${name}`, {
+    method: 'POST',
+    headers: {
+      apikey: ANON,
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(params),
   });
 
 (async () => {
@@ -85,112 +93,151 @@ const askFor = (token, role, sessionType, difficulty) =>
   const student = await makeStudent();
   try {
     // ---------------------------------------------------------------------
-    console.log('\n1. every combination the app can ask for');
+    console.log('\n1. every active role has its 9 fixed sets');
 
-    const { rows: [seeded] } = await pg.query(
-      `select count(*)::int n from public.interview_question_bank`);
-    ok('all 90 sets are seeded', seeded.n >= 90, `found ${seeded.n}`);
+    const { rows: [roles] } = await pg.query(
+      `select count(*)::int n from public.interview_roles where is_active`);
+    ok('the pool has roles', roles.n > 0, `found ${roles.n}`);
 
-    const { rows: thin } = await pg.query(
-      `select role_slug, session_type::text t, difficulty::text d
-         from public.interview_question_bank
-        where jsonb_array_length(questions) < 5`);
-    ok('none is shorter than the five the app asks for', thin.length === 0,
-      JSON.stringify(thin.slice(0, 3)));
-
-    // The app slugifies exactly as the endpoint does; a mismatch means every
-    // request misses the cache and pays, which is the bug this feature exists
-    // to remove.
-    const missing = [];
-    for (const role of ROLES) {
-      const slug = role.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-      for (const t of TYPES) {
-        for (const d of LEVELS) {
-          const { rows } = await pg.query(
-            `select 1 from public.interview_question_bank
-              where role_slug = $1 and session_type = $2::interview_type
-                and difficulty = $3::difficulty_level`, [slug, t, d]);
-          if (rows.length === 0) missing.push(`${slug}/${t}/${d}`);
-        }
-      }
-    }
-    ok('every role the app offers resolves, for all 9 combinations',
-      missing.length === 0, `missing ${missing.slice(0, 5).join(', ')}`);
+    const { rows: [sets] } = await pg.query(
+      `select count(*)::int n
+         from public.interview_question_bank b
+         join public.interview_roles r on r.slug = b.role_slug and r.is_active
+        where b.source = 'seed' and jsonb_array_length(b.questions) >= 5`);
+    ok(`${roles.n} roles x 9 seed sets of at least five`, sets.n === roles.n * 9,
+      `found ${sets.n}, expected ${roles.n * 9}`);
 
     // ---------------------------------------------------------------------
-    console.log('\n2. and it costs nothing');
+    console.log('\n2. every role title finds its role');
 
-    /* ai_usage logs cache hits too — recordCacheHit writes a row with
-       provider 'cache' so the saving is visible in the data. So counting rows
-       measures the wrong thing; what costs money and quota is a row that
-       actually reached a model. */
+    const { rows: unresolved } = await pg.query(
+      `select r.slug, r.title, f.role_slug got
+         from public.interview_roles r
+         left join lateral public.interview_role_from_text(r.title) f on true
+        where r.is_active and f.role_slug is distinct from r.slug`);
+    ok('interview_role_from_text(title) returns the role for all of them',
+      unresolved.length === 0, JSON.stringify(unresolved.slice(0, 5)));
+
+    // ---------------------------------------------------------------------
+    console.log('\n3. the interview function serves the bank, for free');
+
     const paidCalls = async () => {
       const { rows: [r] } = await pg.query(
         `select count(*)::int n from public.ai_usage
           where user_id = $1 and not cached`, [student.id]);
       return r.n;
     };
-    const cacheHits = async () => {
+    const usageRows = async () => {
       const { rows: [r] } = await pg.query(
-        `select count(*)::int n from public.ai_usage
-          where user_id = $1 and cached`, [student.id]);
+        `select count(*)::int n from public.ai_usage where user_id = $1`,
+        [student.id]);
       return r.n;
     };
-
-    const before = await paidCalls();
+    const { rows: [{ limit }] } = await pg.query(
+      `select public.ai_daily_limit() as limit`);
 
     const res = await askFor(student.token, 'Backend developer', 'technical', 'medium');
     const body = await res.json();
     ok('the endpoint answers', res.ok, `${res.status} ${JSON.stringify(body)}`);
     ok('with five questions', (body.questions ?? []).length === 5,
       `got ${(body.questions ?? []).length}`);
-    ok('served from the bank, not generated', body.cached === true,
-      JSON.stringify({ cached: body.cached }));
-
-    const after = await paidCalls();
-    ok('nothing reached a model', after === before && after === 0,
-      `paid calls went ${before} -> ${after}`);
-    ok('and the saving is recorded as a cache hit', (await cacheHits()) === 1,
-      'recordCacheHit did not log it');
+    ok('served from the bank for that exact role',
+      body.cached === true && body.role === 'backend-developer' && body.resolvedFrom === 'exact',
+      JSON.stringify({ cached: body.cached, role: body.role, resolvedFrom: body.resolvedFrom }));
     ok('and the student still has their full allowance',
-      body.quotaRemaining === 3, `quotaRemaining ${body.quotaRemaining}`);
+      body.quotaRemaining === limit, `quotaRemaining ${body.quotaRemaining}, limit ${limit}`);
 
-    // ---------------------------------------------------------------------
-    console.log('\n3. ten sessions in a row, still free');
-
-    for (const [role, t, d] of [
-      ['Frontend developer', 'mixed', 'easy'],
-      ['Data analyst', 'technical', 'hard'],
-      ['HR executive', 'behavioural', 'medium'],
-      ['Accountant', 'technical', 'easy'],
-      ['QA engineer', 'mixed', 'hard'],
-    ]) {
-      await askFor(student.token, role, t, d);
+    // A role the bank does not have, and one written in Bangla: both used to
+    // reach a model (or crash). Now they resolve to the nearest role.
+    for (const role of ['Structural engineer', 'সফটওয়্যার প্রকৌশলী']) {
+      const r = await askFor(student.token, role, 'mixed', 'easy');
+      const b = await r.json();
+      ok(`"${role}" gets the nearest role's questions`,
+        r.ok && (b.questions ?? []).length === 5 && typeof b.resolvedFrom === 'string',
+        `${r.status} ${JSON.stringify(b).slice(0, 160)}`);
     }
-    const afterMany = await paidCalls();
-    ok('six sessions still reached no model', afterMany === 0,
-      `paid calls went ${before} -> ${afterMany}`);
-    ok('all six are logged as cache hits', (await cacheHits()) === 6,
-      `${await cacheHits()} hits logged`);
+    ok('nothing reached a model', (await paidCalls()) === 0,
+      `${await paidCalls()} paid calls`);
 
     // ---------------------------------------------------------------------
-    console.log('\n4. the company packs');
+    console.log('\n4. start_practice_session: free, fresh, and closed to anon');
 
-    const packs = await fetch(
-      `${URL}/rest/v1/company_interview_packs?select=slug,name,questions`,
-      { headers: { apikey: ANON, Authorization: `Bearer ${student.token}` } },
-    ).then((r) => r.json());
-    ok('a signed-in student can read them', Array.isArray(packs) && packs.length >= 6,
-      JSON.stringify(packs).slice(0, 120));
-    ok('and each carries questions',
-      Array.isArray(packs) && packs.every((p) => (p.questions ?? []).length >= 4));
+    const { rows: [pick] } = await pg.query(
+      `select slug from public.interview_roles
+        where is_active order by sort_order limit 1`);
+    const usageBefore = await usageRows();
 
-    const anon = await fetch(
-      `${URL}/rest/v1/company_interview_packs?select=slug`,
-      { headers: { apikey: ANON, Authorization: `Bearer ${ANON}` } },
-    ).then((r) => r.json());
-    ok('a signed-out visitor cannot', !Array.isArray(anon) || anon.length === 0,
-      JSON.stringify(anon).slice(0, 120));
+    const first = await rpc(student.token, 'start_practice_session', {
+      p_role_slug: pick.slug, p_session_type: 'technical',
+      p_difficulty: 'medium', p_count: 5, p_timer: false,
+    });
+    const firstBody = await first.json();
+    ok('a session starts', first.ok && typeof firstBody.session_id === 'string',
+      `${first.status} ${JSON.stringify(firstBody)}`);
+    ok('with five questions', firstBody.question_count === 5,
+      JSON.stringify(firstBody));
+
+    const poolIds = async (sessionId) => (await pg.query(
+      `select pool_question_id id from public.interview_questions
+        where session_id = $1 order by order_index`, [sessionId])).rows.map((r) => r.id);
+    const firstIds = await poolIds(firstBody.session_id);
+    ok('five distinct pool questions, each with its key points',
+      firstIds.length === 5 && new Set(firstIds).size === 5 && !firstIds.includes(null),
+      JSON.stringify(firstIds));
+    const { rows: [kp] } = await pg.query(
+      `select count(*)::int n from public.interview_questions
+        where session_id = $1 and jsonb_array_length(key_points) between 2 and 4`,
+      [firstBody.session_id]);
+    ok('key points were copied onto the questions', kp.n === 5, `${kp.n} of 5`);
+
+    // Medium with three questions is one easy, one medium and one hard, and
+    // the pool has five of each: none needs to repeat.
+    const second = await rpc(student.token, 'start_practice_session', {
+      p_role_slug: pick.slug, p_session_type: 'technical',
+      p_difficulty: 'medium', p_count: 3, p_timer: false,
+    });
+    const secondBody = await second.json();
+    const secondIds = second.ok ? await poolIds(secondBody.session_id) : [];
+    ok('a second session avoids the first one\'s questions',
+      secondIds.length === 3 && secondIds.every((id) => !firstIds.includes(id)),
+      JSON.stringify({ firstIds, secondIds }));
+
+    ok('and writes no ai_usage row', (await usageRows()) === usageBefore,
+      `ai_usage went ${usageBefore} -> ${await usageRows()}`);
+
+    const anon = await rpc(ANON, 'start_practice_session', { p_role_slug: pick.slug });
+    ok('anon cannot start one', !anon.ok, `${anon.status}`);
+
+    // ---------------------------------------------------------------------
+    console.log('\n5. the catalog');
+
+    const cat = await rpc(student.token, 'interview_catalog');
+    const catBody = await cat.json();
+    ok('a student gets a catalog', cat.ok && Array.isArray(catBody.fields),
+      `${cat.status} ${JSON.stringify(catBody).slice(0, 160)}`);
+    ok('with a suggested role, even with no path chosen',
+      catBody.suggested != null && typeof catBody.suggested.slug === 'string',
+      JSON.stringify(catBody.suggested));
+    const anonCat = await rpc(ANON, 'interview_catalog');
+    ok('anon cannot read it', !anonCat.ok, `${anonCat.status}`);
+
+    // ---------------------------------------------------------------------
+    console.log('\n6. sets a model wrote (read-only; the owner decides)');
+
+    const { rows: model } = await pg.query(
+      `select role_slug, session_type::text t, difficulty::text d,
+              jsonb_array_length(questions) n, created_at
+         from public.interview_question_bank
+        where source = 'model'
+        order by role_slug, session_type, difficulty`);
+    if (model.length === 0) {
+      console.log('  none');
+    } else {
+      for (const m of model) {
+        console.log(`  ${m.role_slug} / ${m.t} / ${m.d}: ${m.n} questions, ${m.created_at.toISOString()}`);
+      }
+      console.log(`  ${model.length} model-written sets. Removal is an owner decision (plan §7).`);
+    }
   } finally {
     await admin(`/auth/v1/admin/users/${student.id}`, { method: 'DELETE' });
     await pg.end();

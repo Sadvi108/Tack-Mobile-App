@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/analytics.dart';
@@ -12,6 +11,8 @@ import '../../profile/data/profile.dart';
 import '../../roadmap/data/roadmap_repository.dart';
 import '../application/dashboard_data.dart';
 import '../application/insights.dart';
+import '../../toolkit/application/toolkit_analytics.dart';
+import '../../toolkit/application/toolkit_tools.dart';
 import '../data/dashboard_feed.dart';
 import 'insight_deck.dart';
 import 'motion.dart';
@@ -108,12 +109,17 @@ class _Dashboard extends ConsumerWidget {
       // The coach floats over the dashboard rather than taking a tab: the five
       // destinations are full at 360px, and asking a question is something a
       // student does *about* what they are looking at, not instead of it.
-      floatingAction: _CoachButton(onTap: () => context.push(Routes.coach)),
+      floatingAction: _CoachButton(
+        onTap: () {
+          ref.read(toolOpenedProvider)(ToolkitTool.coach, ToolSource.home);
+          tackOpen(context, Routes.coach);
+        },
+      ),
       header: TackHomeHeader(
         initials: profile.initials,
         unread: feed.unreadNotifications,
-        onAvatarTap: () => context.go(Routes.profile),
-        onBellTap: () => context.push(Routes.notifications),
+        onAvatarTap: () => tackOpen(context, Routes.profile),
+        onBellTap: () => tackOpen(context, Routes.notifications),
       ),
       body: RefreshIndicator(
         color: TackColors.maroon,
@@ -166,7 +172,7 @@ class _Dashboard extends ConsumerWidget {
               reveal(
                 _ExploreCta(
                   available: feed.availablePaths,
-                  onTap: () => context.push(Routes.paths),
+                  onTap: () => tackOpen(context, Routes.paths),
                 ),
               ),
               const SizedBox(height: TackSpace.stackLoose),
@@ -179,8 +185,8 @@ class _Dashboard extends ConsumerWidget {
                   overdue: data.overdue,
                   today: feed.today,
                   hasApplications: data.counts.total > 0,
-                  onOpen: (entry) => context.push(entry.route),
-                  onSeeAll: () => context.go(Routes.applications),
+                  onOpen: (entry) => tackOpen(context, entry.route),
+                  onSeeAll: () => tackOpen(context, Routes.applications),
                 ),
               ),
               const SizedBox(height: TackSpace.stackLoose),
@@ -191,7 +197,7 @@ class _Dashboard extends ConsumerWidget {
                 score: data.score.total,
                 areasScored: data.areasScored,
                 areasCounted: data.areasCounted,
-                onSeeBreakdown: () => context.push(Routes.score),
+                onSeeBreakdown: () => tackOpen(context, Routes.score),
                 animated: true,
               ),
             ),
@@ -215,7 +221,7 @@ class _Dashboard extends ConsumerWidget {
               reveal(
                 StartHereCard(
                   steps: data.setupSteps,
-                  onOpen: (step) => context.go(step.route),
+                  onOpen: (step) => tackOpen(context, step.route),
                 ),
               ),
               const SizedBox(height: TackSpace.stackLoose),
@@ -226,7 +232,7 @@ class _Dashboard extends ConsumerWidget {
                   heading: mode == YearMode.explore || mode == YearMode.discover
                       ? 'Try these this month'
                       : 'Your next three actions',
-                  onOpen: (action) => context.go(action.route),
+                  onOpen: (action) => tackOpen(context, action.route),
                   onTickTask: (action) async {
                     await ref
                         .read(roadmapRepositoryProvider)
@@ -250,7 +256,7 @@ class _Dashboard extends ConsumerWidget {
                 TimelineCard(
                   entries: [...data.overdue, ...data.upcoming],
                   today: feed.today,
-                  onOpen: (entry) => context.push(entry.route),
+                  onOpen: (entry) => tackOpen(context, entry.route),
                 ),
               ),
               const SizedBox(height: TackSpace.stackLoose),
@@ -264,7 +270,8 @@ class _Dashboard extends ConsumerWidget {
                   gap: feed.skillGap,
                   held: feed.skillsHeld,
                   asked: feed.skillsAsked,
-                  onOpen: () => context.push(
+                  onOpen: () => tackOpen(
+                    context,
                     feed.primaryPathSlug == null
                         ? Routes.paths
                         : Routes.path(feed.primaryPathSlug!),
@@ -296,8 +303,8 @@ class _Dashboard extends ConsumerWidget {
                     }
                   },
                   onOpen: () =>
-                      context.push(Routes.path(feed.following.first.slug)),
-                  onBrowse: () => context.push(Routes.paths),
+                      tackOpen(context, Routes.path(feed.following.first.slug)),
+                  onBrowse: () => tackOpen(context, Routes.paths),
                 ),
               ),
               const SizedBox(height: TackSpace.stackLoose),
@@ -308,7 +315,7 @@ class _Dashboard extends ConsumerWidget {
               reveal(
                 NoTargetCard(
                   statedRole: role,
-                  onBrowse: () => context.push(Routes.paths),
+                  onBrowse: () => tackOpen(context, Routes.paths),
                 ),
               ),
               const SizedBox(height: TackSpace.stackLoose),
@@ -320,7 +327,7 @@ class _Dashboard extends ConsumerWidget {
                 weekChange: data.weekChange,
                 thisWeek: feed.thisWeek,
                 lastWeek: feed.lastWeek,
-                onTap: () => context.push(Routes.score),
+                onTap: () => tackOpen(context, Routes.score),
               ),
             ),
             const SizedBox(height: TackSpace.stackLoose),
@@ -332,7 +339,7 @@ class _Dashboard extends ConsumerWidget {
               reveal(
                 _RoadmapProgressCard(
                   roadmap: data.roadmap,
-                  onTap: () => context.go(Routes.roadmap),
+                  onTap: () => tackOpen(context, Routes.roadmap),
                 ),
               ),
               const SizedBox(height: TackSpace.stackLoose),
@@ -344,25 +351,11 @@ class _Dashboard extends ConsumerWidget {
               reveal(
                 ApplicationFunnel(
                   counts: data.counts.asWireMap,
-                  onTap: () => context.go(Routes.applications),
+                  onTap: () => tackOpen(context, Routes.applications),
                 ),
               ),
               const SizedBox(height: TackSpace.stackLoose),
             ],
-
-            // Interview practice and the job-description analyser are whole
-            // features that nothing in the app navigated to. They had routes
-            // and screens and no door: the only way in was a deep link, which
-            // is also why their back arrows had never worked.
-            // reveal() brings the gutter; wrapping this in padded() as well
-            // indented it twice, and it sat 20px inside every other card.
-            reveal(
-              _GetReady(
-                onInterview: () => context.push(Routes.interview),
-                onAnalyse: () => context.push(Routes.analyser),
-              ),
-            ),
-            const SizedBox(height: TackSpace.stackLoose),
 
             padded(const PrivacyNote()),
             const SizedBox(height: TackSpace.xl),
@@ -384,7 +377,7 @@ class _Dashboard extends ConsumerWidget {
           'insight_opened',
           properties: {'insight': insight.id, 'tone': insight.tone.name},
         );
-    context.push(route);
+    tackOpen(context, route);
   }
 
   /// By the student's clock, not the server's: "good evening" at nine in the
@@ -513,12 +506,7 @@ class _NextSevenDays extends StatelessWidget {
               hasApplications
                   ? 'Nothing due this week. A good week to line up what is next.'
                   : 'Nothing here yet. Add an application and its dates show up here.',
-              style: const TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 15,
-                height: 1.45,
-                color: onMaroon,
-              ),
+              style: TackText.body.copyWith(height: 1.45, color: onMaroon),
             )
           else
             // Rows touch, with no gap between them. The gap used to be padding
@@ -551,7 +539,6 @@ class _NextSevenDays extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                           style: TackText.body.copyWith(
                             color: TackColors.onBrand,
-                            fontSize: 15,
                           ),
                         ),
                       ),
@@ -687,109 +674,4 @@ class _DashboardLoading extends StatelessWidget {
       ),
     );
   }
-}
-
-/// The two tools that had no way in.
-///
-/// Deliberately last on the dashboard and deliberately quiet: neither is
-/// something a student does daily, and both are what you reach for when an
-/// interview is actually coming. Putting them above the roadmap would suggest
-/// otherwise.
-class _GetReady extends StatelessWidget {
-  const _GetReady({required this.onInterview, required this.onAnalyse});
-
-  final VoidCallback onInterview;
-  final VoidCallback onAnalyse;
-
-  @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text('When it gets real', style: TackText.sectionHeader),
-      const SizedBox(height: TackSpace.md),
-      // Two panes side by side rather than two rows in one card: each is a
-      // whole thing to press, and a thumb finds a tile faster than a line.
-      IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(
-              child: _ToolTile(
-                icon: TackIcons.practice,
-                title: 'Practise an interview',
-                // Not "free": feedback on an answer is a model call and spends
-                // an AI action. The practice screen says so before it does.
-                body:
-                    'Real questions for your role, and feedback on each answer.',
-                wellColour: TackColors.maroonTint,
-                iconColour: TackColors.maroonText,
-                onTap: onInterview,
-              ),
-            ),
-            const SizedBox(width: TackSpace.stack),
-            Expanded(
-              child: _ToolTile(
-                icon: TackIcons.file,
-                title: 'Check a job description',
-                body: 'Paste one in and see what you already match.',
-                wellColour: TackColors.tealTint,
-                iconColour: TackColors.tealText,
-                onTap: onAnalyse,
-              ),
-            ),
-          ],
-        ),
-      ),
-    ],
-  );
-}
-
-class _ToolTile extends StatelessWidget {
-  const _ToolTile({
-    required this.icon,
-    required this.title,
-    required this.body,
-    required this.wellColour,
-    required this.iconColour,
-    required this.onTap,
-  });
-
-  final String icon;
-  final String title;
-  final String body;
-  final Color wellColour;
-  final Color iconColour;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) => TackCard(
-    compact: true,
-    onTap: onTap,
-    padding: const EdgeInsets.all(TackSpace.lg),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Container(
-              width: 44,
-              height: 44,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: wellColour,
-                borderRadius: TackRadius.buttonAll,
-              ),
-              child: TackIcon(icon, size: 22, color: iconColour),
-            ),
-            const Spacer(),
-            const TackCardArrow(),
-          ],
-        ),
-        const SizedBox(height: TackSpace.md),
-        Text(title, style: TackText.rowTitle),
-        const SizedBox(height: TackSpace.xs),
-        Text(body, style: TackText.meta),
-      ],
-    ),
-  );
 }

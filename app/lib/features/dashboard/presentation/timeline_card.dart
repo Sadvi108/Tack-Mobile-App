@@ -108,7 +108,7 @@ class _Row extends StatelessWidget {
               width: 74,
               child: Text(
                 when,
-                style: TackText.pill.copyWith(color: whenColour, fontSize: 13),
+                style: TackText.pill.copyWith(color: whenColour),
               ),
             ),
             Expanded(

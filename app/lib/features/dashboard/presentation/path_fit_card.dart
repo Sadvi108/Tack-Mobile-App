@@ -149,7 +149,6 @@ class _SkillChip extends StatelessWidget {
       child: Text(
         skill.name,
         style: TackText.chip.copyWith(
-          fontSize: 14,
           color: skill.isCore ? TackColors.maroonText : TackColors.ink,
         ),
       ),

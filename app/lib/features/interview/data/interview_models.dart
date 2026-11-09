@@ -41,6 +41,9 @@ class InterviewQuestion {
     this.answerText,
     this.skipped = false,
     this.feedback,
+    this.keyPoints = const [],
+    this.poolQuestionId,
+    this.selfCheck,
   });
 
   final String id;
@@ -51,7 +54,20 @@ class InterviewQuestion {
   final bool skipped;
   final AnswerFeedback? feedback;
 
+  /// What a strong answer covers, from the question pool. Empty for company
+  /// packs and for sets written before the pool existed.
+  final List<String> keyPoints;
+
+  /// The pool question this was drawn from, so the next draw can avoid it.
+  final String? poolQuestionId;
+
+  /// What the student ticked when they checked their own answer.
+  final SelfCheck? selfCheck;
+
   bool get isAnswered => (answerText?.isNotEmpty ?? false) || skipped;
+
+  /// AI feedback on an answer that was attempted.
+  bool get isAiScored => feedback != null && !skipped;
 
   factory InterviewQuestion.fromRow(Map<String, dynamic> row) {
     final rawFeedback = row['interview_feedback'];
@@ -68,8 +84,53 @@ class InterviewQuestion {
       feedback: feedbackRow == null
           ? null
           : AnswerFeedback.fromRow(feedbackRow.cast<String, dynamic>()),
+      keyPoints: parseKeyPoints(row['key_points']),
+      poolQuestionId: row['pool_question_id'] is String
+          ? row['pool_question_id'] as String
+          : null,
+      selfCheck: SelfCheck.fromJson(row['self_check']),
     );
   }
+}
+
+/// Key points as stored: strings only, trimmed, never blank, at most four.
+/// Anything else in the column is ignored rather than drawn.
+List<String> parseKeyPoints(Object? value) {
+  if (value is! List) return const [];
+  return [
+    for (final item in value)
+      if (item is String && item.trim().isNotEmpty) item.trim(),
+  ].take(4).toList(growable: false);
+}
+
+/// Which key points a student said their answer covered:
+/// `{"covered": [0, 2], "total": 4}`.
+class SelfCheck {
+  const SelfCheck({required this.covered, required this.total});
+
+  /// Distinct indexes into the key points, in order.
+  final List<int> covered;
+
+  /// How many key points there were, 1 to 4.
+  final int total;
+
+  /// Null for anything that is not a usable check. Indexes outside the key
+  /// points and repeats are dropped.
+  static SelfCheck? fromJson(Object? value) {
+    if (value is! Map) return null;
+    final total = value['total'];
+    final covered = value['covered'];
+    if (total is! int || total < 1 || total > 4 || covered is! List) {
+      return null;
+    }
+    final indexes = <int>{
+      for (final i in covered)
+        if (i is int && i >= 0 && i < total) i,
+    }.toList()..sort();
+    return SelfCheck(covered: indexes, total: total);
+  }
+
+  Map<String, Object> toJson() => {'covered': covered, 'total': total};
 }
 
 class AnswerFeedback {
@@ -107,6 +168,7 @@ class InterviewSession {
   const InterviewSession({
     required this.id,
     required this.role,
+    this.roleSlug,
     required this.type,
     required this.difficulty,
     required this.timerEnabled,
@@ -120,6 +182,10 @@ class InterviewSession {
 
   final String id;
   final String role;
+
+  /// The pool role this session was drawn for. Null for company packs and for
+  /// sessions started before the pool existed.
+  final String? roleSlug;
   final InterviewType type;
   final Difficulty difficulty;
   final bool timerEnabled;
@@ -151,6 +217,25 @@ class InterviewSession {
     return scored.reduce((a, b) => a + b) / scored.length;
   }
 
+  /// Whether any answer got AI feedback.
+  bool get anyAiScored => questions.any((q) => q.isAiScored);
+
+  /// Answers the student actually gave and checked, by AI or by themselves.
+  int get attempted => questions
+      .where((q) => !q.skipped && (q.feedback != null || q.selfCheck != null))
+      .length;
+
+  int get keyPointsCovered =>
+      questions.fold(0, (sum, q) => sum + (q.selfCheck?.covered.length ?? 0));
+
+  int get keyPointsTotal =>
+      questions.fold(0, (sum, q) => sum + (q.selfCheck?.total ?? 0));
+
+  /// What is stored as the session's score. Null when nothing was scored by
+  /// AI, so a free practice session never counts as a zero in the readiness
+  /// score.
+  double? get overallForStorage => anyAiScored ? averageScore : null;
+
   factory InterviewSession.fromRow(Map<String, dynamic> row) {
     final questions =
         ((row['interview_questions'] as List?) ?? const [])
@@ -162,6 +247,7 @@ class InterviewSession {
     return InterviewSession(
       id: row['id'] as String,
       role: row['role'] as String,
+      roleSlug: row['role_slug'] is String ? row['role_slug'] as String : null,
       type: InterviewType.fromWire(row['session_type'] as String?),
       difficulty: Difficulty.fromWire(row['difficulty'] as String?),
       timerEnabled: row['timer_enabled'] as bool? ?? false,
@@ -228,6 +314,8 @@ class DueQuestion {
     this.answerText,
     this.toImprove = const [],
     this.modelAnswer,
+    this.keyPoints = const [],
+    this.category,
   });
 
   final String questionId;
@@ -237,10 +325,15 @@ class DueQuestion {
   final List<String> toImprove;
   final String? modelAnswer;
 
+  /// What a strong answer covers, when the question came from the pool.
+  final List<String> keyPoints;
+  final String? category;
+
   bool get hasNotes =>
       (answerText?.isNotEmpty ?? false) ||
       toImprove.isNotEmpty ||
-      (modelAnswer?.isNotEmpty ?? false);
+      (modelAnswer?.isNotEmpty ?? false) ||
+      keyPoints.isNotEmpty;
 
   /// Null when the row is missing what the screen cannot do without.
   static DueQuestion? fromJson(Map<String, dynamic> json) {
@@ -259,6 +352,8 @@ class DueQuestion {
           if (item is String && item.trim().isNotEmpty) item,
       ],
       modelAnswer: json['model_answer'] as String?,
+      keyPoints: parseKeyPoints(json['key_points']),
+      category: json['category'] is String ? json['category'] as String : null,
     );
   }
 }

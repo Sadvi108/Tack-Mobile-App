@@ -303,7 +303,16 @@ class _RoadmapScreenState extends ConsumerState<RoadmapScreen> {
   Widget build(BuildContext context) {
     final roadmapsAsync = ref.watch(roadmapsProvider);
     return TackScaffold(
-      header: const TackHeader(title: 'Your roadmap'),
+      header: TackHeader(
+        title: 'Your roadmap',
+        // Paths lost their tab; the roadmap is where a student decides
+        // what to follow, so the way to them sits here.
+        trailing: TackGlassIconButton(
+          icon: TackIcons.paths,
+          semanticLabel: 'Career paths',
+          onTap: () => context.push(Routes.paths),
+        ),
+      ),
       // The body brings its own ListView so the milestones build lazily; the
       // whole roadmap used to be an eager Column inside the shell's scroll
       // view, so every task of every milestone was laid out on every frame.

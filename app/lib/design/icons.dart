@@ -19,6 +19,11 @@ class TackIcons {
   static const practice =
       '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="2.5"/>';
 
+  /// A toolbox: the tab that holds practice, checks, the coach and the
+  /// documents.
+  static const toolkit =
+      '<rect x="3" y="8" width="18" height="12" rx="2.5"/><path d="M9 8V6.5A1.5 1.5 0 0 1 10.5 5h3A1.5 1.5 0 0 1 15 6.5V8M3 13h18M10.5 13v2h3v-2"/>';
+
   /// A sweep, not a magnifying glass: Radar keeps watching, it is not a
   /// search box you have to remember to visit.
   static const radar =

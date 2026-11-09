@@ -1,13 +1,26 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:tack/core/ai/allowance.dart';
 import 'package:tack/features/analyser/application/analyser_controller.dart';
 import 'package:tack/features/analyser/application/cv_coverage.dart';
 import 'package:tack/features/analyser/data/analysis_models.dart';
 import 'package:tack/features/analyser/presentation/analyser_screen.dart';
-import 'package:tack/features/coach/data/coach_repository.dart';
 
 import '../../helpers.dart';
+
+class _Idle extends AnalyserController {
+  @override
+  AnalysisState build() => const AnalysisIdle();
+}
+
+class _Spent extends AnalyserController {
+  @override
+  AnalysisState build() => const AnalysisFailed(
+    'You have used today\'s AI actions.',
+    quotaExhausted: true,
+  );
+}
 
 class _Ready extends AnalyserController {
   @override
@@ -55,7 +68,7 @@ void main() {
     List<Override> overrides(List<String>? cvSkills) => [
       analyserControllerProvider.overrideWith(_Ready.new),
       aiAllowanceProvider.overrideWith(
-        (ref) async => const AiAllowance(used: 1, limit: 10),
+        (ref) async => const AiAllowance(used: 1, limit: 4),
       ),
       latestCvSkillsProvider.overrideWith((ref) async => cvSkills),
     ];
@@ -99,6 +112,70 @@ void main() {
 
       expect(find.text('Can hiring software see these?'), findsOneWidget);
       expect(find.text('Check my CV'), findsOneWidget);
+    });
+  });
+
+  // The note before the work starts says what is left, never the whole
+  // allowance: the limit is the server's, and it is not a student's number.
+  group('before the work starts', () {
+    setUpAll(loadTackFonts);
+
+    testWidgets('the allowance note says what is left, not the limit', (
+      tester,
+    ) async {
+      await pumpAt(
+        tester,
+        const AnalyserScreen(),
+        size: const Size(360, 1200),
+        overrides: [
+          analyserControllerProvider.overrideWith(_Idle.new),
+          aiAllowanceProvider.overrideWith(
+            (ref) async => const AiAllowance(used: 1, limit: 4),
+          ),
+        ],
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text(
+          '3 AI actions left today, shared across Tack. They reset at midnight.',
+        ),
+        findsOneWidget,
+      );
+      expect(find.textContaining('of 4'), findsNothing);
+      expect(hasOverflow(tester), isFalse);
+    });
+
+    // The quota state explains the trade. It used to print the daily number
+    // twice ("Every student gets N a day ... Your next N arrive").
+    testWidgets('a spent allowance explains the trade, never the number', (
+      tester,
+    ) async {
+      await pumpAt(
+        tester,
+        const AnalyserScreen(),
+        size: const Size(360, 1200),
+        overrides: [
+          analyserControllerProvider.overrideWith(_Spent.new),
+          aiAllowanceProvider.overrideWith(
+            (ref) async => const AiAllowance(used: 4, limit: 4),
+          ),
+        ],
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('You have used today\'s AI actions'), findsOneWidget);
+      expect(
+        find.text(
+          'The daily limit is what keeps Tack free for everyone. Plenty here '
+          'costs nothing: the CV check, interview practice with self-checks, '
+          'Radar and your roadmap. More arrive at midnight.',
+        ),
+        findsOneWidget,
+      );
+      expect(find.textContaining(RegExp(r'\d')), findsNothing);
+      expect(find.text('Work on your roadmap instead'), findsOneWidget);
+      expect(hasOverflow(tester), isFalse);
     });
   });
 }

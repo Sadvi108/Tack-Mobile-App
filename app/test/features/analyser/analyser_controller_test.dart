@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:tack/core/failure.dart';
 import 'package:tack/core/supabase/client.dart';
 import 'package:tack/features/analyser/application/analyser_controller.dart';
 import 'package:tack/features/analyser/data/analysis_models.dart';
@@ -40,9 +41,13 @@ class _FakeRepository extends AnalysisRepository {
 
   String? submittedJobId;
 
+  /// Thrown by [submit] instead of queueing, when set.
+  Object? submitError;
+
   @override
   Future<AnalysisState> submit(String text, {String? jobId}) async {
     submittedJobId = jobId;
+    if (submitError case final error?) throw error;
     return const AnalysisQueued('job-1');
   }
 
@@ -183,6 +188,43 @@ void main() {
       expect(repository.changes.hasListener, isFalse);
       container.dispose();
     });
+  });
+
+  // A spent allowance used to arrive as a 429 status the repository read off
+  // the response. functions_client throws on a 429, so that branch never ran
+  // and the student saw a general error. It now arrives as a coded failure.
+  testWidgets('a spent allowance shows the quota state, in the server words', (
+    tester,
+  ) async {
+    final repository = _FakeRepository()
+      ..submitError = const Failure(
+        'You have used today\'s AI actions.',
+        code: 'quota_exhausted',
+      );
+    final container = _containerWith(repository);
+
+    await _analyse(container);
+
+    final state = container.read(analyserControllerProvider);
+    expect(state, isA<AnalysisFailed>());
+    expect((state as AnalysisFailed).quotaExhausted, isTrue);
+    expect(state.message, 'You have used today\'s AI actions.');
+    container.dispose();
+  });
+
+  testWidgets('any other failure is an error, not the quota state', (
+    tester,
+  ) async {
+    final repository = _FakeRepository()
+      ..submitError = const Failure('That did not work.', code: 'queue_busy');
+    final container = _containerWith(repository);
+
+    await _analyse(container);
+
+    final state = container.read(analyserControllerProvider);
+    expect((state as AnalysisFailed).quotaExhausted, isFalse);
+    expect(state.message, 'That did not work.');
+    container.dispose();
   });
 
   testWidgets('checking a saved job carries its id to the server', (

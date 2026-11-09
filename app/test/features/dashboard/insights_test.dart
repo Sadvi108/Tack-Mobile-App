@@ -369,4 +369,84 @@ void main() {
       expect(idsOf(insights), isNot(contains('next-task')));
     });
   });
+
+  // An application at interview is the moment practice matters most, and the
+  // Toolkit is where it lives now. Only for the years that talk about jobs.
+  group('an interview coming up', () {
+    const one = ApplicationCounts({TackStatus.interview: 1});
+    const two = ApplicationCounts({
+      TackStatus.interview: 2,
+      TackStatus.applied: 3,
+    });
+
+    test('points at practice, after today and before the streak', () {
+      final insights = buildInsights(
+        feed(
+          mode: YearMode.launch,
+          counts: two,
+          streak: const Streak(current: 4, longest: 9, days: []),
+        ),
+      );
+      final card = insights.firstWhere((i) => i.id == 'interview-stage');
+      expect(card.label, 'INTERVIEW');
+      expect(card.title, '2 applications are at interview');
+      expect(
+        card.body,
+        'Practise the questions they are likely to ask. Company packs are '
+        'free.',
+      );
+      expect(card.ctaLabel, 'Practise now');
+      expect(card.route, '/interview');
+      expect(card.tone, InsightTone.opportunity);
+      final ids = idsOf(insights);
+      expect(ids.indexOf('interview-stage'), lessThan(ids.indexOf('streak')));
+    });
+
+    test('one is said as one', () {
+      final card = buildInsights(
+        feed(mode: YearMode.prove, counts: one),
+      ).firstWhere((i) => i.id == 'interview-stage');
+      expect(card.title, 'One application is at interview');
+    });
+
+    test('appears for prove, launch and graduate only', () {
+      for (final mode in YearMode.values) {
+        final ids = idsOf(buildInsights(feed(mode: mode, counts: one)));
+        final talksAboutJobs = const {
+          YearMode.prove,
+          YearMode.launch,
+          YearMode.graduate,
+        }.contains(mode);
+        expect(
+          ids.contains('interview-stage'),
+          talksAboutJobs,
+          reason: mode.name,
+        );
+      }
+    });
+
+    test('needs an interview to count', () {
+      expect(
+        idsOf(
+          buildInsights(
+            feed(
+              mode: YearMode.launch,
+              counts: const ApplicationCounts({TackStatus.applied: 2}),
+            ),
+          ),
+        ),
+        isNot(contains('interview-stage')),
+      );
+    });
+  });
+
+  test('no callbacks opens the free CV check', () {
+    final card = buildInsights(
+      feed(
+        mode: YearMode.launch,
+        counts: const ApplicationCounts({TackStatus.applied: 9}),
+      ),
+    ).firstWhere((i) => i.id == 'no-callbacks');
+    expect(card.route, '/vault/check');
+  });
 }

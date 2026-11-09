@@ -1,21 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
-import '../../../core/failure.dart';
 import '../../../design/tack.dart';
 import '../../../routing/router.dart';
-import '../data/coach_models.dart';
-import '../data/coach_repository.dart';
-import 'guide_citations.dart';
+import '../application/coach.dart';
+import 'coach_widgets.dart';
 
 /// The coach.
 ///
-/// Three questions a day is a hard limit, so the screen's main job — before it
-/// is a chat at all — is to make sure a student never spends one by accident.
-/// The questions Tack answers for free are offered up front, every reply says
-/// which kind it was, and the counter is visible before you type rather than
-/// after you have run out.
+/// The daily AI allowance is small and shared with the rest of Tack, so the
+/// screen's main job — before it is a chat at all — is to make sure a student
+/// never spends an action by accident. The free questions for their year are
+/// offered up front, every reply says which kind it was, what is left today
+/// is visible before they type, and every reply points at a screen to open.
 class CoachScreen extends ConsumerStatefulWidget {
   const CoachScreen({super.key});
 
@@ -27,12 +24,6 @@ class _CoachScreenState extends ConsumerState<CoachScreen> {
   final _input = TextEditingController();
   final _scroll = ScrollController();
 
-  final _messages = <ChatMessage>[];
-  String? _threadId;
-  bool _sending = false;
-  bool _loaded = false;
-  String? _limitNotice;
-
   @override
   void dispose() {
     _input.dispose();
@@ -40,68 +31,16 @@ class _CoachScreenState extends ConsumerState<CoachScreen> {
     super.dispose();
   }
 
-  void _adoptHistory((String?, List<ChatMessage>) history) {
-    if (_loaded) return;
-    _loaded = true;
-    _threadId = history.$1;
-    _messages.addAll(history.$2);
+  void _send(String question) {
+    if (question.trim().isEmpty) return;
+    if (ref.read(coachControllerProvider).busy) return;
+    _input.clear();
+    ref.read(coachControllerProvider.notifier).send(question);
   }
 
-  Future<void> _send(String question) async {
-    final text = question.trim();
-    if (text.isEmpty || _sending) return;
-
-    setState(() {
-      _sending = true;
-      _limitNotice = null;
-      _messages.add(
-        ChatMessage(
-          id: 'local-${DateTime.now().microsecondsSinceEpoch}',
-          role: 'student',
-          body: text,
-          createdAt: DateTime.now(),
-        ),
-      );
-    });
-    _input.clear();
-    _toBottom();
-
-    try {
-      final reply = await ref
-          .read(coachRepositoryProvider)
-          .ask(text, threadId: _threadId);
-      if (!mounted) return;
-
-      setState(() {
-        _threadId = reply.threadId;
-        if (reply.hitLimit) {
-          _limitNotice = reply.limitMessage;
-        } else if (reply.body != null) {
-          _messages.add(
-            ChatMessage(
-              id: 'local-reply-${DateTime.now().microsecondsSinceEpoch}',
-              role: 'coach',
-              body: reply.body!,
-              createdAt: DateTime.now(),
-              answeredBy: reply.answeredBy,
-              citations: reply.citations,
-              fromGuides: reply.fromGuides,
-            ),
-          );
-        }
-      });
-      ref.invalidate(aiAllowanceProvider);
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _limitNotice = e is Failure
-            ? e.message
-            : 'The coach could not answer just now. Try again.';
-      });
-    } finally {
-      if (mounted) setState(() => _sending = false);
-      _toBottom();
-    }
+  void _open(CoachAction action, String destination, YearMode mode) {
+    ref.read(coachControllerProvider.notifier).recordTap(action, mode);
+    tackOpen(context, destination);
   }
 
   void _toBottom() {
@@ -117,46 +56,85 @@ class _CoachScreenState extends ConsumerState<CoachScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final history = ref.watch(coachHistoryProvider);
-    history.whenData(_adoptHistory);
+    final coach = ref.watch(coachControllerProvider);
+    final mode = ref.watch(modeProvider);
     final allowance = ref.watch(aiAllowanceProvider).value;
+    ref.listen(
+      coachControllerProvider.select(
+        (s) => (s.messages.length, s.phase.runtimeType),
+      ),
+      (_, _) => _toBottom(),
+    );
 
+    final phase = coach.phase;
     return TackScaffold(
       scrollable: false,
       header: TackHeader(
         title: 'Your coach',
-        onBack: () => tackBack(context),
-        trailing: allowance == null ? null : _Allowance(allowance: allowance),
+        onBack: () => tackBack(context, fallback: Routes.toolkit),
       ),
       // Outside the scroll region, which is what keeps it reachable with a
-      // thumb once the keyboard is open.
-      pinnedCta: _Composer(
+      // thumb once the keyboard is open. It stays enabled when the day's AI
+      // actions are used: the free questions still work.
+      pinnedCta: CoachComposer(
         controller: _input,
-        sending: _sending,
+        busy: coach.busy,
         onSend: () => _send(_input.text),
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (allowance != null) ...[
+            CoachAllowance(allowance: allowance),
+            const SizedBox(height: TackSpace.md),
+          ],
           Expanded(
-            child: history.isLoading && _messages.isEmpty
-                ? const _Loading()
+            child: coach.loading && coach.messages.isEmpty
+                ? const CoachLoading()
                 : ListView(
                     controller: _scroll,
                     padding: EdgeInsets.zero,
                     children: [
-                      if (_messages.isEmpty)
-                        _Opening(onPick: _send)
+                      if (coach.messages.isEmpty)
+                        CoachOpening(mode: mode, onPick: _send)
                       else
-                        for (final message in _messages) ...[
-                          _Bubble(message: message),
+                        for (final message in coach.messages) ...[
+                          CoachBubble(
+                            message: message,
+                            onAction: (action, destination) =>
+                                _open(action, destination, mode),
+                            onGuide: (slug) =>
+                                tackOpen(context, Routes.path(slug)),
+                          ),
                           const SizedBox(height: TackSpace.stack),
                         ],
-                      if (_sending) const _Thinking(),
-                      if (_limitNotice case final notice?) ...[
-                        const SizedBox(height: TackSpace.sm),
-                        _Notice(notice),
-                      ],
+                      ...switch (phase) {
+                        CoachSending() => [
+                          const CoachThinking('Looking at your numbers'),
+                        ],
+                        CoachWaiting() => [
+                          const CoachThinking(
+                            'Thinking about your answer. You can leave this '
+                            'screen. The answer is saved here.',
+                          ),
+                        ],
+                        CoachFailed(:final message) => [
+                          CoachFailedNotice(
+                            message: message,
+                            onRetry: () => ref
+                                .read(coachControllerProvider.notifier)
+                                .retry(),
+                          ),
+                        ],
+                        CoachQuota(:final message) => [
+                          CoachQuotaNotice(
+                            message: message,
+                            mode: mode,
+                            onPick: _send,
+                          ),
+                        ],
+                        CoachIdle() => const <Widget>[],
+                      },
                       const SizedBox(height: TackSpace.lg),
                     ],
                   ),
@@ -165,319 +143,4 @@ class _CoachScreenState extends ConsumerState<CoachScreen> {
       ),
     );
   }
-}
-
-/// Visible before you type rather than after you run out.
-///
-/// Both numbers come from the server. The limit used to be hardcoded here as
-/// 3 while the database was free to hold a different one — raising it would
-/// have left this confidently wrong.
-///
-/// It says "AI actions", not "coach questions": the pool is shared with having
-/// a CV read properly, a job description analysed, and an interview answer
-/// read, and a student who spends it there should not arrive here puzzled.
-class _Allowance extends StatelessWidget {
-  const _Allowance({required this.allowance});
-
-  final AiAllowance allowance;
-
-  @override
-  Widget build(BuildContext context) {
-    final none = allowance.isSpent;
-    return Semantics(
-      label:
-          '${allowance.remaining} of ${allowance.limit} AI actions left '
-          'today, shared across Tack',
-      excludeSemantics: true,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
-        decoration: BoxDecoration(
-          color: none ? TackColors.sailWhite : TackColors.tealTint,
-          borderRadius: TackRadius.pillAll,
-        ),
-        child: Text(
-          '${allowance.remaining} of ${allowance.limit}',
-          style: TackText.pill.copyWith(
-            color: none ? TackColors.muted : TackColors.tealText,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// What a student sees before they have asked anything.
-///
-/// Leads with the free questions on purpose. With an allowance of three, a
-/// student who does not know which questions cost nothing will spend all three
-/// finding out.
-class _Opening extends StatelessWidget {
-  const _Opening({required this.onPick});
-
-  final void Function(String question) onPick;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Ask me about your career', style: TackText.sectionHeader),
-        const SizedBox(height: TackSpace.sm),
-        Text(
-          'I can see your score, your skills, your roadmap and what you are '
-          'aiming at. Ask anything about getting to your first job.',
-          style: TackText.bodyMuted,
-        ),
-        const SizedBox(height: TackSpace.xl),
-        Text('THESE ARE ALWAYS FREE', style: TackText.monoLabelSmall),
-        const SizedBox(height: TackSpace.sm),
-        Text(
-          'Tack answers these from your own numbers, so they never use up your '
-          'three questions a day.',
-          style: TackText.meta,
-        ),
-        const SizedBox(height: TackSpace.md),
-        for (final question in freeQuestions) ...[
-          _Suggestion(question: question, onTap: () => onPick(question)),
-          const SizedBox(height: TackSpace.sm),
-        ],
-      ],
-    );
-  }
-}
-
-class _Suggestion extends StatelessWidget {
-  const _Suggestion({required this.question, required this.onTap});
-
-  final String question;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      button: true,
-      child: GestureDetector(
-        onTap: onTap,
-        behavior: HitTestBehavior.opaque,
-        child: Container(
-          width: double.infinity,
-          constraints: const BoxConstraints(minHeight: TackSpace.tapTarget),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-          decoration: BoxDecoration(
-            color: TackColors.white,
-            borderRadius: TackRadius.listCardAll,
-            border: Border.all(color: TackColors.line),
-          ),
-          child: Row(
-            children: [
-              Expanded(child: Text(question, style: TackText.rowTitle)),
-              TackIcon(
-                TackIcons.arrowRight,
-                size: 16,
-                color: TackColors.strokeFaint,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _Bubble extends StatelessWidget {
-  const _Bubble({required this.message});
-
-  final ChatMessage message;
-
-  @override
-  Widget build(BuildContext context) {
-    final student = message.isStudent;
-
-    return Align(
-      alignment: student ? Alignment.centerRight : Alignment.centerLeft,
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.sizeOf(context).width * 0.82,
-        ),
-        child: Column(
-          crossAxisAlignment: student
-              ? CrossAxisAlignment.end
-              : CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: TackSpace.lg,
-                vertical: TackSpace.md,
-              ),
-              decoration: BoxDecoration(
-                color: student ? TackColors.maroon : TackColors.white,
-                borderRadius: TackRadius.cardAll,
-                border: student ? null : Border.all(color: TackColors.line),
-              ),
-              child: Text(
-                message.body,
-                style: TackText.body.copyWith(
-                  color: student ? TackColors.onBrand : TackColors.ink,
-                  fontSize: 15.5,
-                ),
-              ),
-            ),
-            if (!student && message.isGrounded) ...[
-              const SizedBox(height: TackSpace.sm),
-              GuideCitations(
-                guides: message.guides,
-                onOpen: (slug) => context.push(Routes.path(slug)),
-              ),
-            ],
-            // Said on every reply, so a student can learn which questions are
-            // free without reading documentation.
-            if (!student && message.answeredBy != null) ...[
-              const SizedBox(height: 5),
-              Text(
-                message.guideRefusal
-                    // Refused before a model was asked, or refunded after.
-                    ? "Tack's career guides · nothing used"
-                    : message.wasFree
-                    ? 'From your own numbers · free'
-                    // Deliberately no number. It said "one of your three" when
-                    // the allowance was ten, which is how a caption becomes a
-                    // lie nobody notices.
-                    : 'Used one AI action',
-                style: TackText.meta.copyWith(fontSize: 12.5),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// The wait is real — eight to fourteen seconds when the model is involved —
-/// so this says what is happening rather than spinning silently.
-class _Thinking extends StatelessWidget {
-  const _Thinking();
-
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: TackSpace.lg,
-          vertical: TackSpace.md,
-        ),
-        decoration: BoxDecoration(
-          color: TackColors.white,
-          borderRadius: TackRadius.cardAll,
-          border: Border.all(color: TackColors.line),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(
-              width: 14,
-              height: 14,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: TackColors.maroon,
-              ),
-            ),
-            const SizedBox(width: TackSpace.md),
-            Text('Thinking about your answer', style: TackText.bodyMuted),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _Notice extends StatelessWidget {
-  const _Notice(this.text);
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(
-        horizontal: TackSpace.cardCompactX,
-        vertical: TackSpace.cardCompactY,
-      ),
-      decoration: BoxDecoration(
-        color: TackColors.amberTint,
-        borderRadius: BorderRadius.all(TackRadius.listCard),
-      ),
-      child: Text(text, style: TackText.bodyMuted),
-    );
-  }
-}
-
-class _Composer extends StatelessWidget {
-  const _Composer({
-    required this.controller,
-    required this.sending,
-    required this.onSend,
-  });
-
-  final TextEditingController controller;
-  final bool sending;
-  final VoidCallback onSend;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        Expanded(
-          child: TackTextField(
-            controller: controller,
-            hint: 'Ask about your career',
-            onSubmitted: (_) => onSend(),
-          ),
-        ),
-        const SizedBox(width: TackSpace.sm),
-        Semantics(
-          button: true,
-          label: 'Send',
-          child: GestureDetector(
-            onTap: sending ? null : onSend,
-            behavior: HitTestBehavior.opaque,
-            child: Container(
-              width: 52,
-              height: 52,
-              decoration: BoxDecoration(
-                color: sending ? TackColors.strokeFaint : TackColors.maroon,
-                borderRadius: TackRadius.buttonAll,
-              ),
-              child: Center(
-                child: TackIcon(
-                  TackIcons.arrowRight,
-                  size: 22,
-                  color: TackColors.onBrand,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _Loading extends StatelessWidget {
-  const _Loading();
-
-  @override
-  Widget build(BuildContext context) => ListView(
-    padding: EdgeInsets.zero,
-    children: const [
-      TackSkeleton(height: 22, width: 180),
-      SizedBox(height: TackSpace.lg),
-      TackSkeleton(height: 56, radius: 18),
-      SizedBox(height: TackSpace.stack),
-      TackSkeleton(height: 56, radius: 18),
-    ],
-  );
 }

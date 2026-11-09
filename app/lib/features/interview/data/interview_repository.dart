@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/failure.dart';
 import '../../../core/supabase/client.dart';
+import 'interview_catalog.dart';
 import 'interview_models.dart';
 
 class InterviewRepository {
@@ -14,10 +15,11 @@ class InterviewRepository {
   final SupabaseClient _db;
 
   static const _select = '''
-    id, role, session_type, difficulty, timer_enabled, completed_at,
+    id, role, role_slug, session_type, difficulty, timer_enabled, completed_at,
     overall_score, strongest_area, weakest_area, points_earned,
     interview_questions(
       id, order_index, question, category, answer_text, skipped,
+      key_points, pool_question_id, self_check,
       interview_feedback(score, went_well, to_improve, model_answer)
     )
   ''';
@@ -54,6 +56,110 @@ class InterviewRepository {
           .eq('user_id', _uid)
           .maybeSingle();
       return row == null ? null : InterviewSession.fromRow(row);
+    } catch (e) {
+      throw Failure.from(e);
+    }
+  }
+
+  /// Every role a student can practise, by field, and the one suggested from
+  /// their own path, target role or field. Empty before any role is seeded.
+  Future<InterviewCatalog> catalog() async {
+    try {
+      return InterviewCatalog.fromJson(await _db.rpc('interview_catalog'));
+    } catch (e) {
+      throw Failure.from(e);
+    }
+  }
+
+  /// Starts a practice session from the role's question pool.
+  ///
+  /// Free: no Edge Function, no model and no AI action. The database draws
+  /// questions this student has not seen lately and writes the session and
+  /// its questions in one transaction (`start_practice_session`, 0096).
+  Future<InterviewSession> startPractice({
+    required String roleSlug,
+    required InterviewType type,
+    required Difficulty difficulty,
+    required bool timerEnabled,
+    int count = 5,
+  }) async {
+    try {
+      final result = await _db.rpc(
+        'start_practice_session',
+        params: {
+          'p_role_slug': roleSlug,
+          'p_session_type': type.name,
+          'p_difficulty': difficulty.name,
+          'p_count': count,
+          'p_timer': timerEnabled,
+        },
+      );
+      final id = (result as Map?)?['session_id'];
+      final created = id is String ? await byId(id) : null;
+      if (created == null) {
+        throw const Failure('The session could not be opened. Try again.');
+      }
+      return created;
+    } on PostgrestException catch (e) {
+      throw _practiceFailure(e);
+    } catch (e) {
+      throw Failure.from(e);
+    }
+  }
+
+  /// The sentences for the start's own refusals (0096). Anything else is the
+  /// usual mapping.
+  static Failure _practiceFailure(PostgrestException e) {
+    final message = e.message;
+    return switch (e.code) {
+      'P0002' => Failure(
+        'That role is not in the question bank yet. Choose another role.',
+        cause: e,
+        code: 'unknown_role',
+      ),
+      'P0001' when message.contains('too_many_sessions') => Failure(
+        'That is a lot of practice for one day. Take a break and come back '
+        'tomorrow.',
+        cause: e,
+        code: 'too_many_sessions',
+      ),
+      'P0001' => Failure(
+        'This role does not have enough questions yet. Choose another role.',
+        cause: e,
+        code: 'not_enough_questions',
+      ),
+      '22023' => Failure(
+        'Choose between 3 and 10 questions.',
+        cause: e,
+        code: e.code,
+      ),
+      _ => Failure.from(e),
+    };
+  }
+
+  /// Saves the student's own answer and what they ticked against the key
+  /// points. Free. The 0078 trigger then brings the answer back in Practise
+  /// again.
+  Future<void> saveOwnAnswer({
+    required String questionId,
+    required String answer,
+    required List<int> covered,
+    required int total,
+  }) async {
+    final check = SelfCheck.fromJson({'covered': covered, 'total': total});
+    if (check == null) {
+      throw const Failure('That check could not be saved. Try again.');
+    }
+    try {
+      await _db
+          .from('interview_questions')
+          .update({
+            'answer_text': answer,
+            'answered_at': DateTime.now().toUtc().toIso8601String(),
+            'self_check': check.toJson(),
+          })
+          .eq('id', questionId)
+          .eq('user_id', _uid);
     } catch (e) {
       throw Failure.from(e);
     }
@@ -124,8 +230,8 @@ class InterviewRepository {
     }
   }
 
-  /// Starts a session. Question sets are cached server-side by role, type and
-  /// difficulty, so a repeat setup usually costs no quota at all.
+  /// Starts a session through the interview function, as builds before the
+  /// question pool did. Kept for old paths; [startPractice] is the free start.
   Future<InterviewSession> start({
     required String role,
     required InterviewType type,
@@ -149,14 +255,6 @@ class InterviewRepository {
           const <String, dynamic>{};
       if (response.status == 202 && _jobs != null) {
         body = await _jobs.resolve(body);
-      }
-      if (response.status >= 400) {
-        final error = body['error'];
-        throw Failure(
-          error is Map && error['message'] is String
-              ? error['message'] as String
-              : 'Questions could not be prepared. Try again in a moment.',
-        );
       }
 
       final questions = (body['questions'] as List? ?? const [])
@@ -218,15 +316,6 @@ class InterviewRepository {
         body = await _jobs.resolve(body);
       }
 
-      if (response.status >= 400) {
-        final error = body['error'];
-        throw Failure(
-          error is Map && error['message'] is String
-              ? error['message'] as String
-              : 'That answer could not be reviewed. Try again in a moment.',
-        );
-      }
-
       return AnswerFeedback.fromJson(
         (body['feedback'] as Map).cast<String, dynamic>(),
       );
@@ -252,12 +341,13 @@ class InterviewRepository {
 
   /// Closes the session and records the summary. Points are awarded for
   /// finishing, because finishing is the behaviour worth encouraging.
+  ///
+  /// The score is the AI average, or null when nothing was scored by AI, so a
+  /// free session never counts as a zero in the readiness score. Strongest and
+  /// weakest come from AI-scored answers only.
   Future<InterviewSession> complete(InterviewSession session) async {
     try {
-      final average = session.averageScore;
-      final scored = session.questions
-          .where((q) => q.feedback != null && !q.skipped)
-          .toList();
+      final scored = session.questions.where((q) => q.isAiScored).toList();
 
       String? strongest;
       String? weakest;
@@ -272,10 +362,10 @@ class InterviewRepository {
           .from('interview_sessions')
           .update({
             'completed_at': DateTime.now().toUtc().toIso8601String(),
-            'overall_score': average,
+            'overall_score': session.overallForStorage,
             'strongest_area': strongest,
             'weakest_area': weakest,
-            'points_earned': 3 + scored.length,
+            'points_earned': 3 + session.attempted,
           })
           .eq('id', session.id)
           .eq('user_id', _uid);

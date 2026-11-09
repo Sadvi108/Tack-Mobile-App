@@ -61,7 +61,7 @@ class CvCheckScreen extends ConsumerWidget {
             Text('Your check is saved', style: TackText.sectionHeader),
             const SizedBox(height: TackSpace.md),
             Text(
-              'Reading your CV. You can leave and open this check from your vault later. This uses no AI action.',
+              'Reading your CV. You can leave and open this check from your documents later. This uses no AI action.',
               style: TackText.body,
             ),
           ],

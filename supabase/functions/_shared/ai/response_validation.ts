@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { MODEL_ROUTES } from "../coach/actions.ts";
 
 const text = z.string().max(8000);
 const label = z.string().trim().min(1).max(500);
@@ -47,7 +48,11 @@ const schemas: Record<string, z.ZodType> = {
     to_improve: list,
     model_answer: text.optional(),
   }),
-  coach_chat: z.strictObject({ reply: z.string().trim().min(1).max(2000) }),
+  // Route ids only, never a label, never `path`: labels and slugs are Tack's.
+  coach_chat: z.strictObject({
+    body: z.string().trim().min(1).max(1200),
+    actions: z.array(z.strictObject({ route: z.enum(MODEL_ROUTES) })).max(3),
+  }),
   coach_cited: z.strictObject({
     answered: z.boolean(),
     text: z.string().trim().max(2000),

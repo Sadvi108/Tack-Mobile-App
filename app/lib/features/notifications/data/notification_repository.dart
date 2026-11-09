@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/failure.dart';
 import '../../../core/supabase/client.dart';
+import '../../../routing/routes.dart';
 
 /// One line of the Monday brief: what needs attention, why, and where to go.
 class BriefItem {
@@ -19,7 +20,7 @@ class BriefItem {
   /// The only places a brief item can point. The server writes the route, but
   /// a tap still never follows one this app did not expect — exact screens,
   /// or one application by its id.
-  static const _screens = {'/roadmap', '/interview', '/radar'};
+  static const _screens = {Routes.roadmap, Routes.interview, Routes.radar};
   static final _application = RegExp(
     r'^/applications/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
     caseSensitive: false,
@@ -72,13 +73,13 @@ class TackNotification {
   /// is not an error — it lands on the dashboard — but it wastes the tap, which
   /// for a reminder is the whole point of sending it.
   String get route => switch (type) {
-    'analysis_ready' => '/analyser',
-    'cv_parsed' => '/vault',
-    'deadline' => '/applications',
-    'score_changed' => '/score',
-    'step_due' => '/roadmap',
-    'weekly_brief' => '/notifications',
-    _ => '/home',
+    'analysis_ready' => Routes.analyser,
+    'cv_parsed' => Routes.vault,
+    'deadline' => Routes.applications,
+    'score_changed' => Routes.score,
+    'step_due' => Routes.roadmap,
+    'weekly_brief' => Routes.notifications,
+    _ => Routes.home,
   };
 
   factory TackNotification.fromRow(Map<String, dynamic> row) =>
